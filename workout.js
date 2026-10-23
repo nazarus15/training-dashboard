@@ -42,10 +42,26 @@ window.WK = (() => {
       thr: m("Z4") / 30, vo2: m("Z5") / 20, ana: (m("Z6") + m("Z7")) / 5,
     };
     const sc = norm(s);
-    const hard = m("Z3") + m("Z4") + m("Z5") + m("Z6") + m("Z7") + m("SS");
-    let main = top(sc);
+    // головний ефект: інтенсивна зона з найбільшою кількістю хвилин, якщо інтенсивної роботи суттєво багато
+    // (≥ 25% часу або її шкала ≥ 40); інакше — аеробна база. Так 20-хв тест FTP — «Поріг», а не «Анаеробна».
+    const hm = { tempo: Math.max(0, m("Z3") - m("SS")), ss: m("SS"), thr: m("Z4"), vo2: m("Z5"), ana: m("Z6") + m("Z7") };
+    const hard = Object.values(hm).reduce((a, b) => a + b, 0), total = Object.keys(z).filter(k => k !== "SS").reduce((a, k) => a + m(k), 0);
+    const hTop = Object.entries(hm).filter(([k]) => sc[k] != null).sort((a, b) => b[1] - a[1])[0]?.[0];
+    let main = hTop && (hard >= .25 * total || sc[hTop] >= 40) ? hTop : sc.base != null ? "base" : top(sc);
     if (hard < 3 && (ev.if || 0) < 62 && (ev.mins || 0) <= 60) main = "recovery";
     return { scores: sc, main };
+  }
+
+  // Ефект виконаного заїзду: за часом у зонах потужності (Z1–Z6 + SS з intervals.icu),
+  // а якщо потужності нема — за пульсовими зонами (Z1–Z5, без sweet spot).
+  function actEffects(a) {
+    const P = a?.pZones, H = a?.hrZones;
+    let zones = null, by = null;
+    if (Array.isArray(P) && P.some(x => x > 0)) { zones = {}; P.forEach((s, i) => zones[i < 6 ? "Z" + (i + 1) : "SS"] = s || 0); by = "power"; }
+    else if (Array.isArray(H) && H.some(x => x > 0)) { zones = {}; H.forEach((s, i) => zones["Z" + Math.min(i + 1, 6)] = (zones["Z" + Math.min(i + 1, 6)] || 0) + (s || 0)); by = "hr"; }
+    if (!zones) return null;
+    const fx = rideEffects({ zones, mins: (a.moving || 0) / 60, if: a.intensity });
+    return fx && Object.keys(fx.scores).length ? { ...fx, by } : null;
   }
 
   const TAGS = [[/^сил/i, "str"], [/^гіпер/i, "hyp"], [/^витрив/i, "send"], [/^(потуж|вибух)/i, "pow"], [/^(кор|стабіл)/i, "core"]];
@@ -307,5 +323,5 @@ window.WK = (() => {
   }
 
   const TILES = [["ready", "Готовність"], ["tsb", "Форма (TSB)"], ["ctl", "Фітнес (CTL)"], ["hrv", "HRV минулої ночі"], ["rhr", "Пульс спокою"], ["sleep", "Сон"], ["bb", "Body Battery"], ["ftp", "FTP"]];
-  return { TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
+  return { actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();

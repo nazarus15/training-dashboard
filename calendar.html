@@ -29,6 +29,7 @@
 .pday .unpl{font-family:var(--f-data);font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 .pweek h3 small{font-family:var(--f-data);font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--muted);font-weight:400;margin-left:6px}
 .pweek.other h3{opacity:.7}
+.pday .t small.fxsrc{font-size:11px;font-family:var(--f-data)}
 </style>
 <script src="auth.js"></script>
 </head>
@@ -98,16 +99,19 @@ function render() {
     else if (d < t) { if (inMonth) missed++; pill = `<span class="pill off">Пропущено</span>`; }
     else if (d === t) pill = `<span class="pill today">Сьогодні</span>`;
     else pill = `<span class="pill plan">План</span>`;
-    const main = it.fx?.main ? WK.FX[it.fx.main] : null;
+    const afx = it.sport === "bike" && actual[0] ? WK.actEffects(actual[0]) : null;
+    const fx = afx || it.fx;
+    const main = fx?.main ? WK.FX[fx.main] : null;
     const detail = [WK.fmtMin(it.mins), it.time, it.load ? `навант. ${it.load}` : ""].filter(Boolean).join(" · ");
     const s = it.sess;
     const exList = s?.exercises?.length ? `<details><summary>Вправи (${s.exercises.length})</summary><ol>${s.exercises.map(e => `<li><b>${esc(e.name)}</b><span class="num">${e.sets}×${esc(e.reps)}${e.type === "time" ? " с" : ""}${e.perSide ? "/бік" : ""}</span></li>`).join("")}</ol></details>` : "";
     const title = it.sport === "strength" ? `<a href="strength.html?s=${encodeURIComponent(it.id)}">${esc(it.title)}</a>` : it.src === "planner" ? `<a href="planner.html?edit=${encodeURIComponent(it.id)}">${esc(it.title)}</a>` : esc(it.title);
-    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}</span>${pill}</span><strong>${title}</strong>${detail ? `<small>${esc(detail)}</small>` : ""}${actual[0] ? `<small class="act">${actLine(actual[0])}</small>` : ""}${WK.barsHtml(it.fx)}${exList}`;
+    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}</span>${pill}</span><strong>${title}</strong>${detail ? `<small>${esc(detail)}</small>` : ""}${actual[0] ? `<small class="act">${actLine(actual[0])}</small>` : ""}${WK.barsHtml(fx)}${afx ? `<small class="fxsrc">Ефект за фактом${afx.by === "hr" ? " (за пульсом)" : ""}</small>` : ""}${exList}`;
   };
   const extra = a => {
     const [sn, sc] = WK.SPORT[SP_BACK[a.sport]] || WK.SPORT.other;
-    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span><span class="unpl">поза планом</span></span><span class="pill done">Виконано</span></span><strong>${esc(a.name || sn)}</strong><small class="act">${actLine(a)}</small>`;
+    const fx = a.sport === "bike" ? WK.actEffects(a) : null, main = fx?.main ? WK.FX[fx.main] : null;
+    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}<span class="unpl">поза планом</span></span><span class="pill done">Виконано</span></span><strong>${esc(a.name || sn)}</strong><small class="act">${actLine(a)}</small>${WK.barsHtml(fx)}${fx?.by === "hr" ? `<small class="fxsrc">Ефект за пульсом</small>` : ""}`;
   };
   let html = "";
   for (let w = from; w <= to; w = WK.addDays(w, 7)) {

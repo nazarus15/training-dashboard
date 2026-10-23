@@ -118,8 +118,8 @@ B
       L.push(`${w} … ${we}: ${wa.length} тренувань, ${hm(wa.reduce((s, a) => s + a.moving, 0))} год, навантаження ${Math.round(wa.reduce((s, a) => s + (a.load || 0), 0))}. ${Object.entries(by).map(([k, v]) => `${k} ${v[0]}× ${hm(v[1])}`).join(", ")}`);
     }
 
-    L.push("", "== ТРЕНУВАННЯ ==", "дата час | вид | назва | тривалість | навант. | пульс сер/макс | потужн. сер/NP | IF | decoupling");
-    for (const a of acts) L.push([a.date.replace("T", " "), sportOf(a), a.name || "", hm(a.moving), a.load ?? "—", `${a.avgHr ?? "—"}/${a.maxHr ?? "—"}`, a.avgW ? `${a.avgW}/${a.np ?? "—"} Вт` : "—", a.intensity ? f(a.intensity) + "%" : "—", a.decoupling != null ? f(a.decoupling, 1) + "%" : "—"].join(" | "));
+    L.push("", "== ТРЕНУВАННЯ ==", "дата час | вид | назва | тривалість | навант. | пульс сер/макс | потужн. сер/NP | IF | decoupling | ефект 0–100");
+    for (const a of acts) L.push([a.date.replace("T", " "), sportOf(a), a.name || "", hm(a.moving), a.load ?? "—", `${a.avgHr ?? "—"}/${a.maxHr ?? "—"}`, a.avgW ? `${a.avgW}/${a.np ?? "—"} Вт` : "—", a.intensity ? f(a.intensity) + "%" : "—", a.decoupling != null ? f(a.decoupling, 1) + "%" : "—", (fx => fx ? Object.entries(fx.scores).map(([k, v]) => `${WK.FX[k].name} ${v}`).join(", ") + (fx.by === "hr" ? " (за пульсом)" : "") : "—")(sportOf(a) === "Вело" ? WK.actEffects(a) : null)].join(" | "));
 
     const sess = Object.fromEntries((PD?.workouts || []).filter(w => w.sport === "strength").map(w => [w.id, WK.session(w)]));
     const logs = JL?.logs || {};
