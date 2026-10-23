@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<link rel="apple-touch-icon" href="icon-forma.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Форма">
+<meta name="theme-color" content="#eef1f4">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Календар · Форма Назара</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="workout.css">
+<style>
+.wrap{max-width:1100px}
+.top-actions{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13px}
+.top-actions a.btn{text-decoration:none}
+</style>
+<script src="auth.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Заплановані тренування</div>
+      <h1>Календар</h1>
+    </div>
+    <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html" aria-current="page">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="settings.html">Налаштування</a></nav>
+  </header>
+  <div class="top-actions"><a class="btn" href="planner.html">+ Запланувати</a><span class="muted">Вело — з intervals.icu, силові й БЖЖ — з Планера. Під видом спорту — головний ефект тренування.</span></div>
+  <div id="cal" class="cal"><div class="notice">Завантажую…</div></div>
+  <div id="leg"></div>
+</div>
+<script src="workout.js"></script>
+<script>
+"use strict";
+(async () => {
+  await AUTH.ready;
+  const [PD, EV] = await Promise.all([WK.loadPlanned(), fetch(`data/events.json?t=${Date.now()}`).then(r => r.ok ? r.json() : null).catch(() => null)]);
+  const t = WK.today(), from = WK.addDays(WK.monday(t), -7);
+  const all = WK.items(PD, EV, from, WK.addDays(t, 120));
+  const fixed = all.filter(x => x.src !== "recurring"); const last = fixed.length ? fixed.at(-1).date : t;
+  const end = WK.addDays(WK.monday(last > WK.addDays(t, 27) ? last : WK.addDays(t, 27)), 6);
+  const its = all.filter(x => x.date <= end);
+  const DOW = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"], MON = ["січ.", "лют.", "бер.", "квіт.", "трав.", "черв.", "лип.", "серп.", "вер.", "жовт.", "лист.", "груд."];
+  const dd = s => new Date(s + "T12:00:00");
+  const chip = it => {
+    const [sn, sc] = WK.SPORT[it.sport] || WK.SPORT.other;
+    const sub = WK.subtype(it) || (it.title && it.title !== sn ? it.title : "");
+    const href = it.sport === "strength" ? `strength.html?s=${encodeURIComponent(it.id)}` : it.src === "planner" ? `planner.html?edit=${encodeURIComponent(it.id)}` : it.src === "intervals" ? "https://intervals.icu/calendar" : "";
+    const inner = `<span class="s"><span>${sn}</span>${it.time ? `<span>${WK.esc(it.time)}</span>` : ""}</span>${sub ? `<span class="e">${WK.esc(sub)}</span>` : ""}<span class="m">${WK.fmtMin(it.mins) || "—"}</span>`;
+    return href ? `<a class="ci" style="--sc:${sc}" href="${href}"${it.src === "intervals" ? ' target="_blank" rel="noopener"' : ""} title="${WK.esc(it.title)}">${inner}</a>` : `<div class="ci" style="--sc:${sc}" title="${WK.esc(it.title)}">${inner}</div>`;
+  };
+  let html = "";
+  for (let w = from; w <= end; w = WK.addDays(w, 7)) {
+    const a = dd(w), b = dd(WK.addDays(w, 6));
+    const tot = its.filter(x => x.date >= w && x.date <= WK.addDays(w, 6)).reduce((s, x) => s + (x.mins || 0), 0);
+    html += `<div class="cal-wk"><h3>${a.getDate()} ${a.getMonth() === b.getMonth() ? "" : MON[a.getMonth()] + " "}– ${b.getDate()} ${MON[b.getMonth()]}${tot ? ` · ${WK.fmtMin(tot)}` : ""}</h3><div class="cal-days">`;
+    for (let i = 0; i < 7; i++) {
+      const d = WK.addDays(w, i), di = its.filter(x => x.date === d);
+      html += `<div class="cal-d${d === t ? " today" : d < t ? " past" : ""}${di.length ? "" : " none"}"><span class="dn">${DOW[i]}<b>${dd(d).getDate()}</b></span><div class="its">${di.map(chip).join("") || `<span class="empty">—</span>`}</div></div>`;
+    }
+    html += `</div></div>`;
+  }
+  document.getElementById("cal").innerHTML = html;
+  document.getElementById("leg").innerHTML = WK.legendHtml();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<link rel="apple-touch-icon" href="icon-strength.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Планер">
+<meta name="theme-color" content="#eef1f4">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Планер · Форма Назара</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="workout.css">
+<style>
+/* Layout: зліва редактор (поля + текст тренування), справа живий перегляд того, що побачиш у журналі; нижче список запланованого. */
+.wrap{max-width:1100px}
+.ed{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.ed{grid-template-columns:1fr}}
+.form{display:flex;flex-direction:column;gap:12px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fields .wide{grid-column:1/-1}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-family:var(--f-data);letter-spacing:.04em;text-transform:uppercase}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;text-transform:none;letter-spacing:0}
+textarea{font-family:var(--f-data);font-size:14px;line-height:1.5;min-height:300px;resize:vertical;tab-size:2}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.msg{font-size:13px}
+.msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
+.warn-list{margin:0;padding-left:18px;font-size:13px;color:var(--warn)}
+.prev h3{font-size:22px;margin-bottom:8px}
+.form h3{font-size:20px;margin:0}
+.help{font-size:13px;color:var(--muted)}
+.help summary{cursor:pointer;color:var(--accent);width:fit-content}
+.help table{border-collapse:collapse;width:100%;margin-top:8px}
+.help td{padding:5px 8px 5px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.help code,.help pre{font-family:var(--f-data);font-size:12px;color:var(--ink)}
+.help pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow-x:auto;margin:8px 0 0}
+.list{display:flex;flex-direction:column}
+.li{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:none}
+.li .d{font-family:var(--f-data);font-size:12px;color:var(--muted)}
+.li .d b{display:block;font-size:14px;color:var(--ink)}
+.li .t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.li .t small{color:var(--muted);font-size:12px}
+.li .k{font-family:var(--f-data);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--kc)}
+.li .b{display:flex;gap:6px}
+.li .b .btn{padding:5px 10px;font-size:13px}
+@media (max-width:520px){.li{grid-template-columns:56px minmax(0,1fr)}.li .b{grid-column:2}}
+</style>
+<script src="auth.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Конструктор тренувань</div>
+      <h1>Планер</h1>
+    </div>
+    <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html" aria-current="page">Планер</a><a href="strength.html">Силовий журнал</a><a href="settings.html">Налаштування</a></nav>
+  </header>
+
+  <div id="tok" class="notice" hidden>Щоб зберігати тренування, підключи GitHub у <a href="settings.html">Налаштуваннях</a> — один токен на пристрій для журналу, Планера і налаштувань. Переглядати й складати текст можна й без нього.</div>
+
+  <section class="ed">
+    <form class="card form" id="form" autocomplete="off">
+      <h2 id="formTitle">Нове тренування</h2>
+      <div class="fields">
+        <label class="f">Дата<input type="date" id="fDate" required></label>
+        <label class="f">Час (необов'язково)<input type="time" id="fTime"></label>
+        <label class="f">Вид<select id="fSport"><option value="strength">Силове</option><option value="bjj">БЖЖ</option><option value="run">Біг</option><option value="other">Інше</option></select></label>
+        <label class="f">Тривалість, хв<input type="number" id="fMins" min="5" max="600" step="5" inputmode="numeric" placeholder="авто"></label>
+        <label class="f wide">Назва<input id="fTitle" placeholder="Сила А"></label>
+        <label class="f wide"><span id="fTextLabel">Текст тренування</span><textarea id="fText" spellcheck="false"></textarea></label>
+      </div>
+      <div class="acts">
+        <button class="btn" type="submit" id="bSave">Зберегти</button>
+        <button class="btn ghost" type="button" id="bTpl">Шаблон</button>
+        <button class="btn ghost" type="button" id="bCancel" hidden>Скасувати</button>
+        <button class="btn danger" type="button" id="bDel" hidden>Видалити</button>
+        <span class="msg" id="msg" role="status"></span>
+      </div>
+      <details class="help">
+        <summary>Як писати текст тренування</summary>
+        <table>
+          <tr><td><code>- Назва 4x6</code></td><td>вправа: підходи × повтори. Діапазон <code>3x8-12</code>, на час <code>3x40с</code>, <code>2x1хв</code>, до відмови <code>3xmax</code></td></tr>
+          <tr><td><code>/бік</code></td><td>на кожен бік: <code>3x8/бік</code></td></tr>
+          <tr><td><code>@…</code></td><td>вага чи снаряд: <code>@60кг</code>, <code>@штанга</code>, <code>@гиря</code>, <code>@24кг</code>, <code>@вага тіла</code>, <code>@+10кг</code></td></tr>
+          <tr><td><code>відп …</code></td><td>відпочинок: <code>відп 90с</code>, <code>відп 2хв</code>, <code>відп 2:30</code></td></tr>
+          <tr><td><code>RIR 2</code></td><td>запас повторів</td></tr>
+          <tr><td><code>// …</code></td><td>підказка; <code>// Перший раз: …</code> — поки немає історії</td></tr>
+          <tr><td><code>#сила</code></td><td>ефект вручну: <code>#сила #гіпертрофія #витривалість #потужність #кор</code></td></tr>
+          <tr><td>Рядок без <code>-</code></td><td>заголовок блоку: <code>A</code>, <code>Суперсет</code>, <code>Коло 3x відп 2хв</code>, <code>Розминка 8–10 хв</code>, <code>Заминка</code>. Вправи одного блоку йдуть по черзі. У колі можна писати лише повтори: <code>- Віджимання 15</code></td></tr>
+          <tr><td><code>Мета: …</code></td><td>опис під назвою; <code>Тривалість: 45 хв</code> — замість автоматичного розрахунку</td></tr>
+        </table>
+        <pre>Розминка 8 хв
+- Гоблет-присід — 2x8
+
+A
+- Румунська тяга 4x6 @60кг відп 2хв RIR 2
+- Підтягування 4x5-8 @вага тіла
+
+Коло 3x відп 1хв
+- Махи гирею 15 @24кг
+- Планка 40с</pre>
+        <p>Назви пиши однаково в різних тренуваннях — за назвою журнал показує «минулого разу» і прогрес.</p>
+      </details>
+    </form>
+    <div class="card prev" id="prev"></div>
+  </section>
+
+  <section class="sec">
+    <h2>Заплановано</h2>
+    <div class="card list" id="upcoming"></div>
+    <div id="recurring"></div>
+    <details class="help" id="pastWrap" hidden><summary>Минулі</summary><div class="card list" id="past" style="margin-top:8px"></div></details>
+    <div id="leg"></div>
+  </section>
+  <section class="sec" id="ai">
+    <h2>ШІ: експорт і імпорт</h2>
+    <div class="ed">
+      <div class="card form">
+        <h3>1. Експорт стану</h3>
+        <p class="help" style="margin:0">Профіль, стан сьогодні, дані по днях, тижні, усі тренування, силовий журнал і план на 14 днів — одним текстом. Встав його в будь-який чат з ШІ разом із проханням, наприклад: «Склади силові на наступні 2 тижні».</p>
+        <div class="fields">
+          <label class="f">Період<select id="xDays"><option value="14">14 днів</option><option value="28" selected>28 днів</option><option value="42">42 дні</option><option value="90">90 днів</option></select></label>
+          <label class="f" style="flex-direction:row;align-items:center;gap:8px;text-transform:none;font-family:var(--f-body);font-size:14px;color:var(--ink);align-self:end"><input type="checkbox" id="xRules" checked style="width:auto">Додати правила формату</label>
+        </div>
+        <div class="acts"><button class="btn" type="button" id="xCopy">Скопіювати експорт</button><button class="btn ghost" type="button" id="xSave">Завантажити .txt</button><span class="msg" id="xMsg" role="status"></span></div>
+        <details class="help"><summary>Лише правила формату для ШІ</summary><div class="acts" style="margin-top:8px"><button class="btn ghost" type="button" id="rCopy">Скопіювати правила</button></div><pre id="rules" style="white-space:pre-wrap;max-height:320px;overflow:auto"></pre></details>
+      </div>
+      <form class="card form" id="impForm">
+        <h3>2. Імпорт відповіді ШІ</h3>
+        <p class="help" style="margin:0">Встав відповідь цілком: сайт знайде блоки «=== дата | назва === … === кінець ===» і додасть їх як силові.</p>
+        <textarea id="imp" spellcheck="false" style="min-height:160px" aria-label="Відповідь ШІ"></textarea>
+        <div id="impList"></div>
+        <div class="acts"><button class="btn" type="submit" id="impBtn" disabled>Додати в план</button><span class="msg" id="impMsg" role="status"></span></div>
+      </form>
+    </div>
+  </section>
+</div>
+
+<script src="workout.js"></script>
+<script src="export.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = WK.esc;
+const TEMPLATE = `Мета: коротко, на що тренування.
+
+Розминка 8–10 хв
+- Гоблет-присід з паузою — 2x8
+- Скапулярні підтягування — 2x8
+- Легкі махи гирею — 1x10
+
+A
+- Присід зі штангою 4x5 @штанга відп 2хв RIR 2 // Коліна за носками
+- Підтягування 4x5-8 @вага тіла відп 2хв
+
+B
+- Жим лежачи 3x8 @штанга відп 90с RIR 2
+- Болгарські випади 3x8/бік @гиря відп 90с
+
+Коло 2x відп 1хв
+- Махи гирею 15 @24кг
+- Бічна планка 30с/бік`;
+const MON = ["січ", "лют", "бер", "квіт", "трав", "черв", "лип", "серп", "вер", "жовт", "лист", "груд"], DOW = ["нд", "пн", "вт", "ср", "чт", "пт", "сб"];
+let PD = { workouts: [], recurring: [] }, editing = null, delArmed = false;
+
+function draft() { return { date: $("fDate").value, time: $("fTime").value, sport: $("fSport").value, title: $("fTitle").value.trim(), mins: +$("fMins").value || null, text: $("fText").value }; }
+function renderPreview() {
+  const d = draft();
+  const strength = d.sport === "strength";
+  $("fTextLabel").textContent = strength ? "Текст тренування" : "Нотатки (необов'язково)";
+  $("fText").style.minHeight = strength ? "300px" : "100px";
+  $("bTpl").hidden = !strength;
+  if (!strength) { $("prev").innerHTML = `<h3>${esc(d.title || WK.SPORT[d.sport][0])}</h3><p class="muted">${esc(WK.SPORT[d.sport][0])}${d.mins ? " · " + WK.fmtMin(d.mins) : ""}${d.time ? " · " + esc(d.time) : ""}</p>${d.text ? `<p style="white-space:pre-wrap">${esc(d.text)}</p>` : ""}`; return; }
+  if (!d.text.trim()) { $("prev").innerHTML = `<h3>Перегляд</h3><p class="muted">Тут з'явиться тренування таким, як його покаже журнал. Почни писати або натисни «Шаблон».</p>`; return; }
+  const s = WK.parse(d.text); if (d.mins) s.mins = d.mins;
+  $("prev").innerHTML = `<h3>${esc(d.title || s.title || "Без назви")}</h3>${s.warnings.length ? `<ul class="warn-list">${s.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}${s.exercises.length ? WK.previewHtml(s) : `<p class="muted">Поки жодної вправи. Формат: <code>- Назва 4x6</code>.</p>`}`;
+}
+function fill(w, copy, quiet) {
+  editing = copy ? null : w;
+  $("fDate").value = copy ? "" : w.date; $("fTime").value = w.time || ""; $("fSport").value = w.sport || "strength";
+  $("fTitle").value = w.title || ""; $("fMins").value = w.mins || ""; $("fText").value = w.text || "";
+  $("formTitle").textContent = editing ? "Редагування" : copy ? "Копія тренування" : "Нове тренування";
+  $("bCancel").hidden = !editing && !copy; $("bDel").hidden = !editing; armDel(false);
+  renderPreview(); msg("");
+  if (!quiet) $("form").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+}
+function reset() { fill({ date: "", sport: "strength", text: "" }, true, true); $("formTitle").textContent = "Нове тренування"; $("bCancel").hidden = true; $("fDate").value = WK.today(); }
+function msg(t, k = "") { $("msg").textContent = t; $("msg").className = "msg " + k; }
+function armDel(on) { delArmed = on; $("bDel").textContent = on ? "Точно видалити?" : "Видалити"; }
+
+function fmtDate(s) { const d = new Date(s + "T12:00:00"); return `${DOW[d.getDay()]}<b>${d.getDate()} ${MON[d.getMonth()]}</b>`; }
+function row(w) {
+  const [sn, sc] = WK.SPORT[w.sport] || WK.SPORT.other;
+  let sub = "", mins = w.mins;
+  if (w.sport === "strength") { const s = WK.session(w); const fx = WK.strengthEffects(s); sub = fx?.main ? WK.FX[fx.main].name : ""; mins = s.mins; }
+  return `<div class="li"><span class="d">${fmtDate(w.date)}</span><span class="t"><span class="k" style="--kc:${sc}">${sn}${sub ? " · " + sub : ""}</span><strong>${esc(w.title || sn)}</strong><small>${[WK.fmtMin(mins), w.time].filter(Boolean).join(" · ")}</small></span><span class="b"><button class="btn ghost" type="button" data-edit="${esc(w.id)}">Змінити</button><button class="btn ghost" type="button" data-copy="${esc(w.id)}">Копія</button></span></div>`;
+}
+function renderList() {
+  const t = WK.today();
+  const up = PD.workouts.filter(w => w.date >= t), past = PD.workouts.filter(w => w.date < t).reverse();
+  $("upcoming").innerHTML = up.length ? up.map(row).join("") : `<p class="muted" style="margin:0">Нічого не заплановано.</p>`;
+  $("pastWrap").hidden = !past.length; $("past").innerHTML = past.map(row).join("");
+  const days = ["", "пн", "вт", "ср", "чт", "пт", "сб", "нд"];
+  $("recurring").innerHTML = PD.recurring.length ? `<p class="muted" style="margin:0;font-size:13px">Регулярні: ${PD.recurring.map(r => `${esc(r.title || WK.SPORT[r.sport]?.[0])} — ${r.days.map(d => days[d]).join(", ")}${r.time ? " о " + esc(r.time) : ""}${r.mins ? ", " + WK.fmtMin(r.mins) : ""}${r.until ? ` до ${esc(r.until)}` : ""}`).join("; ")}. Змінити — попроси Claude або відредагуй planned.json у гілці journal.</p>` : "";
+}
+
+$("form").addEventListener("input", renderPreview);
+$("form").addEventListener("change", renderPreview);
+$("bTpl").onclick = () => { if ($("fText").value.trim() && !$("fText").dataset.tplOk) { $("fText").dataset.tplOk = 1; msg("Текст не порожній. Натисни «Шаблон» ще раз, щоб замінити."); return; } $("fText").value = TEMPLATE; delete $("fText").dataset.tplOk; renderPreview(); msg(""); };
+$("bCancel").onclick = reset;
+$("bDel").onclick = async () => {
+  if (!editing) return;
+  if (!delArmed) { armDel(true); return; }
+  try { msg("Видаляю…"); const id = editing.id; PD = await WK.savePlanned(d => { d.workouts = d.workouts.filter(w => w.id !== id); }, `Планер: видалено ${editing.date} ${editing.title || ""}`); renderList(); reset(); msg("Видалено.", "ok"); }
+  catch (e) { msg(errText(e), "err"); armDel(false); }
+};
+document.addEventListener("click", e => {
+  const id = e.target.dataset?.edit || e.target.dataset?.copy; if (!id) return;
+  const w = PD.workouts.find(x => x.id === id); if (w) fill(w, !!e.target.dataset.copy);
+});
+const errText = e => e.status === 0 ? "Немає токена GitHub — підключи його в Налаштуваннях." : e.status === 401 || e.status === 403 ? "Токен не має права запису або протермінований." : "Не вдалося зберегти: немає зв'язку з GitHub. Текст лишився у формі.";
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const d = draft();
+  if (!d.date) { msg("Вкажи дату.", "err"); return; }
+  if (d.sport === "strength" && !WK.parse(d.text).exercises.length) { msg("У тексті немає жодної вправи.", "err"); return; }
+  const w = { id: editing?.id || `w-${d.date}-${Math.random().toString(36).slice(2, 6)}`, date: d.date, sport: d.sport, title: d.title || (d.sport === "strength" ? WK.parse(d.text).title || "Силове" : WK.SPORT[d.sport][0]), text: d.text.trim() };
+  if (d.time) w.time = d.time;
+  if (d.mins) w.mins = d.mins;
+  $("bSave").disabled = true; msg("Зберігаю…");
+  try {
+    PD = await WK.savePlanned(data => { data.workouts = data.workouts.filter(x => x.id !== w.id); data.workouts.push(w); }, `Планер: ${w.date} ${w.title}`);
+    renderList(); reset(); msg("Збережено. Тренування вже в календарі й журналі.", "ok");
+  } catch (err) { msg(errText(err), "err"); }
+  finally { $("bSave").disabled = false; }
+});
+
+
+// ---------- ШІ ----------
+let SET = { aiContext: "" }, imported = [];
+async function exportText() {
+  const [W, A, P, G, EV, JL] = await Promise.all([AUTH.load("wellness"), AUTH.load("activities"), AUTH.load("power"), AUTH.load("garmin"), fetch(`data/events.json?t=${Date.now()}`).then(r => r.ok ? r.json() : null).catch(() => null),
+    WK.ghGet("logs.json", "journal").then(x => AUTH.decrypt(x.data)).catch(() => null)]);
+  return WKX.build({ W, A, P, G, JL, PD, EV, days: +$("xDays").value, ctx: SET.aiContext, withRules: $("xRules").checked });
+}
+async function copy(text, id) { try { await navigator.clipboard.writeText(text); msgX(id, "Скопійовано.", "ok"); } catch { msgX(id, "Не вдалося скопіювати — скористайся «Завантажити .txt».", "err"); } }
+function msgX(id, t, k = "") { $(id).textContent = t; $(id).className = "msg " + k; }
+$("xCopy").onclick = async () => { msgX("xMsg", "Збираю…"); try { await copy(await exportText(), "xMsg"); } catch { msgX("xMsg", "Не вдалося зібрати дані.", "err"); } };
+$("xSave").onclick = async () => {
+  msgX("xMsg", "Збираю…");
+  try { const b = new Blob([await exportText()], { type: "text/plain;charset=utf-8" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `forma-export-${WK.today()}.txt`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); msgX("xMsg", "Файл збережено.", "ok"); }
+  catch { msgX("xMsg", "Не вдалося зібрати дані.", "err"); }
+};
+$("rCopy").onclick = () => copy(WKX.RULES(SET.aiContext), "xMsg");
+$("imp").addEventListener("input", () => {
+  imported = WKX.parseAnswer($("imp").value).map(w => ({ ...w, p: WK.parse(w.text) }));
+  $("impBtn").disabled = !imported.some(w => w.p.exercises.length);
+  $("impList").innerHTML = imported.length ? `<div class="list">${imported.map(w => `<div class="li"><span class="d">${fmtDate(w.date)}</span><span class="t"><strong>${esc(w.title)}</strong><small>${w.p.exercises.length ? `${w.p.exercises.length} вправ · ${WK.fmtMin(w.p.mins)}` : "немає вправ — пропущу"}${w.p.warnings.length ? ` · ${w.p.warnings.length} рядків не розпізнано` : ""}</small></span></div>`).join("")}</div>` : $("imp").value.trim() ? `<p class="msg err">Не знайшов блоків «=== РРРР-ММ-ДД | Назва === … === кінець ===».</p>` : "";
+});
+$("impForm").onsubmit = async e => {
+  e.preventDefault();
+  const add = imported.filter(w => w.p.exercises.length).map(w => ({ id: `w-${w.date}-${Math.random().toString(36).slice(2, 6)}`, date: w.date, sport: "strength", title: w.title, text: w.text }));
+  $("impBtn").disabled = true; msgX("impMsg", "Зберігаю…");
+  try { PD = await WK.savePlanned(d => { d.workouts.push(...add); }, `Планер: імпорт ${add.length} тренувань від ШІ`); renderList(); $("imp").value = ""; imported = []; $("impList").innerHTML = ""; msgX("impMsg", `Додано ${add.length}.`, "ok"); }
+  catch (err) { msgX("impMsg", errText(err), "err"); $("impBtn").disabled = false; }
+};
+(async () => {
+  await AUTH.ready;
+  $("tok").hidden = !!WK.token();
+  $("leg").innerHTML = WK.legendHtml();
+  reset();
+  [PD, SET] = await Promise.all([WK.loadPlanned(), WK.loadSettings()]);
+  $("rules").textContent = WKX.RULES(SET.aiContext);
+  renderList();
+  const id = new URLSearchParams(location.search).get("edit");
+  const w = id && PD.workouts.find(x => x.id === id);
+  if (w) fill(w, false);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+.garmin_tmp/
+__pycache__/
+*.pyc
+data/_garmin_shapes.json
+data/_rank_probe.json

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<link rel="apple-touch-icon" href="icon-forma.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Форма">
+<meta name="theme-color" content="#eef1f4">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Налаштування · Форма Назара</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="ui.css">
+<style>
+.card{display:flex;flex-direction:column;gap:12px}
+.card h2{font-size:20px}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-family:var(--f-data);letter-spacing:.04em;text-transform:uppercase}
+input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;text-transform:none;letter-spacing:0}
+textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.days{display:flex;flex-wrap:wrap;gap:6px}
+.days label{display:flex;align-items:center;gap:4px;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:99px;cursor:pointer;background:var(--bg)}
+.days input{width:auto}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.msg{font-size:13px} .msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
+.howto{font-size:13px;color:var(--muted)} .howto summary{cursor:pointer;color:var(--accent);width:fit-content}
+.howto ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+</style>
+<script src="auth.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Форма Назара</div>
+      <h1>Налаштування</h1>
+    </div>
+    <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="settings.html" aria-current="page">Налаштування</a></nav>
+  </header>
+
+  <section class="card" id="ghCard">
+    <h2>Збереження на GitHub</h2>
+    <p id="ghState"></p>
+    <form id="ghForm" class="acts" hidden><input id="ghTok" type="password" autocomplete="off" placeholder="github_pat_…" aria-label="Токен GitHub" style="flex:1;min-width:220px"><button class="btn" type="submit">Підключити</button></form>
+    <details class="howto" id="ghHow"><summary>Як отримати токен (2 хв)</summary><ol>
+      <li>Відкрий <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → Fine-grained token</a>.</li>
+      <li>Назва «Форма», термін — 1 рік. Repository access → Only select repositories → <b>training-dashboard</b>.</li>
+      <li>Permissions → Repository permissions → <b>Contents: Read and write</b>. Generate token, скопіюй і встав сюди.</li>
+      <li>Токен зберігається лише в цьому браузері. Потрібен для журналу, Планера і цих налаштувань.</li></ol></details>
+    <div class="acts"><button class="btn ghost" type="button" id="ghOff" hidden>Відключити на цьому пристрої</button><span class="msg" id="ghMsg" role="status"></span></div>
+  </section>
+
+  <form class="card" id="pwForm" autocomplete="off">
+    <h2>Пароль сайту</h2>
+    <p>Дані на сайті й у репозиторії зашифровані, пароль їх відкриває. Пристрої, де вже виконано вхід, після зміни пароля лишаються залогіненими. Якщо пароль забути, його не відновити — доведеться створити нові ключі (попроси Claude).</p>
+    <div class="grid2">
+      <label class="f">Поточний пароль<input type="password" id="pwCur" autocomplete="current-password" required></label>
+      <label class="f">Новий пароль<input type="password" id="pwNew" autocomplete="new-password" minlength="8" required></label>
+      <label class="f">Новий ще раз<input type="password" id="pwNew2" autocomplete="new-password" minlength="8" required></label>
+    </div>
+    <div class="acts"><button class="btn" type="submit" id="pwBtn">Змінити пароль</button><button class="btn ghost" type="button" id="logout">Вийти на цьому пристрої</button><span class="msg" id="pwMsg" role="status"></span></div>
+  </form>
+
+  <form class="card" id="metForm">
+    <h2>Базові метрики</h2>
+    <div class="grid2">
+      <label class="f">Нижня межа FTP для перцентиля, Вт<input type="number" id="ftpFloor" min="100" max="500" step="1" inputmode="numeric"></label>
+    </div>
+    <p>Якщо eFTP з intervals.icu нижчий, перцентиль у віковій групі рахується від цього значення. Застосується при наступному оновленні даних (23:00 або 10:00).</p>
+    <div>
+      <div class="eyebrow" style="margin-bottom:6px">БЖЖ — регулярні тренування</div>
+      <div class="days" id="bjjDays"></div>
+      <div class="grid2" style="margin-top:10px">
+        <label class="f">Час початку<input type="time" id="bjjTime"></label>
+        <label class="f">Тривалість, хв<input type="number" id="bjjMins" min="15" max="300" step="5" inputmode="numeric"></label>
+      </div>
+    </div>
+    <label class="f">Контекст для ШІ (цілі, інвентар, обмеження)<textarea id="aiCtx"></textarea></label>
+    <p>Цей текст іде в експорт і в правила для ШІ в Планері. Зберігається зашифрованим.</p>
+    <div class="acts"><button class="btn" type="submit" id="metBtn">Зберегти</button><span class="msg" id="metMsg" role="status"></span></div>
+  </form>
+</div>
+<script src="workout.js"></script>
+<script src="export.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch { } };
+const msg = (id, t, k = "") => { $(id).textContent = t; $(id).className = "msg " + k; };
+const errText = e => e.status === 0 ? "Спершу підключи токен GitHub (вище)." : e.status === 401 || e.status === 403 ? "Токен не має права запису або протермінований." : "Не вдалося зберегти: немає зв'язку з GitHub.";
+const DAYS = ["пн", "вт", "ср", "чт", "пт", "сб", "нд"];
+
+function renderGh() {
+  const on = !!WK.token();
+  $("ghState").innerHTML = on ? `<span class="pill done">Підключено</span> Журнал, Планер і налаштування зберігаються в репозиторії.` : `<span class="pill today">Не підключено</span> Без токена можна лише переглядати.`;
+  $("ghForm").hidden = on; $("ghHow").hidden = on; $("ghOff").hidden = !on;
+}
+$("ghForm").onsubmit = async e => {
+  e.preventDefault(); const v = $("ghTok").value.trim(); if (!v) return;
+  msg("ghMsg", "Перевіряю…");
+  try {
+    const r = await fetch("https://api.github.com/repos/nazarus15/training-dashboard", { headers: { Authorization: `Bearer ${v}` } });
+    const j = r.ok ? await r.json() : null;
+    if (!j?.permissions?.push) throw Object.assign(new Error(), { status: r.status === 401 ? 401 : 403 });
+    lsSet("td_gh_token", v); $("ghTok").value = ""; renderGh(); msg("ghMsg", "Токен підключено.", "ok");
+  } catch (err) { msg("ghMsg", err.status === 401 ? "Токен невірний." : err.status === 403 ? "Токен не має доступу на запис до training-dashboard." : "Немає зв'язку з GitHub.", "err"); }
+};
+$("ghOff").onclick = () => { lsSet("td_gh_token", null); renderGh(); msg("ghMsg", "Токен видалено з цього пристрою."); };
+
+$("pwForm").onsubmit = async e => {
+  e.preventDefault();
+  if ($("pwNew").value !== $("pwNew2").value) { msg("pwMsg", "Нові паролі не збігаються.", "err"); return; }
+  $("pwBtn").disabled = true; msg("pwMsg", "Шифрую ключ новим паролем…");
+  try {
+    let nk;
+    try { nk = await AUTH.newKeyring($("pwCur").value, $("pwNew").value); } catch { msg("pwMsg", "Поточний пароль невірний.", "err"); return; }
+    await WK.ghPut("keyring.json", "main", () => nk, "Новий пароль сайту");
+    $("pwForm").reset(); msg("pwMsg", "Пароль змінено. Сайт оновиться за хвилину-дві.", "ok");
+  } catch (err) { msg("pwMsg", errText(err), "err"); }
+  finally { $("pwBtn").disabled = false; }
+};
+$("logout").onclick = async () => { await AUTH.logout(); location.reload(); };
+
+let PD = null;
+$("metForm").onsubmit = async e => {
+  e.preventDefault(); $("metBtn").disabled = true; msg("metMsg", "Зберігаю…");
+  try {
+    const ftpFloor = +$("ftpFloor").value || 231;
+    const priv = await AUTH.encrypt({ aiContext: $("aiCtx").value.trim() });
+    await WK.ghPut("settings.json", "journal", cur => ({ ...(cur || {}), ftpFloor, private: priv, updatedAt: new Date().toISOString() }), "Налаштування");
+    const days = [...document.querySelectorAll("#bjjDays input:checked")].map(i => +i.value);
+    const time = $("bjjTime").value, mins = +$("bjjMins").value || 90;
+    PD = await WK.savePlanned(d => {
+      let r = d.recurring.find(x => x.sport === "bjj");
+      if (!r) { r = { sport: "bjj", title: "БЖЖ", from: WK.today() }; d.recurring.push(r); }
+      Object.assign(r, { days, mins }); if (time) r.time = time; else delete r.time;
+    }, "Розклад БЖЖ");
+    msg("metMsg", "Збережено.", "ok");
+  } catch (err) { msg("metMsg", errText(err), "err"); }
+  finally { $("metBtn").disabled = false; }
+};
+
+(async () => {
+  await AUTH.ready;
+  renderGh();
+  const [S, P] = await Promise.all([WK.loadSettings(), WK.loadPlanned()]); PD = P;
+  $("ftpFloor").value = S.ftpFloor; $("aiCtx").value = S.aiContext || WKX.DEFAULT_CONTEXT;
+  const r = PD.recurring.find(x => x.sport === "bjj") || { days: [], mins: 90 };
+  $("bjjDays").innerHTML = DAYS.map((d, i) => `<label><input type="checkbox" value="${i + 1}"${r.days.includes(i + 1) ? " checked" : ""}>${d}</label>`).join("");
+  $("bjjTime").value = r.time || ""; $("bjjMins").value = r.mins || 90;
+})();
+</script>
+</body>
+</html>

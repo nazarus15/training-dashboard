@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<link rel="apple-touch-icon" href="icon-forma.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Форма">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#eef1f4">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Форма Назара</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* Layout: «кокпіт» — стрічка стану сьогодні, потім висновки, потім блоки графіків у сітці 2 колонки, внизу журнал активностей */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#15202b; --muted:#5b6876; --line:#d6dde5;
+  --accent:#1f5fd1; --accent-2:#e0761b; --accent-3:#7a4cc2;
+  --good:#1f8a4c; --warn:#c98a0b; --bad:#c4372f; --grey:#8a96a3;
+  --z1:#8ea3b8; --z2:#3c8dd0; --z3:#2ea36b; --z4:#e2b417; --z5:#e0761b; --z6:#c4372f; --z7:#7a4cc2;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-data:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1419; --panel:#151d24; --ink:#e4ebf1; --muted:#93a2b0; --line:#26323d;
+  --accent:#5b95f5; --accent-2:#f0933f; --accent-3:#a37ee6;
+  --good:#3fbf74; --warn:#e4ad2c; --bad:#ec5d53; --grey:#6f7c88;
+  --z1:#6e8294; --z2:#4f9fe0; --z3:#3cbf80; --z4:#e9c43a; --z5:#f0933f; --z6:#ec5d53; --z7:#a37ee6;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1419; --panel:#151d24; --ink:#e4ebf1; --muted:#93a2b0; --line:#26323d;
+  --accent:#5b95f5; --accent-2:#f0933f; --accent-3:#a37ee6;
+  --good:#3fbf74; --warn:#e4ad2c; --bad:#ec5d53; --grey:#6f7c88;
+  --z1:#6e8294; --z2:#4f9fe0; --z3:#3cbf80; --z4:#e9c43a; --z5:#f0933f; --z6:#ec5d53; --z7:#a37ee6;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html{color-scheme:light}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:clamp(34px,5vw,52px);line-height:1}
+h2{font-size:26px;line-height:1.1;text-transform:uppercase;letter-spacing:.04em}
+h3{font-size:19px;font-weight:600;letter-spacing:.02em}
+.num{font-family:var(--f-data);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-family:var(--f-data);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2px solid var(--ink);padding-bottom:14px}
+header.top .meta{font-family:var(--f-data);font-size:12px;color:var(--muted);text-align:right}
+/* status strip */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.tile{background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile .v{font-family:var(--f-display);font-size:38px;font-weight:600;line-height:1}
+.tile .v small{font-size:16px;color:var(--muted);font-weight:500;margin-left:3px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-data);font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid currentColor;width:fit-content;text-transform:uppercase;letter-spacing:.06em}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.good{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)} .grey{color:var(--grey)} .acc{color:var(--accent)}
+/* status */
+.status{display:flex;flex-direction:column;gap:8px}
+.status:empty{display:none}
+.alert{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:10px 14px;border-radius:6px;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 9%,var(--panel));font-size:13px}
+.alert b{font-family:var(--f-data);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--c)}
+.alert details{flex-basis:100%;font-family:var(--f-data);font-size:12px;color:var(--muted)}
+.alert summary{cursor:pointer;color:var(--ink)}
+.alert ul{margin:6px 0 0;padding-left:18px}
+.hist{display:flex;gap:3px;align-items:center;margin-left:auto}
+.hist i{width:8px;height:16px;border-radius:2px;display:block}
+/* nav */
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+nav.tabs a{font-family:var(--f-data);font-size:12px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;color:var(--muted);padding:6px 10px;border:1px solid var(--line);border-radius:99px;background:var(--panel)}
+nav.tabs a[aria-current="page"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+nav.tabs a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* readiness */
+.ready{display:grid;grid-template-columns:minmax(140px,200px) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:620px){.ready{grid-template-columns:minmax(0,1fr)}}
+.ready .big{display:flex;flex-direction:column;gap:6px}
+.ready .big b{font-family:var(--f-display);font-size:64px;line-height:1;font-weight:700}
+.rrows{display:flex;flex-direction:column;gap:8px}
+.rrow{display:flex;flex-direction:column;gap:4px;font-size:14px}
+.rrow .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.rrow .top b{font-family:var(--f-data);font-weight:600;font-variant-numeric:tabular-nums}
+.rbar{height:8px;background:var(--line);border-radius:3px;overflow:hidden}
+.rbar i{display:block;height:100%}
+.rrow small{color:var(--muted);font-size:12px}
+#costTbl td,#costTbl th{font-size:12px}
+.cost-list{display:none;flex-direction:column}
+.cost-item{padding:10px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:3px;font-size:14px}
+.cost-item:last-child{border-bottom:none}
+.cost-item .muted{font-size:13px}
+@media (max-width:640px){.cost-wrap{display:none}.cost-list{display:flex}}
+/* plan */
+.plan-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.btn-link{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:14px;padding:8px 14px;border-radius:6px;background:var(--ink);color:var(--panel);text-decoration:none}
+.btn-link.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.plan-weeks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:14px;align-items:start}
+.pweek{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.pweek h3{font-size:16px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:12px 14px;border-bottom:1px solid var(--line)}
+.pday{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;align-items:start;padding:10px 14px;border-bottom:1px solid var(--line)}
+.pday .kline{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pday .kk{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.pday.rest{padding-block:6px}
+.pday.rest .d b{font-size:13px}
+.pday .t strong a{color:inherit;text-decoration-color:var(--line)}
+.pweek .pday:last-child{border-bottom:none}
+.pday .d{font-family:var(--f-data);font-size:11px;color:var(--muted);line-height:1.2}
+.pday .d b{display:block;font-size:15px;color:var(--ink)}
+.pday.today{background:color-mix(in srgb,var(--warn) 9%,var(--panel))}
+.pday.today .d b{color:var(--warn)}
+.pday .t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pday .k{font-family:var(--f-data);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--kc)}
+.pday .t strong{font-weight:600}
+.pday .t small{color:var(--muted);font-size:13px}
+.pday .t small.act{color:var(--good)}
+.pday details{font-size:13px;color:var(--muted)}
+.pday summary{cursor:pointer;color:var(--accent);width:fit-content}
+.pday ol{margin:6px 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.pday ol li{display:flex;justify-content:space-between;gap:10px}
+.pday ol b{color:var(--ink);font-weight:500}
+.pday ol .num{white-space:nowrap}
+/* insights */
+.insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.ins{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--c,var(--accent));border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ins h3{font-size:17px}
+.ins p{margin:0;font-size:14px;color:var(--muted)}
+.ins p b{color:var(--ink);font-weight:600}
+section{display:flex;flex-direction:column;gap:14px}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
+.sec-head p{margin:0;max-width:70ch;color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid .full{grid-column:1/-1}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card .note{font-size:13px;color:var(--muted);margin:0}
+.chart{position:relative;height:280px;width:100%}
+.chart.tall{height:340px}
+.chart.short{height:200px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+/* tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-data);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--panel);cursor:pointer;user-select:none}
+th:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+th[aria-sort="ascending"]::after{content:" ▲"} th[aria-sort="descending"]::after{content:" ▼"}
+td:first-child,th:first-child,td.l,th.l{text-align:left}
+td{font-family:var(--f-data);font-variant-numeric:tabular-nums}
+td.name{font-family:var(--f-body)}
+tbody tr:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.zbar{display:flex;height:10px;width:120px;border-radius:2px;overflow:hidden;background:var(--line)}
+.zbar i{display:block;height:100%}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.filters button{font:inherit;font-size:13px;padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.filters button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin:0}
+.kv dt{color:var(--muted)} .kv dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+@media (max-width:640px){
+  .kv{grid-template-columns:minmax(0,1fr);gap:0}
+  .kv dt{font-size:12px;margin-top:8px}
+  .kv dt:first-child{margin-top:0}
+  .kv dd{text-align:left;font-size:14px}
+  header.top .meta{text-align:left}
+}
+.ranks{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.rank{border:1px solid var(--line);border-radius:4px;padding:6px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.rank b{font-family:var(--f-display);font-size:20px;font-weight:600}
+.rank span{font-family:var(--f-data);font-size:10px;color:var(--muted)}
+.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;counter-reset:r}
+.rec{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.rec h3{font-size:18px}
+.rec p{margin:0;font-size:14px;color:var(--muted)}
+footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px}
+footer p{margin:0;max-width:90ch}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+<link rel="stylesheet" href="workout.css">
+<script src="auth.js"></script>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Тренувальний стан · БЖЖ + велосипед + сила</div>
+      <h1>Форма Назара</h1>
+      <nav class="tabs" aria-label="Розділи сайту"><a href="./" aria-current="page">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="settings.html">Налаштування</a></nav>
+    </div>
+    <div class="meta"><span id="updated">Завантаження даних…</span><br>Дані: intervals.icu, Garmin Connect</div>
+  </header>
+
+  <div class="status" id="status" role="status"></div>
+
+  <div class="strip" id="strip"></div>
+
+  <section id="planSec" hidden>
+    <div class="sec-head"><h2>План на 2 тижні</h2><p id="planSummary"></p></div>
+    <div class="plan-top"><a class="btn-link" id="journalLink" href="strength.html">Силовий журнал →</a><a class="btn-link ghost" href="planner.html">Запланувати</a><span class="muted" style="font-size:13px">Вело сайт бере з календаря intervals.icu, силові й БЖЖ — з Планера.</span></div>
+    <div class="plan-weeks" id="plan"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Що видно з даних</h2><p>Розрахунки поверх сирих даних: того, що сайти прямо не показують, або ховають у різних місцях.</p></div>
+    <div class="insights" id="insights"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Навантаження і форма</h2><p>Модель Банистера (intervals.icu): фітнес = 42-денне середнє навантаження, втома = 7-денне, форма = різниця. Garmin рахує своє навантаження окремо за пульсом браслета.</p></div>
+    <div class="grid">
+      <div class="card full">
+        <h3>Фітнес, втома, форма</h3>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Фітнес (CTL)</span><span><i style="background:var(--accent-3)"></i>Втома (ATL)</span><span><i style="background:var(--accent-2)"></i>Форма (TSB)</span><span><i style="background:var(--z1)"></i>Навантаження за день</span></div>
+        <div class="chart tall"><canvas id="cPmc" aria-label="Графік фітнесу, втоми і форми"></canvas></div>
+        <p class="note">Зони форми: вище +5 свіжий, від −10 до +5 сіра зона, від −30 до −10 оптимальна для росту, нижче −30 ризик перевтоми.</p>
+      </div>
+      <div class="card">
+        <h3>Тижневе навантаження за видами</h3>
+        <div class="legend" id="lgWeek"></div>
+        <div class="chart"><canvas id="cWeek" aria-label="Тижневе навантаження"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Гостре і хронічне навантаження</h3>
+        <p class="note">За навантаженням Garmin з кожного тренування: гостре — сума за 7 днів, хронічне — середнє на тиждень за 4 тижні. Коридор 0,8–1,5 від хронічного — зона безпечного росту.</p>
+        <div class="legend"><span><i style="background:var(--accent-2)"></i>Гостре (7 дн.)</span><span><i style="background:var(--accent)"></i>Хронічне</span><span><i style="background:color-mix(in srgb,var(--good) 30%,transparent)"></i>Оптимальний коридор</span></div>
+        <div class="chart"><canvas id="cAcute" aria-label="Гостре і хронічне навантаження Garmin"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Баланс навантаження за 4 тижні</h3>
+        <p class="note">Навантаження Garmin за 28 днів, розкладене за ефектом кожного тренування. Смуга — орієнтир за логікою Garmin, маркер — твій факт.</p>
+        <div id="balance" style="display:flex;flex-direction:column;gap:14px"></div>
+      </div>
+      <div class="card">
+        <h3>Монотонність і strain (метод Фостера)</h3>
+        <p class="note">Монотонність = середнє / стандартне відхилення денного навантаження за 7 днів. Вище 2,0 тиждень надто одноманітний, ризик перевтоми росте. Strain = тижневе навантаження × монотонність.</p>
+        <div class="chart short"><canvas id="cMono" aria-label="Монотонність тренувань"></canvas></div>
+      </div>
+      <div class="card full">
+        <h3>Ціна тренувань за даними браслета</h3>
+        <p class="note">Те, що Garmin рахує для кожного тренування, але майже не показує: власне навантаження, аеробний і анаеробний Training Effect, скільки Body Battery забрало тренування, і оцінка втрати рідини з потом.</p>
+        <dl class="kv" id="costKv"></dl>
+        <div class="tbl-wrap cost-wrap"><table id="costTbl"></table></div>
+        <div class="cost-list" id="costList"></div>
+      </div>
+      <div class="card full">
+        <h3>Календар навантаження</h3>
+        <div class="tbl-wrap" style="border:none;background:transparent"><div id="heat"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Відновлення</h2><p>Нічні дані браслета Garmin через офіційний Personal API. Пульс спокою і HRV краще читати трендом, а не окремою ніччю.</p></div>
+    <div class="grid">
+      <div class="card full">
+        <h3>Готовність сьогодні</h3>
+        <p class="note">Власний розрахунок замість Training Readiness Garmin, якого немає в Personal API: HRV, пульс спокою, сон за ніч і за 3 ночі, гостре навантаження і форма з intervals.icu.</p>
+        <div id="readiness" class="ready"></div>
+      </div>
+      <div class="card full">
+        <h3>HRV і пульс спокою</h3>
+        <div class="legend"><span><i style="background:var(--accent)"></i>HRV за ніч, мс</span><span><i style="background:var(--accent-3)"></i>HRV 7-денне середнє</span><span><i style="background:color-mix(in srgb,var(--good) 30%,transparent)"></i>Збалансований діапазон Garmin</span><span><i style="background:var(--bad)"></i>Пульс спокою</span></div>
+        <div class="chart tall"><canvas id="cHrv" aria-label="HRV і пульс спокою"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Сон: тривалість і оцінка</h3>
+        <div class="legend"><span><i style="background:var(--z2)"></i>Тривалість, год</span><span><i style="background:var(--accent-2)"></i>Оцінка сну</span></div>
+        <div class="chart"><canvas id="cSleep" aria-label="Сон"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Фази сну за останні 7 ночей</h3>
+        <div class="legend"><span><i style="background:var(--accent-3)"></i>Глибокий</span><span><i style="background:var(--z2)"></i>Легкий</span><span><i style="background:var(--z3)"></i>REM</span><span><i style="background:var(--bad)"></i>Пробудження</span></div>
+        <div class="chart"><canvas id="cStages" aria-label="Фази сну"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>HRV протягом минулої ночі</h3>
+        <p class="note">Значення кожні 5 хвилин. Garmin Connect показує лише середнє; крива видно, коли нервова система «відпустило»: зазвичай HRV росте в першій половині ночі.</p>
+        <div class="chart short"><canvas id="cHrvNight" aria-label="HRV протягом ночі"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Потреба сну і режим</h3>
+        <dl class="kv" id="sleepKv"></dl>
+        <div id="phases" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+      <div class="card full">
+        <h3>Body Battery і стрес за 4 тижні</h3>
+        <div class="legend"><span><i style="background:color-mix(in srgb,var(--good) 45%,transparent)"></i>Діапазон Body Battery за день</span><span><i style="background:var(--accent-2)"></i>Середній стрес</span><span><i style="background:var(--bad)"></i>Пульс спокою</span></div>
+        <div class="chart"><canvas id="cBB" aria-label="Body Battery і стрес за 4 тижні"></canvas></div>
+        <dl class="kv" id="todayKv"></dl>
+      </div>
+      <div class="card full">
+        <h3>Нічні показники: дихання і SpO₂</h3>
+        <p class="note">Частота дихання і насичення крові киснем уві сні. Одночасне зростання дихання і падіння SpO₂ буває першою ознакою хвороби чи перевтоми ще до симптомів.</p>
+        <div class="chart short"><canvas id="cHealth" aria-label="Дихання і SpO2 уві сні"></canvas></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Дихання, вдихів/хв</span><span><i style="background:var(--good)"></i>SpO₂ середній − 90, %</span><span><i style="background:var(--bad)"></i>SpO₂ мінімальний − 90, %</span><span><i style="background:var(--accent-3)"></i>Стрес уві сні ÷ 2</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Велосипед: потужність і пульс</h2><p id="powerIntro">Потужність є лише в заїздах на станку. Решта заїздів записані з пульсом, без потужності.</p></div>
+    <div class="grid">
+      <div class="card full">
+        <h3>Крива потужності за 42 дні</h3>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Найкраща потужність, Вт</span><span><i style="background:var(--accent-2)"></i>FTP 230 Вт</span></div>
+        <div class="chart tall"><canvas id="cCurve" aria-label="Крива потужності"></canvas></div>
+        <p class="note">Після 20 хв крива різко падає, бо максимальних зусиль довших за 20 хв не було. Тому перцентилі на 60 і 90 хв занижені.</p>
+      </div>
+      <div class="card">
+        <h3 id="rankTitle">Перцентиль у intervals.icu</h3>
+        <p class="note">Яку частку спортсменів своєї групи ти випереджаєш у Вт/кг.</p>
+        <div class="ranks" id="ranks"></div>
+      </div>
+      <div class="card">
+        <h3>Моделі FTP</h3>
+        <dl class="kv" id="models"></dl>
+        <p class="note" id="ftpNote"></p>
+      </div>
+      <div class="card">
+        <h3>Розподіл часу за зонами пульсу, 6 тижнів</h3>
+        <div class="legend" id="lgHrz"></div>
+        <div class="chart"><canvas id="cHrz" aria-label="Зони пульсу за видами"></canvas></div>
+        <p class="note" id="hrzNote"></p>
+      </div>
+      <div class="card">
+        <h3>Аеробна ефективність заїздів зі станка</h3>
+        <dl class="kv" id="effKv"></dl>
+        <p class="note">EF = нормована потужність / середній пульс. Decoupling показує, наскільки «відпливає» пульс відносно потужності в другій половині. До 5% — аеробна база тримає, вище — бракує обʼєму.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Що робити далі</h2><p>Висновки з даних під твою мету: форма як під велогонку при трьох тренуваннях БЖЖ на тиждень.</p></div>
+    <div class="recs" id="recs"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Журнал активностей</h2><p>Усі записи з червня. Клікни на заголовок, щоб сортувати.</p></div>
+    <div class="filters" id="filters"></div>
+    <div class="tbl-wrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <footer>
+    <p>Оновлюється щодня о 23:00 за Києвом через GitHub Actions. intervals.icu — офіційний API за особистим ключем. Garmin Connect — неофіційна бібліотека garminconnect, вона може ламатися після змін на боці Garmin; тоді показуються останні вдалі дані Garmin і плашка з помилкою вгорі.</p>
+    <p>БЖЖ визначається за назвою «Mixed Martial Arts» і часом тренування (вечір будніх днів або пульс від 100). Короткі чи спокійні записи з цим тегом віднесені до «Інше». Зони пульсу побудовані на максимальному пульсі з налаштувань intervals.icu; оптичний браслет часто занижує пік.</p>
+  </footer>
+</div>
+
+<script src="workout.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

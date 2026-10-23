@@ -1,0 +1,70 @@
+name: Оновлення даних
+
+on:
+  schedule:
+    # Цілі за Києвом: 23:00, 10:00 і повтор о 12:00, якщо ранкові дані не надійшли.
+    # Кожна ціль має тригери для літнього (UTC+3) і зимового (UTC+2) часу, плюс запасні
+    # на випадок затримок GitHub. Що запускати насправді, вирішує scripts/gate.py.
+    - cron: "7 20 * * *"
+    - cron: "7 21 * * *"
+    - cron: "37 22 * * *"
+    - cron: "17 1 * * *"
+    - cron: "7 7 * * *"
+    - cron: "7 8 * * *"
+    - cron: "7 9 * * *"
+    - cron: "7 10 * * *"
+    - cron: "37 11 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Перевірка, чи потрібне оновлення
+        id: gate
+        run: python3 scripts/gate.py >> "$GITHUB_OUTPUT"
+        env:
+          EVENT: ${{ github.event_name }}
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Встановити залежності
+        if: steps.gate.outputs.run == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Зібрати дані
+        if: steps.gate.outputs.run == 'true'
+        env:
+          INTERVALS_API_KEY: ${{ secrets.INTERVALS_API_KEY }}
+          INTERVALS_ATHLETE_ID: ${{ secrets.INTERVALS_ATHLETE_ID }}
+          GARMIN_PERSONAL_API_KEY: ${{ secrets.GARMIN_PERSONAL_API_KEY }}
+          SLOT: ${{ steps.gate.outputs.slot }}
+        run: python scripts/fetch.py
+
+      - name: Закомітити зміни
+        if: always() && steps.gate.outputs.run == 'true'
+        run: |
+          git config user.name "training-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "Змін немає"
+          else
+            git commit -m "Дані за $(TZ=Europe/Kyiv date +%F)"
+            git pull --rebase --autostash origin main
+            git push
+          fi
