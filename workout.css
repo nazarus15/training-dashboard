@@ -85,8 +85,8 @@ a.ci:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .pday.today{background:color-mix(in srgb,var(--warn) 9%,var(--panel))}
 .pday.today .d b{color:var(--warn)}
 .pday .t{display:flex;flex-direction:column;gap:2px;min-width:0}
-.pday .k{font-family:var(--f-data);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--kc)}
-.pday .t strong{font-weight:600}
+.pday .k{font-family:var(--f-data);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--kc)}
+.pday .t strong{font-weight:400}
 .pday .t small{color:var(--muted);font-size:13px}
 .pday .t small.act{color:var(--good)}
 .pday details{font-size:13px;color:var(--muted)}

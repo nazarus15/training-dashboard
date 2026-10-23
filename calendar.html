@@ -17,6 +17,13 @@
 <style>
 /* Layout: місяць як стовпчик тижнів; кожен день — рядок із запланованими й виконаними тренуваннями. */
 .wrap{max-width:1100px}
+/* комп'ютер: увесь місяць тижнями-колонками на всю ширину, прокрутка по горизонталі */
+@media (min-width:821px){
+  .wrap{max-width:none}
+  #cal.plan-weeks{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:10px;scroll-snap-type:x proximity;overscroll-behavior-x:contain}
+  #cal .pweek{flex:0 0 clamp(300px,calc((100vw - 32px - 48px) / 4),380px);scroll-snap-align:start}
+  #cal .pweek.cur{border-color:var(--warn)}
+}
 .mbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .mbar h2{font-size:26px;min-width:0;flex:1 1 auto;white-space:nowrap}
 @media (max-width:520px){.mbar h2{flex-basis:100%}.mbar .nav{flex:1}}
@@ -120,7 +127,7 @@ function render() {
     const wp = its.filter(x => x.date >= w && x.date <= days[6]).reduce((s, x) => s + (x.mins || 0), 0);
     const a0 = dd(days[0]), a6 = dd(days[6]);
     const rng = a0.getMonth() === a6.getMonth() ? `${a0.getDate()}–${a6.getDate()} ${MON[a6.getMonth()]}` : `${a0.getDate()} ${MON[a0.getMonth()]} – ${a6.getDate()} ${MON[a6.getMonth()]}`;
-    html += `<div class="pweek"><h3>${rng}<small>${[wp ? "план " + WK.fmtMin(wp) : "", wf ? "факт " + fmtDur(wf) : ""].filter(Boolean).join(" · ")}</small></h3>`;
+    html += `<div class="pweek${t >= w && t <= days[6] ? " cur" : ""}"><h3>${rng}<small>${[wp ? "план " + WK.fmtMin(wp) : "", wf ? "факт " + fmtDur(wf) : ""].filter(Boolean).join(" · ")}</small></h3>`;
     for (const d of days) {
       const di = its.filter(x => x.date === d);
       const cls = `pday${d === t ? " today" : ""}${d < t ? " past" : ""}`;
@@ -132,6 +139,9 @@ function render() {
     html += `</div>`;
   }
   $("cal").innerHTML = html;
+  const cw = $("cal").querySelector(".pweek.cur");
+  if (cw && matchMedia("(min-width:821px)").matches) $("cal").scrollLeft = Math.max(0, cw.offsetLeft - $("cal").offsetLeft - 12);
+  else if (matchMedia("(min-width:821px)").matches) $("cal").scrollLeft = 0;
   $("mSum").textContent = `${planned ? `Виконано ${done} із ${planned} запланованих${missed ? `, пропущено ${missed}` : ""}. ` : ""}Тренувань за місяць: ${fmtDur(factS) || "0"} год.`;
 }
 function shift(n) { const [y, m] = cur.split("-").map(Number); const d = new Date(y, m - 1 + n, 1); cur = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; render(); }
