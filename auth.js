@@ -89,6 +89,43 @@ window.AUTH = (() => {
     return null;
   }
 
+
+  // ---------- стан системи: що не так (для Налаштувань і підсвітки вкладки) ----------
+  const lsJ = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } };
+  const lsW = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { } };
+  async function health({ fresh = false } = {}) {
+    const out = [], add = (lvl, area, text) => out.push({ lvl, area, text });
+    let S = null;
+    try { S = await (await fetch(`data/status.json?t=${Date.now()}`, { cache: "no-store" })).json(); } catch { }
+    if (!S) add("warn", "Дані", "Не вдалося прочитати статус оновлення.");
+    else {
+      const ageH = (Date.now() - new Date(S.generatedAt).getTime()) / 36e5;
+      if (ageH > 30) add("warn", "Дані", `Останнє оновлення ${Math.round(ageH)} год тому. Перевір вкладку Actions у репозиторії.`);
+      if (!S.intervals?.ok) add("bad", "intervals.icu", S.intervals?.error || "Помилка оновлення.");
+      if (!S.garmin?.ok) add(S.garmin?.dataDate && S.garmin.dataDate >= new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10) ? "warn" : "bad", "Garmin", S.garmin?.error || "Помилка оновлення.");
+    }
+    const tok = lsJ("td_gh_token", null);
+    if (!tok) add("warn", "GitHub", "Токен не підключено на цьому пристрої: журнал, Планер і налаштування не зберігаються.");
+    else {
+      let c = lsJ("td_tok_check", null);
+      if (fresh || !c || c.tok !== tok.slice(-6) || Date.now() - c.at > 6 * 36e5) {
+        const r = window.WK?.checkWrite ? await WK.checkWrite(tok) : "ok";
+        if (r !== "offline") { c = { r, at: Date.now(), tok: tok.slice(-6) }; lsW("td_tok_check", c); }
+      }
+      if (c && c.r !== "ok") add("bad", "GitHub", { invalid: "Токен невірний або протермінований.", noaccess: "Токен не бачить репозиторій training-dashboard.", readonly: "Токен лише читає: потрібне Contents: Read and write." }[c.r] || "Токен не працює.");
+      const exp = lsJ("td_tok_exp", null);
+      if (exp) { const d = (new Date(exp + "T23:59:59") - Date.now()) / 864e5; if (d < 0) add("bad", "GitHub", `Термін токена минув ${exp}.`); else if (d < 7) add("warn", "GitHub", `Токен діє лише до ${exp}. Онови його (Regenerate token).`); }
+    }
+    const pend = Object.keys(lsJ("td_pending_logs", {}) || {}).length, sync = lsJ("td_sync_state", null);
+    if (sync?.kind === "error") add("bad", "Журнал", sync.msg || "Помилка збереження журналу.");
+    else if (pend) add("warn", "Журнал", `${pend} ${pend === 1 ? "запис чекає" : "записи чекають"} відправки на GitHub.`);
+    try { const kr = await keyring(); if (!kr.recovery) add("warn", "Пароль", "Немає коду відновлення: якщо забудеш пароль, доступ не повернути."); } catch { }
+    return { issues: out, status: S };
+  }
+  function markNav(issues) {
+    const lvl = issues.some(i => i.lvl === "bad") ? "bad" : issues.length ? "warn" : "";
+    document.querySelectorAll('nav.tabs a[href="settings.html"]').forEach(a => { a.classList.remove("attn-bad", "attn-warn"); if (lvl) { a.classList.add("attn-" + lvl); a.title = issues.map(i => `${i.area}: ${i.text}`).join("\n"); } });
+  }
   // ---------- екран входу ----------
   const css = `
 html.locked body>*:not(#authGate):not(.reload-fab){visibility:hidden}
@@ -103,6 +140,9 @@ html.locked body>*:not(#authGate):not(.reload-fab){visibility:hidden}
 @media (max-width:820px){.reload-fab{display:flex;position:fixed;z-index:60;top:calc(env(safe-area-inset-top,0px) + 10px);right:calc(env(safe-area-inset-right,0px) + 12px);width:42px;height:42px;border-radius:50%;align-items:center;justify-content:center;border:1px solid color-mix(in srgb,var(--ink,#15202b) 18%,transparent);background:color-mix(in srgb,var(--panel,#fff) 55%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--ink,#15202b);opacity:.8;cursor:pointer;padding:0}
 .reload-fab:active{opacity:1}
 .reload-fab.spin svg{animation:fabspin .8s linear infinite}}
+nav.tabs a.attn-warn{border-color:var(--warn,#c98a0b);color:var(--warn,#c98a0b)}
+nav.tabs a.attn-bad{border-color:var(--bad,#c4372f);color:var(--bad,#c4372f);background:color-mix(in srgb,var(--bad,#c4372f) 10%,var(--panel,#fff))}
+nav.tabs a.attn-warn::after,nav.tabs a.attn-bad::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-left:6px;vertical-align:1px}
 @keyframes fabspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.reload-fab.spin svg{animation:none}}`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -142,5 +182,6 @@ html.locked body>*:not(#authGate):not(.reload-fab){visibility:hidden}
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", start) : start();
   });
 
-  return { ready, load, decrypt, encrypt, unlock, newKeyring, newRecovery, hasRecovery, logout, keyMismatch };
+  ready.then(() => health().then(h => markNav(h.issues))).catch(() => { });
+  return { health, markNav, ready, load, decrypt, encrypt, unlock, newKeyring, newRecovery, hasRecovery, logout, keyMismatch };
 })();

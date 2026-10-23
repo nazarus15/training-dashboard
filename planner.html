@@ -61,8 +61,6 @@ textarea{font-family:var(--f-data);font-size:14px;line-height:1.5;min-height:300
     <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html" aria-current="page">Планер</a><a href="strength.html">Силовий журнал</a><a href="settings.html">Налаштування</a></nav>
   </header>
 
-  <div id="tok" class="notice" hidden>Щоб зберігати тренування, підключи GitHub у <a href="settings.html">Налаштуваннях</a> — один токен на пристрій для журналу, Планера і налаштувань. Переглядати й складати текст можна й без нього.</div>
-
   <section class="ed">
     <form class="card form" id="form" autocomplete="off">
       <h2 id="formTitle">Нове тренування</h2>
@@ -271,7 +269,6 @@ $("impForm").onsubmit = async e => {
 };
 (async () => {
   await AUTH.ready;
-  $("tok").hidden = !!WK.token();
   $("leg").innerHTML = WK.legendHtml();
   reset();
   [PD, SET] = await Promise.all([WK.loadPlanned(), WK.loadSettings()]);

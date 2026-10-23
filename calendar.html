@@ -15,9 +15,20 @@
 <link rel="stylesheet" href="ui.css">
 <link rel="stylesheet" href="workout.css">
 <style>
+/* Layout: місяць як стовпчик тижнів; кожен день — рядок із запланованими й виконаними тренуваннями. */
 .wrap{max-width:1100px}
-.top-actions{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13px}
-.top-actions a.btn{text-decoration:none}
+.mbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mbar h2{font-size:26px;min-width:0;flex:1 1 auto;white-space:nowrap}
+@media (max-width:520px){.mbar h2{flex-basis:100%}.mbar .nav{flex:1}}
+.mbar .nav{display:flex;gap:6px}
+.mbar button,.mbar a.btn{font:inherit;font-weight:600;font-size:14px;padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;text-decoration:none;min-width:42px}
+.mbar a.btn{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.mbar button:focus-visible,.mbar a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.msum{margin:0;font-size:14px;color:var(--muted)}
+.pday.past:not(.today) .d b{color:var(--muted)}
+.pday .unpl{font-family:var(--f-data);font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.pweek h3 small{font-family:var(--f-data);font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--muted);font-weight:400;margin-left:6px}
+.pweek.other h3{opacity:.7}
 </style>
 <script src="auth.js"></script>
 </head>
@@ -25,48 +36,117 @@
 <div class="wrap">
   <header class="top">
     <div>
-      <div class="eyebrow">Заплановані тренування</div>
+      <div class="eyebrow">План і виконане</div>
       <h1>Календар</h1>
     </div>
     <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html" aria-current="page">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="settings.html">Налаштування</a></nav>
   </header>
-  <div class="top-actions"><a class="btn" href="planner.html">+ Запланувати</a><span class="muted">Вело — з intervals.icu, силові й БЖЖ — з Планера. Під видом спорту — головний ефект тренування.</span></div>
-  <div id="cal" class="cal"><div class="notice">Завантажую…</div></div>
+
+  <div class="mbar">
+    <h2 id="mTitle">…</h2>
+    <div class="nav"><button type="button" id="prev" aria-label="Попередній місяць">‹</button><button type="button" id="now">Сьогодні</button><button type="button" id="next" aria-label="Наступний місяць">›</button></div>
+    <a class="btn" href="planner.html">+ Запланувати</a>
+  </div>
+  <p class="msum" id="mSum"></p>
+  <div class="plan-weeks" id="cal"><div class="notice">Завантажую…</div></div>
   <div id="leg"></div>
 </div>
 <script src="workout.js"></script>
 <script>
 "use strict";
-(async () => {
-  await AUTH.ready;
-  const [PD, EV] = await Promise.all([WK.loadPlanned(), fetch(`data/events.json?t=${Date.now()}`).then(r => r.ok ? r.json() : null).catch(() => null)]);
-  const t = WK.today(), from = WK.addDays(WK.monday(t), -7);
-  const all = WK.items(PD, EV, from, WK.addDays(t, 120));
-  const fixed = all.filter(x => x.src !== "recurring"); const last = fixed.length ? fixed.at(-1).date : t;
-  const end = WK.addDays(WK.monday(last > WK.addDays(t, 27) ? last : WK.addDays(t, 27)), 6);
-  const its = all.filter(x => x.date <= end);
-  const DOW = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"], MON = ["січ.", "лют.", "бер.", "квіт.", "трав.", "черв.", "лип.", "серп.", "вер.", "жовт.", "лист.", "груд."];
-  const dd = s => new Date(s + "T12:00:00");
-  const chip = it => {
+const $ = id => document.getElementById(id), esc = WK.esc;
+const DOW = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+const MONTHS = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
+const MON = ["січ.", "лют.", "бер.", "квіт.", "трав.", "черв.", "лип.", "серп.", "вер.", "жовт.", "лист.", "груд."];
+const dd = s => new Date(s + "T12:00:00");
+const fmtDur = s => { if (!s) return ""; const m = Math.round(s / 60), h = Math.floor(m / 60); return h ? `${h}:${String(m % 60).padStart(2, "0")}` : `${m} хв`; };
+const SP = { bike: "bike", strength: "str", bjj: "bjj", run: "run" }, SP_BACK = { bike: "bike", str: "strength", bjj: "bjj", run: "run", other: "other" };
+// той самий розподіл за видами, що й на Огляді
+const sportOf = a => {
+  if (/Ride$|Cyclocross/.test(a.type || "")) return "bike";
+  if (a.type === "BJJ") return "bjj";
+  if (/mixed martial|бжж|bjj|jiu/i.test(a.name || "")) { const h = +a.date.slice(11, 13); return a.moving >= 1800 && (h >= 17 && h <= 21 || (a.avgHr ?? 100) >= 100) ? "bjj" : "other"; }
+  if (a.type === "Strength" || a.type === "WeightTraining" || /strength|силов/i.test(a.name || "")) return "str";
+  if (/Run/.test(a.type || "")) return "run";
+  return "other";
+};
+let PD, EV, JL, ACTS = [], cur;
+
+function actLine(a) { return `Факт: ${fmtDur(a.moving)}${a.np ? ` · NP ${a.np} Вт` : a.avgW ? ` · ${a.avgW} Вт` : ""}${a.load ? ` · навант. ${a.load}` : ""}${a.avgHr ? ` · пульс ${a.avgHr}` : ""}`; }
+function dayHead(s) { const d = dd(s); return `<span class="d">${DOW[d.getDay()]}<b>${d.getDate()}.${String(d.getMonth() + 1).padStart(2, "0")}</b></span>`; }
+
+function render() {
+  const t = WK.today();
+  const [y, m] = cur.split("-").map(Number);
+  const first = `${cur}-01`, lastD = new Date(y, m, 0).getDate(), last = `${cur}-${String(lastD).padStart(2, "0")}`;
+  const from = WK.monday(first), to = WK.addDays(WK.monday(last), 6);
+  $("mTitle").textContent = `${MONTHS[m - 1]} ${y}`;
+  try { history.replaceState(null, "", "#" + cur); } catch { }
+  const its = WK.items(PD, EV, from, to);
+  const used = new Set();
+  let planned = 0, done = 0, missed = 0, factS = 0;
+  const card = (it, d) => {
     const [sn, sc] = WK.SPORT[it.sport] || WK.SPORT.other;
-    const sub = WK.subtype(it) || (it.title && it.title !== sn ? it.title : "");
-    const href = it.sport === "strength" ? `strength.html?s=${encodeURIComponent(it.id)}` : it.src === "planner" ? `planner.html?edit=${encodeURIComponent(it.id)}` : it.src === "intervals" ? "https://intervals.icu/calendar" : "";
-    const inner = `<span class="s"><span>${sn}</span>${it.time ? `<span>${WK.esc(it.time)}</span>` : ""}</span>${sub ? `<span class="e">${WK.esc(sub)}</span>` : ""}<span class="m">${WK.fmtMin(it.mins) || "—"}</span>`;
-    return href ? `<a class="ci" style="--sc:${sc}" href="${href}"${it.src === "intervals" ? ' target="_blank" rel="noopener"' : ""} title="${WK.esc(it.title)}">${inner}</a>` : `<div class="ci" style="--sc:${sc}" title="${WK.esc(it.title)}">${inner}</div>`;
+    const actual = ACTS.filter(a => a.day === d && a.sport === (SP[it.sport] || "other") && !used.has(a));
+    actual.slice(0, 1).forEach(a => used.add(a));
+    const jl = it.id ? JL?.logs?.[it.id] : null;
+    const inMonth = d >= first && d <= last;
+    let pill;
+    if (inMonth && d <= t) planned++;
+    if (jl?.status === "skipped") { if (inMonth) missed++; pill = `<span class="pill skip">Пропущено</span>`; }
+    else if (actual.length || jl?.status === "done") { if (inMonth) done++; pill = `<span class="pill done">Виконано</span>`; }
+    else if (d < t) { if (inMonth) missed++; pill = `<span class="pill off">Пропущено</span>`; }
+    else if (d === t) pill = `<span class="pill today">Сьогодні</span>`;
+    else pill = `<span class="pill plan">План</span>`;
+    const main = it.fx?.main ? WK.FX[it.fx.main] : null;
+    const detail = [WK.fmtMin(it.mins), it.time, it.load ? `навант. ${it.load}` : ""].filter(Boolean).join(" · ");
+    const s = it.sess;
+    const exList = s?.exercises?.length ? `<details><summary>Вправи (${s.exercises.length})</summary><ol>${s.exercises.map(e => `<li><b>${esc(e.name)}</b><span class="num">${e.sets}×${esc(e.reps)}${e.type === "time" ? " с" : ""}${e.perSide ? "/бік" : ""}</span></li>`).join("")}</ol></details>` : "";
+    const title = it.sport === "strength" ? `<a href="strength.html?s=${encodeURIComponent(it.id)}">${esc(it.title)}</a>` : it.src === "planner" ? `<a href="planner.html?edit=${encodeURIComponent(it.id)}">${esc(it.title)}</a>` : esc(it.title);
+    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}</span>${pill}</span><strong>${title}</strong>${detail ? `<small>${esc(detail)}</small>` : ""}${actual[0] ? `<small class="act">${actLine(actual[0])}</small>` : ""}${WK.barsHtml(it.fx)}${exList}`;
+  };
+  const extra = a => {
+    const [sn, sc] = WK.SPORT[SP_BACK[a.sport]] || WK.SPORT.other;
+    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span><span class="unpl">поза планом</span></span><span class="pill done">Виконано</span></span><strong>${esc(a.name || sn)}</strong><small class="act">${actLine(a)}</small>`;
   };
   let html = "";
-  for (let w = from; w <= end; w = WK.addDays(w, 7)) {
-    const a = dd(w), b = dd(WK.addDays(w, 6));
-    const tot = its.filter(x => x.date >= w && x.date <= WK.addDays(w, 6)).reduce((s, x) => s + (x.mins || 0), 0);
-    html += `<div class="cal-wk"><h3>${a.getDate()} ${a.getMonth() === b.getMonth() ? "" : MON[a.getMonth()] + " "}– ${b.getDate()} ${MON[b.getMonth()]}${tot ? ` · ${WK.fmtMin(tot)}` : ""}</h3><div class="cal-days">`;
-    for (let i = 0; i < 7; i++) {
-      const d = WK.addDays(w, i), di = its.filter(x => x.date === d);
-      html += `<div class="cal-d${d === t ? " today" : d < t ? " past" : ""}${di.length ? "" : " none"}"><span class="dn">${DOW[i]}<b>${dd(d).getDate()}</b></span><div class="its">${di.map(chip).join("") || `<span class="empty">—</span>`}</div></div>`;
+  for (let w = from; w <= to; w = WK.addDays(w, 7)) {
+    const days = Array.from({ length: 7 }, (_, i) => WK.addDays(w, i));
+    const wf = ACTS.filter(a => a.day >= w && a.day <= days[6]).reduce((s, a) => s + a.moving, 0);
+    const wp = its.filter(x => x.date >= w && x.date <= days[6]).reduce((s, x) => s + (x.mins || 0), 0);
+    const a0 = dd(days[0]), a6 = dd(days[6]);
+    const rng = a0.getMonth() === a6.getMonth() ? `${a0.getDate()}–${a6.getDate()} ${MON[a6.getMonth()]}` : `${a0.getDate()} ${MON[a0.getMonth()]} – ${a6.getDate()} ${MON[a6.getMonth()]}`;
+    html += `<div class="pweek"><h3>${rng}<small>${[wp ? "план " + WK.fmtMin(wp) : "", wf ? "факт " + fmtDur(wf) : ""].filter(Boolean).join(" · ")}</small></h3>`;
+    for (const d of days) {
+      const di = its.filter(x => x.date === d);
+      const cls = `pday${d === t ? " today" : ""}${d < t ? " past" : ""}`;
+      const parts = di.map(it => card(it, d));
+      ACTS.filter(a => a.day === d && !used.has(a) && a.moving >= 600).forEach(a => { used.add(a); parts.push(extra(a)); });
+      if (d >= first && d <= last) factS += ACTS.filter(a => a.day === d).reduce((s, a) => s + a.moving, 0);
+      html += parts.length ? parts.map(p => `<div class="${cls}">${dayHead(d)}<span class="t">${p}</span></div>`).join("") : `<div class="${cls} rest">${dayHead(d)}<span class="t"><small>Відпочинок</small></span></div>`;
     }
-    html += `</div></div>`;
+    html += `</div>`;
   }
-  document.getElementById("cal").innerHTML = html;
-  document.getElementById("leg").innerHTML = WK.legendHtml();
+  $("cal").innerHTML = html;
+  $("mSum").textContent = `${planned ? `Виконано ${done} із ${planned} запланованих${missed ? `, пропущено ${missed}` : ""}. ` : ""}Тренувань за місяць: ${fmtDur(factS) || "0"} год.`;
+}
+function shift(n) { const [y, m] = cur.split("-").map(Number); const d = new Date(y, m - 1 + n, 1); cur = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; render(); }
+$("prev").onclick = () => shift(-1);
+$("next").onclick = () => shift(1);
+$("now").onclick = () => { cur = WK.today().slice(0, 7); render(); };
+
+(async () => {
+  await AUTH.ready;
+  cur = /^#\d{4}-\d{2}$/.test(location.hash) ? location.hash.slice(1) : WK.today().slice(0, 7);
+  [PD, EV] = await Promise.all([WK.loadPlanned(), fetch(`data/events.json?t=${Date.now()}`).then(r => r.ok ? r.json() : null).catch(() => null)]);
+  render();
+  const [A, J] = await Promise.all([AUTH.load("activities"), WK.ghGet("logs.json", "journal").then(x => AUTH.decrypt(x.data)).catch(() => null)]);
+  JL = J;
+  ACTS = A ? A.rows.map(r => Object.fromEntries(A.cols.map((c, i) => [c, r[i]]))).filter(a => (a.moving || 0) >= 60) : [];
+  { const seen = new Set(); ACTS = ACTS.filter(a => { const k = a.date + a.moving; if (seen.has(k)) return false; seen.add(k); return true; }); }
+  ACTS.forEach(a => { a.sport = sportOf(a); a.day = a.date.slice(0, 10); });
+  render();
+  $("leg").innerHTML = WK.legendHtml();
 })();
 </script>
 </body>

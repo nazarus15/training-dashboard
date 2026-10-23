@@ -95,35 +95,9 @@ nav.tabs a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .cost-item .muted{font-size:13px}
 @media (max-width:640px){.cost-wrap{display:none}.cost-list{display:flex}}
 /* plan */
-.plan-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
 .btn-link{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:14px;padding:8px 14px;border-radius:6px;background:var(--ink);color:var(--panel);text-decoration:none}
 .btn-link.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .btn-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.plan-weeks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:14px;align-items:start}
-.pweek{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.pweek h3{font-size:16px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:12px 14px;border-bottom:1px solid var(--line)}
-.pday{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;align-items:start;padding:10px 14px;border-bottom:1px solid var(--line)}
-.pday .kline{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.pday .kk{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
-.pday.rest{padding-block:6px}
-.pday.rest .d b{font-size:13px}
-.pday .t strong a{color:inherit;text-decoration-color:var(--line)}
-.pweek .pday:last-child{border-bottom:none}
-.pday .d{font-family:var(--f-data);font-size:11px;color:var(--muted);line-height:1.2}
-.pday .d b{display:block;font-size:15px;color:var(--ink)}
-.pday.today{background:color-mix(in srgb,var(--warn) 9%,var(--panel))}
-.pday.today .d b{color:var(--warn)}
-.pday .t{display:flex;flex-direction:column;gap:2px;min-width:0}
-.pday .k{font-family:var(--f-data);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--kc)}
-.pday .t strong{font-weight:600}
-.pday .t small{color:var(--muted);font-size:13px}
-.pday .t small.act{color:var(--good)}
-.pday details{font-size:13px;color:var(--muted)}
-.pday summary{cursor:pointer;color:var(--accent);width:fit-content}
-.pday ol{margin:6px 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:4px}
-.pday ol li{display:flex;justify-content:space-between;gap:10px}
-.pday ol b{color:var(--ink);font-weight:500}
-.pday ol .num{white-space:nowrap}
 /* insights */
 .insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
 .ins{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--c,var(--accent));border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -198,105 +172,99 @@ footer p{margin:0;max-width:90ch}
     <div class="meta"><span id="updated">Завантаження даних…</span><br>Дані: intervals.icu, Garmin Connect</div>
   </header>
 
-  <div class="status" id="status" role="status"></div>
 
-  <div class="strip" id="strip"></div>
+  <div class="strip" id="strip" data-blk="strip"></div>
 
-  <section id="planSec" hidden>
-    <div class="sec-head"><h2>План на 2 тижні</h2><p id="planSummary"></p></div>
-    <div class="plan-top"><a class="btn-link" id="journalLink" href="strength.html">Силовий журнал →</a><a class="btn-link ghost" href="planner.html">Запланувати</a><span class="muted" style="font-size:13px">Вело сайт бере з календаря intervals.icu, силові й БЖЖ — з Планера.</span></div>
-    <div class="plan-weeks" id="plan"></div>
-  </section>
 
-  <section>
+  <section data-blk="s:що-видно-з-даних" data-name="Що видно з даних">
     <div class="sec-head"><h2>Що видно з даних</h2><p>Розрахунки поверх сирих даних: того, що сайти прямо не показують, або ховають у різних місцях.</p></div>
     <div class="insights" id="insights"></div>
   </section>
 
-  <section>
+  <section data-blk="s:навантаження-і-форма" data-name="Навантаження і форма">
     <div class="sec-head"><h2>Навантаження і форма</h2><p>Модель Банистера (intervals.icu): фітнес = 42-денне середнє навантаження, втома = 7-денне, форма = різниця. Garmin рахує своє навантаження окремо за пульсом браслета.</p></div>
     <div class="grid">
-      <div class="card full">
+      <div data-blk="c:фітнес-втома-форма" data-name="Фітнес, втома, форма" class="card full">
         <h3>Фітнес, втома, форма</h3>
         <div class="legend"><span><i style="background:var(--accent)"></i>Фітнес (CTL)</span><span><i style="background:var(--accent-3)"></i>Втома (ATL)</span><span><i style="background:var(--accent-2)"></i>Форма (TSB)</span><span><i style="background:var(--z1)"></i>Навантаження за день</span></div>
         <div class="chart tall"><canvas id="cPmc" aria-label="Графік фітнесу, втоми і форми"></canvas></div>
         <p class="note">Зони форми: вище +5 свіжий, від −10 до +5 сіра зона, від −30 до −10 оптимальна для росту, нижче −30 ризик перевтоми.</p>
       </div>
-      <div class="card">
+      <div data-blk="c:тижневе-навантаження-за-видами" data-name="Тижневе навантаження за видами" class="card">
         <h3>Тижневе навантаження за видами</h3>
         <div class="legend" id="lgWeek"></div>
         <div class="chart"><canvas id="cWeek" aria-label="Тижневе навантаження"></canvas></div>
       </div>
-      <div class="card">
+      <div data-blk="c:гостре-і-хронічне-навантаження" data-name="Гостре і хронічне навантаження" class="card">
         <h3>Гостре і хронічне навантаження</h3>
         <p class="note">За навантаженням Garmin з кожного тренування: гостре — сума за 7 днів, хронічне — середнє на тиждень за 4 тижні. Коридор 0,8–1,5 від хронічного — зона безпечного росту.</p>
         <div class="legend"><span><i style="background:var(--accent-2)"></i>Гостре (7 дн.)</span><span><i style="background:var(--accent)"></i>Хронічне</span><span><i style="background:color-mix(in srgb,var(--good) 30%,transparent)"></i>Оптимальний коридор</span></div>
         <div class="chart"><canvas id="cAcute" aria-label="Гостре і хронічне навантаження Garmin"></canvas></div>
       </div>
-      <div class="card">
+      <div data-blk="c:баланс-навантаження-за-4-тижні" data-name="Баланс навантаження за 4 тижні" class="card">
         <h3>Баланс навантаження за 4 тижні</h3>
         <p class="note">Навантаження Garmin за 28 днів, розкладене за ефектом кожного тренування. Смуга — орієнтир за логікою Garmin, маркер — твій факт.</p>
         <div id="balance" style="display:flex;flex-direction:column;gap:14px"></div>
       </div>
-      <div class="card">
+      <div data-blk="c:монотонність-і-strain-метод-фостера" data-name="Монотонність і strain (метод Фостера)" class="card">
         <h3>Монотонність і strain (метод Фостера)</h3>
         <p class="note">Монотонність = середнє / стандартне відхилення денного навантаження за 7 днів. Вище 2,0 тиждень надто одноманітний, ризик перевтоми росте. Strain = тижневе навантаження × монотонність.</p>
         <div class="chart short"><canvas id="cMono" aria-label="Монотонність тренувань"></canvas></div>
       </div>
-      <div class="card full">
+      <div data-blk="c:ціна-тренувань-за-даними-браслета" data-name="Ціна тренувань за даними браслета" class="card full">
         <h3>Ціна тренувань за даними браслета</h3>
         <p class="note">Те, що Garmin рахує для кожного тренування, але майже не показує: власне навантаження, аеробний і анаеробний Training Effect, скільки Body Battery забрало тренування, і оцінка втрати рідини з потом.</p>
         <dl class="kv" id="costKv"></dl>
         <div class="tbl-wrap cost-wrap"><table id="costTbl"></table></div>
         <div class="cost-list" id="costList"></div>
       </div>
-      <div class="card full">
+      <div data-blk="c:календар-навантаження" data-name="Календар навантаження" class="card full">
         <h3>Календар навантаження</h3>
         <div class="tbl-wrap" style="border:none;background:transparent"><div id="heat"></div></div>
       </div>
     </div>
   </section>
 
-  <section>
+  <section data-blk="s:відновлення" data-name="Відновлення">
     <div class="sec-head"><h2>Відновлення</h2><p>Нічні дані браслета Garmin через офіційний Personal API. Пульс спокою і HRV краще читати трендом, а не окремою ніччю.</p></div>
     <div class="grid">
-      <div class="card full">
+      <div data-blk="c:готовність-сьогодні" data-name="Готовність сьогодні" class="card full">
         <h3>Готовність сьогодні</h3>
         <p class="note">Власний розрахунок замість Training Readiness Garmin, якого немає в Personal API: HRV, пульс спокою, сон за ніч і за 3 ночі, гостре навантаження і форма з intervals.icu.</p>
         <div id="readiness" class="ready"></div>
       </div>
-      <div class="card full">
+      <div data-blk="c:hrv-і-пульс-спокою" data-name="HRV і пульс спокою" class="card full">
         <h3>HRV і пульс спокою</h3>
         <div class="legend"><span><i style="background:var(--accent)"></i>HRV за ніч, мс</span><span><i style="background:var(--accent-3)"></i>HRV 7-денне середнє</span><span><i style="background:color-mix(in srgb,var(--good) 30%,transparent)"></i>Збалансований діапазон Garmin</span><span><i style="background:var(--bad)"></i>Пульс спокою</span></div>
         <div class="chart tall"><canvas id="cHrv" aria-label="HRV і пульс спокою"></canvas></div>
       </div>
-      <div class="card">
+      <div data-blk="c:сон-тривалість-і-оцінка" data-name="Сон: тривалість і оцінка" class="card">
         <h3>Сон: тривалість і оцінка</h3>
         <div class="legend"><span><i style="background:var(--z2)"></i>Тривалість, год</span><span><i style="background:var(--accent-2)"></i>Оцінка сну</span></div>
         <div class="chart"><canvas id="cSleep" aria-label="Сон"></canvas></div>
       </div>
-      <div class="card">
+      <div data-blk="c:фази-сну-за-останні-7-ночей" data-name="Фази сну за останні 7 ночей" class="card">
         <h3>Фази сну за останні 7 ночей</h3>
         <div class="legend"><span><i style="background:var(--accent-3)"></i>Глибокий</span><span><i style="background:var(--z2)"></i>Легкий</span><span><i style="background:var(--z3)"></i>REM</span><span><i style="background:var(--bad)"></i>Пробудження</span></div>
         <div class="chart"><canvas id="cStages" aria-label="Фази сну"></canvas></div>
       </div>
-      <div class="card">
+      <div data-blk="c:hrv-протягом-минулої-ночі" data-name="HRV протягом минулої ночі" class="card">
         <h3>HRV протягом минулої ночі</h3>
         <p class="note">Значення кожні 5 хвилин. Garmin Connect показує лише середнє; крива видно, коли нервова система «відпустило»: зазвичай HRV росте в першій половині ночі.</p>
         <div class="chart short"><canvas id="cHrvNight" aria-label="HRV протягом ночі"></canvas></div>
       </div>
-      <div class="card">
+      <div data-blk="c:потреба-сну-і-режим" data-name="Потреба сну і режим" class="card">
         <h3>Потреба сну і режим</h3>
         <dl class="kv" id="sleepKv"></dl>
         <div id="phases" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
-      <div class="card full">
+      <div data-blk="c:body-battery-і-стрес-за-4-тижні" data-name="Body Battery і стрес за 4 тижні" class="card full">
         <h3>Body Battery і стрес за 4 тижні</h3>
         <div class="legend"><span><i style="background:color-mix(in srgb,var(--good) 45%,transparent)"></i>Діапазон Body Battery за день</span><span><i style="background:var(--accent-2)"></i>Середній стрес</span><span><i style="background:var(--bad)"></i>Пульс спокою</span></div>
         <div class="chart"><canvas id="cBB" aria-label="Body Battery і стрес за 4 тижні"></canvas></div>
         <dl class="kv" id="todayKv"></dl>
       </div>
-      <div class="card full">
+      <div data-blk="c:нічні-показники-дихання-і-spo" data-name="Нічні показники: дихання і SpO₂" class="card full">
         <h3>Нічні показники: дихання і SpO₂</h3>
         <p class="note">Частота дихання і насичення крові киснем уві сні. Одночасне зростання дихання і падіння SpO₂ буває першою ознакою хвороби чи перевтоми ще до симптомів.</p>
         <div class="chart short"><canvas id="cHealth" aria-label="Дихання і SpO2 уві сні"></canvas></div>
@@ -305,32 +273,32 @@ footer p{margin:0;max-width:90ch}
     </div>
   </section>
 
-  <section>
+  <section data-blk="s:велосипед-потужність-і-пульс" data-name="Велосипед: потужність і пульс">
     <div class="sec-head"><h2>Велосипед: потужність і пульс</h2><p id="powerIntro">Потужність є лише в заїздах на станку. Решта заїздів записані з пульсом, без потужності.</p></div>
     <div class="grid">
-      <div class="card full">
+      <div data-blk="c:крива-потужності-за-42-дні" data-name="Крива потужності за 42 дні" class="card full">
         <h3>Крива потужності за 42 дні</h3>
         <div class="legend"><span><i style="background:var(--accent)"></i>Найкраща потужність, Вт</span><span><i style="background:var(--accent-2)"></i>FTP 230 Вт</span></div>
         <div class="chart tall"><canvas id="cCurve" aria-label="Крива потужності"></canvas></div>
         <p class="note">Після 20 хв крива різко падає, бо максимальних зусиль довших за 20 хв не було. Тому перцентилі на 60 і 90 хв занижені.</p>
       </div>
-      <div class="card">
+      <div data-blk="c:перцентиль-у-intervals-icu" data-name="Перцентиль у intervals.icu" class="card">
         <h3 id="rankTitle">Перцентиль у intervals.icu</h3>
         <p class="note">Яку частку спортсменів своєї групи ти випереджаєш у Вт/кг.</p>
         <div class="ranks" id="ranks"></div>
       </div>
-      <div class="card">
+      <div data-blk="c:моделі-ftp" data-name="Моделі FTP" class="card">
         <h3>Моделі FTP</h3>
         <dl class="kv" id="models"></dl>
         <p class="note" id="ftpNote"></p>
       </div>
-      <div class="card">
+      <div data-blk="c:розподіл-часу-за-зонами-пульсу-6-тижнів" data-name="Розподіл часу за зонами пульсу, 6 тижнів" class="card">
         <h3>Розподіл часу за зонами пульсу, 6 тижнів</h3>
         <div class="legend" id="lgHrz"></div>
         <div class="chart"><canvas id="cHrz" aria-label="Зони пульсу за видами"></canvas></div>
         <p class="note" id="hrzNote"></p>
       </div>
-      <div class="card">
+      <div data-blk="c:аеробна-ефективність-заїздів-зі-станка" data-name="Аеробна ефективність заїздів зі станка" class="card">
         <h3>Аеробна ефективність заїздів зі станка</h3>
         <dl class="kv" id="effKv"></dl>
         <p class="note">EF = нормована потужність / середній пульс. Decoupling показує, наскільки «відпливає» пульс відносно потужності в другій половині. До 5% — аеробна база тримає, вище — бракує обʼєму.</p>
@@ -338,12 +306,12 @@ footer p{margin:0;max-width:90ch}
     </div>
   </section>
 
-  <section>
+  <section data-blk="s:що-робити-далі" data-name="Що робити далі">
     <div class="sec-head"><h2>Що робити далі</h2><p>Висновки з даних під твою мету: форма як під велогонку при трьох тренуваннях БЖЖ на тиждень.</p></div>
     <div class="recs" id="recs"></div>
   </section>
 
-  <section>
+  <section data-blk="s:журнал-активностей" data-name="Журнал активностей">
     <div class="sec-head"><h2>Журнал активностей</h2><p>Усі записи з червня. Клікни на заголовок, щоб сортувати.</p></div>
     <div class="filters" id="filters"></div>
     <div class="tbl-wrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>

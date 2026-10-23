@@ -28,6 +28,18 @@ textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
 .msg{font-size:13px} .msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
 .howto{font-size:13px;color:var(--muted)} .howto summary{cursor:pointer;color:var(--accent);width:fit-content}
 .howto ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.hl{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.hl li{display:flex;gap:8px;align-items:baseline;font-size:14px;padding:8px 10px;border-radius:6px;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 8%,var(--panel))}
+.hl b{font-family:var(--f-data);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--c);white-space:nowrap}
+.updkv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 12px;font-size:13px;margin:0}
+.updkv dt{color:var(--muted)} .updkv dd{margin:0}
+.histd{display:flex;gap:3px;flex-wrap:wrap} .histd i{width:8px;height:16px;border-radius:2px;display:block}
+.ovg{border-top:1px solid var(--line);padding:10px 0}
+.ovg:first-child{border-top:none}
+.ovg>label{font-weight:600}
+.ovg .sub{display:flex;flex-direction:column;gap:6px;padding:8px 0 0 26px}
+.ovg label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.ovg input{width:18px;height:18px;flex:none}
 </style>
 <script src="auth.js"></script>
 </head>
@@ -41,6 +53,13 @@ textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
     <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="settings.html" aria-current="page">Налаштування</a></nav>
   </header>
 
+  <section class="card" id="healthCard">
+    <h2>Стан системи</h2>
+    <div id="health"><p>Перевіряю…</p></div>
+    <div id="upd"></div>
+    <div class="acts"><button class="btn ghost" type="button" id="hRefresh">Перевірити ще раз</button></div>
+  </section>
+
   <section class="card" id="ghCard">
     <h2>Збереження на GitHub</h2>
     <p id="ghState"></p>
@@ -50,6 +69,7 @@ textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
       <li>Назва «Форма», термін — 1 рік. Repository access → Only select repositories → <b>training-dashboard</b>.</li>
       <li>Permissions → Repository permissions → <b>Contents: Read and write</b>. Generate token, скопіюй і встав сюди.</li>
       <li>Токен зберігається лише в цьому браузері. Потрібен для журналу, Планера і цих налаштувань.</li></ol><p style="margin-top:8px">Вже є токен, але лише на читання? Не створюй новий: github.com → Settings → Developer settings → Personal access tokens → Fine-grained tokens → твій токен → <b>Edit</b> → Repository permissions → <b>Contents: Read and write</b> → Update. Потім встав той самий токен сюди ще раз.</p></details>
+    <label class="f" id="expWrap" style="max-width:260px">Токен діє до (необов'язково)<input type="date" id="tokExp"></label>
     <div class="acts"><button class="btn ghost" type="button" id="ghOff" hidden>Відключити на цьому пристрої</button><span class="msg" id="ghMsg" role="status"></span></div>
   </section>
 
@@ -75,6 +95,13 @@ textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
       <code id="recCode" style="font-family:var(--f-data);font-size:20px;letter-spacing:.06em;padding:12px;border:1px dashed var(--ink);border-radius:6px;text-align:center;user-select:all;word-break:break-all"></code>
       <div class="acts"><button class="btn ghost" type="button" id="recCopy">Скопіювати</button><span class="muted" style="font-size:13px">Код показується лише зараз.</span></div>
     </div>
+  </form>
+
+  <form class="card" id="ovForm">
+    <h2>Конструктор огляду</h2>
+    <p>Познач, що показувати на сторінці «Огляд». Зміни видно одразу на цьому пристрої, на інших — за кілька хвилин.</p>
+    <div id="ovList"></div>
+    <div class="acts"><button class="btn" type="submit" id="ovBtn">Зберегти</button><button class="btn ghost" type="button" id="ovAll">Показати все</button><span class="msg" id="ovMsg" role="status"></span></div>
   </form>
 
   <form class="card" id="metForm">
@@ -155,6 +182,52 @@ $("recForm").onsubmit = async e => {
   finally { $("recBtn").disabled = false; }
 };
 $("recCopy").onclick = async () => { try { await navigator.clipboard.writeText($("recCode").textContent); msg("recMsg", "Скопійовано.", "ok"); } catch { msg("recMsg", "Виділи код і скопіюй вручну.", "err"); } };
+
+// ---------- стан системи ----------
+const PART = { athlete: "профіль", wellness: "wellness", activities: "активності", power: "потужність", events: "календар", hrv: "HRV за тиждень", hrvNight: "HRV за ніч", sleep: "сон", sleepWeek: "сон за тиждень", daily: "денні підсумки", fitnessAge: "фітнес-вік" };
+async function renderHealth(fresh) {
+  const h = await AUTH.health({ fresh }); AUTH.markNav(h.issues);
+  $("health").innerHTML = h.issues.length ? `<ul class="hl">${h.issues.map(i => `<li style="--c:var(--${i.lvl === "bad" ? "bad" : "warn"})"><b>${i.area}</b><span>${WK.esc(i.text)}</span></li>`).join("")}</ul>` : `<p><span class="pill done">Усе працює</span></p>`;
+  const S = h.status; if (!S) return;
+  const parts = p => Object.entries(p || {}).map(([k, v]) => `${PART[k] || k}: ${WK.esc(v)}`).join("<br>");
+  const hist = (S.history || []).slice(-14).map(x => `<i title="${WK.esc(x.at)}" style="background:var(${x.intervals && x.garmin ? "--good" : x.intervals ? "--warn" : "--bad"})"></i>`).join("");
+  $("upd").innerHTML = `<details class="howto"><summary>Оновлення даних</summary><dl class="updkv" style="margin-top:8px">
+    <dt>Останнє</dt><dd>${new Date(S.generatedAt).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}${S.slot ? ` · ${{ evening: "вечірнє", morning: "ранкове", retry: "повтор", manual: "вручну" }[S.slot] || S.slot}` : ""}</dd>
+    <dt>Розклад</dt><dd>23:00 і 10:00, повтор о 12:00, якщо вранці не прийшов сон</dd>
+    <dt>intervals.icu</dt><dd>${S.intervals?.ok ? "ok" : "помилка"}<br><span class="muted">${parts(S.intervals?.parts)}</span></dd>
+    <dt>Garmin</dt><dd>${S.garmin?.ok ? "ok" : WK.esc(S.garmin?.error || "помилка")}${S.garmin?.dataDate ? ` · дані за ${S.garmin.dataDate}` : ""}<br><span class="muted">${parts(S.garmin?.parts)}</span></dd>
+    <dt>14 запусків</dt><dd><span class="histd">${hist}</span></dd></dl></details>`;
+}
+$("hRefresh").onclick = () => { $("health").innerHTML = "<p>Перевіряю…</p>"; renderHealth(true); };
+try { $("tokExp").value = JSON.parse(localStorage.getItem("td_tok_exp") || "null") || ""; } catch { }
+$("tokExp").onchange = () => { lsSet("td_tok_exp", $("tokExp").value || null); renderHealth(); };
+
+// ---------- конструктор огляду ----------
+let OV = { hidden: [] };
+async function renderOv(s) {
+  OV = { hidden: [...(s?.overview?.hidden || [])] };
+  let doc;
+  try { doc = new DOMParser().parseFromString(await (await fetch("index.html", { cache: "no-store" })).text(), "text/html"); } catch { $("ovList").innerHTML = `<p class="msg err">Не вдалося прочитати сторінку огляду.</p>`; return; }
+  const hid = new Set(OV.hidden), cb = (id, name, cls = "") => `<label class="${cls}"><input type="checkbox" data-ov="${WK.esc(id)}"${hid.has(id) ? "" : " checked"}>${WK.esc(name)}</label>`;
+  let html = `<div class="ovg">${cb("strip", "Плитки стану")}<div class="sub">${WK.TILES.map(([k, n]) => cb("t:" + k, n)).join("")}</div></div>`;
+  doc.querySelectorAll("section[data-blk]").forEach(sec => {
+    const cards = [...sec.querySelectorAll(".card[data-blk]")];
+    html += `<div class="ovg">${cb(sec.dataset.blk, sec.dataset.name)}${cards.length ? `<div class="sub">${cards.map(c => cb(c.dataset.blk, c.dataset.name)).join("")}</div>` : ""}</div>`;
+  });
+  $("ovList").innerHTML = html;
+}
+$("ovAll").onclick = () => { document.querySelectorAll("[data-ov]").forEach(i => i.checked = true); };
+$("ovForm").onsubmit = async e => {
+  e.preventDefault();
+  const hidden = [...document.querySelectorAll("[data-ov]")].filter(i => !i.checked).map(i => i.dataset.ov);
+  let cache = {}; try { cache = JSON.parse(localStorage.getItem("td_settings_cache") || "{}") || {}; } catch { }
+  const now = new Date().toISOString();
+  lsSet("td_settings_cache", { ...cache, overview: { hidden }, updatedAt: now });
+  $("ovBtn").disabled = true; msg("ovMsg", "Зберігаю…");
+  try { const d = await WK.ghPut("settings.json", "journal", cur => ({ ...(cur || {}), overview: { hidden }, updatedAt: now }), "Конструктор огляду"); lsSet("td_settings_cache", d); msg("ovMsg", "Збережено.", "ok"); }
+  catch (err) { msg("ovMsg", "На цьому пристрої застосовано. " + errText(err), "err"); }
+  finally { $("ovBtn").disabled = false; }
+};
 $("logout").onclick = async () => { await AUTH.logout(); location.reload(); };
 
 let PD = null;
@@ -178,9 +251,10 @@ $("metForm").onsubmit = async e => {
 
 (async () => {
   await AUTH.ready;
-  renderGh(); verifyGh(); renderRec();
+  renderGh(); verifyGh(); renderRec(); renderHealth();
   try { if (sessionStorage.getItem("forma-recovered")) { $("recBanner").hidden = false; $("pwForm").scrollIntoView(); } } catch { }
   const [S, P] = await Promise.all([WK.loadSettings(), WK.loadPlanned()]); PD = P;
+  renderOv(S);
   $("ftpFloor").value = S.ftpFloor; $("aiCtx").value = S.aiContext || WKX.DEFAULT_CONTEXT;
   const r = PD.recurring.find(x => x.sport === "bjj") || { days: [], mins: 90 };
   $("bjjDays").innerHTML = DAYS.map((d, i) => `<label><input type="checkbox" value="${i + 1}"${r.days.includes(i + 1) ? " checked" : ""}>${d}</label>`).join("");

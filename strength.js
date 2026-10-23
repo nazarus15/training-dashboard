@@ -79,8 +79,9 @@ async function push() {
 window.addEventListener("online", () => queuePush(0));
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && Object.keys(pending).length) push(); });
 
-function setSync(kind, msg = "") { syncState = { kind, msg }; renderSync(); }
+function setSync(kind, msg = "") { syncState = { kind, msg }; lsSet("td_sync_state", syncState); if (window.AUTH) AUTH.health().then(h => AUTH.markNav(h.issues)).catch(() => { }); renderSync(); }
 function renderSync() {
+  if (!$("sync")) return;
   const n = Object.keys(pending).length;
   const last = lsGet(LS.last, null);
   const color = { ok: "--good", local: "--warn", offline: "--warn", error: "--bad" }[syncState.kind];

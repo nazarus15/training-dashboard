@@ -67,3 +67,31 @@ a.ci:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 }
 @media (min-width:721px){.cal-d .its{display:flex;flex-direction:column;gap:5px}}
 @media (max-width:640px){.fxrow{grid-template-columns:minmax(0,128px) minmax(0,1fr) 26px}}
+
+/* картки днів (календар) */
+.plan-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.plan-weeks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:14px;align-items:start}
+.pweek{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.pweek h3{font-size:16px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:12px 14px;border-bottom:1px solid var(--line)}
+.pday{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;align-items:start;padding:10px 14px;border-bottom:1px solid var(--line)}
+.pday .kline{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pday .kk{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.pday.rest{padding-block:6px}
+.pday.rest .d b{font-size:13px}
+.pday .t strong a{color:inherit;text-decoration-color:var(--line)}
+.pweek .pday:last-child{border-bottom:none}
+.pday .d{font-family:var(--f-data);font-size:11px;color:var(--muted);line-height:1.2}
+.pday .d b{display:block;font-size:15px;color:var(--ink)}
+.pday.today{background:color-mix(in srgb,var(--warn) 9%,var(--panel))}
+.pday.today .d b{color:var(--warn)}
+.pday .t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pday .k{font-family:var(--f-data);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--kc)}
+.pday .t strong{font-weight:600}
+.pday .t small{color:var(--muted);font-size:13px}
+.pday .t small.act{color:var(--good)}
+.pday details{font-size:13px;color:var(--muted)}
+.pday summary{cursor:pointer;color:var(--accent);width:fit-content}
+.pday ol{margin:6px 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.pday ol li{display:flex;justify-content:space-between;gap:10px}
+.pday ol b{color:var(--ink);font-weight:500}
+.pday ol .num{white-space:nowrap}

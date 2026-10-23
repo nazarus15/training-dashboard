@@ -10,37 +10,30 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "
 function alpha(v, a) { const c = css(v); if (c.startsWith("#")) { const n = parseInt(c.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; } return c; }
 function noData(canvasId, text) { const c = $(canvasId); if (c) c.parentElement.innerHTML = `<p class="note" style="margin:auto">${text}</p>`; }
 
-const PART_NAMES = { athlete: "профіль", wellness: "wellness", activities: "активності", power: "потужність", events: "календар", hrv: "HRV за тиждень", hrvNight: "HRV за ніч", sleep: "сон", sleepWeek: "сон за тиждень", daily: "денні підсумки", fitnessAge: "фітнес-вік" };
 
 const load = name => AUTH.load(name);
 
-const loadJournal = () => fetch(`https://raw.githubusercontent.com/nazarus15/training-dashboard/journal/logs.json?t=${Date.now()}`, { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => AUTH.decrypt(j)).catch(() => null);
-AUTH.ready.then(() => Promise.all([...["wellness", "activities", "power", "garmin", "status", "events"].map(load), loadJournal(), WK.loadPlanned()]).then(([W, A, P, G, S, EV, JL, PD]) => {
-  renderStatus(S, G);
+AUTH.ready.then(() => Promise.all(["wellness", "activities", "power", "garmin", "status"].map(load)).then(([W, A, P, G, S]) => {
+  renderStatus(S);
   if (!W || !A) { $("strip").innerHTML = `<div class="tile">Не вдалося завантажити дані intervals.icu.</div>`; return; }
-  run(W, A, P || {}, G || {}, PD, EV, JL);
+  run(W, A, P || {}, G || {});
 }));
 
-function renderStatus(S, G) {
-  const box = $("status");
-  if (!S) { box.innerHTML = `<div class="alert" style="--c:var(--warn)"><b>Статус</b>Файл статусу не знайдено.</div>`; return; }
-  const at = new Date(S.generatedAt);
-  const ageH = (Date.now() - at.getTime()) / 36e5;
-  $("updated").textContent = `Оновлено: ${at.toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`;
-  const hist = (S.history || []).slice(-14).map(h => `<i title="${esc(h.at)}: intervals ${h.intervals ? "ok" : "помилка"}, Garmin ${h.garmin ? "ok" : "помилка"}" style="background:var(${h.intervals && h.garmin ? "--good" : h.intervals ? "--warn" : "--bad"})"></i>`).join("");
-  const partsList = parts => Object.entries(parts || {}).map(([k, v]) => `<li>${esc(PART_NAMES[k] || k)}: ${esc(v)}</li>`).join("");
-  const out = [];
-  if (ageH > 30) out.push(`<div class="alert" style="--c:var(--warn)"><b>Дані застаріли</b>Останнє оновлення ${Math.round(ageH)} год тому. Перевір вкладку Actions у репозиторії.</div>`);
-  const iv = S.intervals || {};
-  if (!iv.ok) out.push(`<div class="alert" style="--c:var(--bad)"><b>intervals.icu</b>${esc(iv.error || "помилка оновлення")}${Object.keys(iv.parts || {}).length ? `<details><summary>Деталі</summary><ul>${partsList(iv.parts)}</ul></details>` : ""}</div>`);
-  const ga = S.garmin || {};
-  const gDate = ga.dataDate || G?.date;
-  const garminOk = ga.ok;
-  out.push(`<div class="alert" style="--c:var(${garminOk ? "--good" : ga.dataDate === S.generatedAt.slice(0, 10) ? "--warn" : "--bad"})"><b>Garmin</b>${garminOk ? `Усі запити успішні${ga.auth ? ` · вхід: ${esc(ga.auth)}` : ""}` : esc(ga.error || "помилка")}${!garminOk && gDate ? ` · показано дані Garmin за ${esc(gDate)}` : ""}<span class="hist" aria-label="Історія оновлень за 14 днів">${hist}</span>${Object.keys(ga.parts || {}).length ? `<details><summary>Деталі запитів</summary><ul>${partsList(ga.parts)}</ul></details>` : ""}</div>`);
-  box.innerHTML = out.join("");
+function renderStatus(S) {
+  if (S?.generatedAt) $("updated").textContent = `Оновлено: ${new Date(S.generatedAt).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`;
 }
 
-function run(W, A, P, G, PD, EV, JL) {
+// ---------- конструктор огляду: приховані блоки з Налаштувань ----------
+function applyLayout(s) {
+  const hidden = new Set(s?.overview?.hidden || []);
+  document.querySelectorAll("[data-blk]").forEach(el => { el.hidden = hidden.has(el.dataset.blk); });
+  document.querySelectorAll("section[data-blk]").forEach(sec => { const cards = sec.querySelectorAll(".card[data-blk]"); if (cards.length && [...cards].every(c => c.hidden)) sec.hidden = true; });
+  document.querySelectorAll("#strip .tile[data-tile]").forEach(el => { el.hidden = hidden.has("t:" + el.dataset.tile); });
+}
+try { applyLayout(JSON.parse(localStorage.getItem("td_settings_cache") || "null")); } catch { }
+fetch(`https://raw.githubusercontent.com/nazarus15/training-dashboard/journal/settings.json?t=${Date.now()}`, { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(s => { let c = null; try { c = JSON.parse(localStorage.getItem("td_settings_cache") || "null"); } catch { } if (s && (!c?.updatedAt || (s.updatedAt || "") >= c.updatedAt)) { try { localStorage.setItem("td_settings_cache", JSON.stringify(s)); } catch { } applyLayout(s); } }).catch(() => { });
+
+function run(W, A, P, G) {
   // ---------- data prep ----------
   const wr = W.rows.map(r => Object.fromEntries(W.cols.map((c, i) => [c, r[i]])));
   wr.forEach(r => r.tsb = r.ctl != null && r.atl != null ? +(r.ctl - r.atl).toFixed(1) : null);
@@ -101,50 +94,6 @@ function run(W, A, P, G, PD, EV, JL) {
 
 
 
-  // ---------- plan: 2 тижні з Планера й календаря intervals.icu ----------
-  (function renderPlan() {
-    $("planSec").hidden = false;
-    const todayISO = WK.today(), from = WK.monday(todayISO), to = WK.addDays(from, 13);
-    const DOW = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"], MON = ["січ.", "лют.", "бер.", "квіт.", "трав.", "черв.", "лип.", "серп.", "вер.", "жовт.", "лист.", "груд."];
-    const dd = s => new Date(s + "T12:00:00");
-    const rng = (a, b) => { const x = dd(a), y = dd(b); return x.getMonth() === y.getMonth() ? `${x.getDate()}–${y.getDate()} ${MON[y.getMonth()]}` : `${x.getDate()} ${MON[x.getMonth()]} – ${y.getDate()} ${MON[y.getMonth()]}`; };
-    const SPA = { strength: "str", bike: "bike", bjj: "bjj" };
-    const its = WK.items(PD, EV, from, to);
-    let planned = 0, done = 0, missed = 0;
-    const dayHead = s => { const d = dd(s); return `<span class="d">${DOW[d.getDay()]}<b>${d.getDate()}.${String(d.getMonth() + 1).padStart(2, "0")}</b></span>`; };
-    const card = it => {
-      const [sn, sc] = WK.SPORT[it.sport] || WK.SPORT.other;
-      const sp = SPA[it.sport];
-      const actual = sp ? acts.filter(a => a.day === it.date && a.sport === sp) : [];
-      const jl = it.id ? JL?.logs?.[it.id] : null;
-      let pill;
-      if (it.date <= todayISO) planned++;
-      if (jl?.status === "skipped") { missed++; pill = `<span class="pill grey">Пропущено</span>`; }
-      else if (actual.length || jl?.status === "done") { done++; pill = `<span class="pill good">Виконано</span>`; }
-      else if (it.date < todayISO) { missed++; pill = `<span class="pill bad">Пропущено</span>`; }
-      else if (it.date === todayISO) pill = `<span class="pill warn">Сьогодні</span>`;
-      else pill = `<span class="pill grey">План</span>`;
-      const main = it.fx?.main ? WK.FX[it.fx.main] : null;
-      const detail = [WK.fmtMin(it.mins), it.time, it.load ? `навант. ${it.load}` : ""].filter(Boolean).join(" · ");
-      const act = actual.length ? actual.map(a => `Факт: ${fmtDur(a.moving)}${a.np ? ` · NP ${a.np} Вт` : ""}${a.load ? ` · навант. ${a.load}` : ""}${a.avgHr ? ` · пульс ${a.avgHr}` : ""}`).join("<br>") : "";
-      const s = it.sess;
-      const exList = s?.exercises?.length ? `<details><summary>Вправи (${s.exercises.length})</summary><ol>${s.exercises.map(e => `<li><b>${esc(e.name)}</b><span class="num">${e.sets}×${esc(e.reps)}${e.type === "time" ? " с" : ""}${e.perSide ? "/бік" : ""}</span></li>`).join("")}</ol></details>` : "";
-      const title = it.sport === "strength" ? `<a href="strength.html?s=${encodeURIComponent(it.id)}">${esc(it.title)}</a>` : esc(it.title);
-      return `<div class="pday${it.date === todayISO ? " today" : ""}">${dayHead(it.date)}<span class="t"><span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}</span>${pill}</span><strong>${title}</strong>${detail ? `<small>${esc(detail)}</small>` : ""}${act ? `<small class="act">${act}</small>` : ""}${WK.barsHtml(it.fx)}${exList}</span></div>`;
-    };
-    const html = [0, 7].map(o => {
-      const ws = WK.addDays(from, o);
-      const days = Array.from({ length: 7 }, (_, i) => WK.addDays(ws, i));
-      return `<div class="pweek"><h3>${o ? "Наступний тиждень" : "Цей тиждень"} · ${rng(days[0], days[6])}</h3>${days.map(d => {
-        const di = its.filter(x => x.date === d);
-        return di.length ? di.map(card).join("") : `<div class="pday rest${d === todayISO ? " today" : ""}">${dayHead(d)}<span class="t"><small>Відпочинок</small></span></div>`;
-      }).join("")}</div>`;
-    }).join("");
-    $("plan").innerHTML = html + WK.legendHtml();
-    $("planSummary").textContent = `${planned ? `Виконано ${done} із ${planned} тренувань на сьогодні${missed ? `, пропущено ${missed}` : ""}. ` : ""}Заплановано на два тижні: ${its.length}. Відмітки ставляться автоматично: силові — за журналом, решта — за записаними тренуваннями.`;
-  })();
-
-
   // ---------- readiness (власний розрахунок) ----------
   const R = (() => {
     const comps = [];
@@ -187,7 +136,8 @@ function run(W, A, P, G, PD, EV, JL) {
     G.today?.bbNow != null && ["Body Battery", G.today.bbNow, "/100", [`максимум ${G.today.bbHigh ?? "—"}`, G.today.bbNow >= 50 ? "good" : "warn"]],
     ftp && ["FTP", ftp, "Вт", [wt ? `${(ftp / wt).toFixed(2)} Вт/кг` : "—", "acc"]],
   ].filter(Boolean);
-  $("strip").innerHTML = tiles.map(([k, v, u, [p, c]]) => `<div class="tile"><span class="eyebrow">${k}</span><span class="v num">${v}<small>${u}</small></span><span class="pill ${c}">${p}</span></div>`).join("");
+  $("strip").innerHTML = tiles.map(([k, v, u, [p, c]]) => `<div class="tile" data-tile="${WK.TILES.find(x => x[1] === k)?.[0] || ""}"><span class="eyebrow">${k}</span><span class="v num">${v}<small>${u}</small></span><span class="pill ${c}">${p}</span></div>`).join("");
+  try { applyLayout(JSON.parse(localStorage.getItem("td_settings_cache") || "null")); } catch { }
 
   // ---------- insights ----------
   const ctlMin = Math.min(...wr.filter(r => r.date >= since70 && r.ctl != null).map(r => r.ctl));

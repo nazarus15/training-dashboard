@@ -260,7 +260,7 @@ window.WK = (() => {
     if (s) lsSet("td_settings_cache", s); else s = lsGet("td_settings_cache", {}) || {};
     let priv = {};
     try { priv = (s.private && window.AUTH ? await AUTH.decrypt(s.private) : {}) || {}; } catch { }
-    return { ftpFloor: s.ftpFloor || 231, ...priv };
+    return { ftpFloor: s.ftpFloor || 231, overview: s.overview, updatedAt: s.updatedAt, ...priv };
   }
 
   // ---------- календар: план + intervals ----------
@@ -306,5 +306,6 @@ window.WK = (() => {
     </div>`;
   }
 
-  return { ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
+  const TILES = [["ready", "Готовність"], ["tsb", "Форма (TSB)"], ["ctl", "Фітнес (CTL)"], ["hrv", "HRV минулої ночі"], ["rhr", "Пульс спокою"], ["sleep", "Сон"], ["bb", "Body Battery"], ["ftp", "FTP"]];
+  return { TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();
