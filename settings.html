@@ -49,7 +49,7 @@ textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
       <li>Відкрий <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → Fine-grained token</a>.</li>
       <li>Назва «Форма», термін — 1 рік. Repository access → Only select repositories → <b>training-dashboard</b>.</li>
       <li>Permissions → Repository permissions → <b>Contents: Read and write</b>. Generate token, скопіюй і встав сюди.</li>
-      <li>Токен зберігається лише в цьому браузері. Потрібен для журналу, Планера і цих налаштувань.</li></ol></details>
+      <li>Токен зберігається лише в цьому браузері. Потрібен для журналу, Планера і цих налаштувань.</li></ol><p style="margin-top:8px">Вже є токен, але лише на читання? Не створюй новий: github.com → Settings → Developer settings → Personal access tokens → Fine-grained tokens → твій токен → <b>Edit</b> → Repository permissions → <b>Contents: Read and write</b> → Update. Потім встав той самий токен сюди ще раз.</p></details>
     <div class="acts"><button class="btn ghost" type="button" id="ghOff" hidden>Відключити на цьому пристрої</button><span class="msg" id="ghMsg" role="status"></span></div>
   </section>
 
@@ -90,23 +90,26 @@ textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
 const $ = id => document.getElementById(id);
 const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch { } };
 const msg = (id, t, k = "") => { $(id).textContent = t; $(id).className = "msg " + k; };
-const errText = e => e.status === 0 ? "Спершу підключи токен GitHub (вище)." : e.status === 401 || e.status === 403 ? "Токен не має права запису або протермінований." : "Не вдалося зберегти: немає зв'язку з GitHub.";
+const errText = e => WK.ghErrText(e);
 const DAYS = ["пн", "вт", "ср", "чт", "пт", "сб", "нд"];
 
+async function verifyGh() {
+  if (!WK.token()) return;
+  const r = await WK.checkWrite();
+  if (r !== "ok" && r !== "offline") { $("ghState").innerHTML = `<span class="pill off">Не працює</span> ${CW[r]}`; $("ghForm").hidden = false; $("ghHow").hidden = false; $("ghHow").open = true; }
+}
 function renderGh() {
   const on = !!WK.token();
   $("ghState").innerHTML = on ? `<span class="pill done">Підключено</span> Журнал, Планер і налаштування зберігаються в репозиторії.` : `<span class="pill today">Не підключено</span> Без токена можна лише переглядати.`;
   $("ghForm").hidden = on; $("ghHow").hidden = on; $("ghOff").hidden = !on;
 }
+const CW = { invalid: "Токен невірний або протермінований.", noaccess: "Токен не бачить training-dashboard: у Repository access обери цей репозиторій.", readonly: "Токен лише читає. Відредагуй його на GitHub: Contents → Read and write (див. нижче).", offline: "Немає зв'язку з GitHub." };
 $("ghForm").onsubmit = async e => {
   e.preventDefault(); const v = $("ghTok").value.trim(); if (!v) return;
-  msg("ghMsg", "Перевіряю…");
-  try {
-    const r = await fetch("https://api.github.com/repos/nazarus15/training-dashboard", { headers: { Authorization: `Bearer ${v}` } });
-    const j = r.ok ? await r.json() : null;
-    if (!j?.permissions?.push) throw Object.assign(new Error(), { status: r.status === 401 ? 401 : 403 });
-    lsSet("td_gh_token", v); $("ghTok").value = ""; renderGh(); msg("ghMsg", "Токен підключено.", "ok");
-  } catch (err) { msg("ghMsg", err.status === 401 ? "Токен невірний." : err.status === 403 ? "Токен не має доступу на запис до training-dashboard." : "Немає зв'язку з GitHub.", "err"); }
+  msg("ghMsg", "Перевіряю право запису…");
+  const r = await WK.checkWrite(v);
+  if (r === "ok") { lsSet("td_gh_token", v); $("ghTok").value = ""; renderGh(); msg("ghMsg", "Токен підключено, запис працює.", "ok"); }
+  else msg("ghMsg", CW[r], "err");
 };
 $("ghOff").onclick = () => { lsSet("td_gh_token", null); renderGh(); msg("ghMsg", "Токен видалено з цього пристрою."); };
 
@@ -145,7 +148,7 @@ $("metForm").onsubmit = async e => {
 
 (async () => {
   await AUTH.ready;
-  renderGh();
+  renderGh(); verifyGh();
   const [S, P] = await Promise.all([WK.loadSettings(), WK.loadPlanned()]); PD = P;
   $("ftpFloor").value = S.ftpFloor; $("aiCtx").value = S.aiContext || WKX.DEFAULT_CONTEXT;
   const r = PD.recurring.find(x => x.sport === "bjj") || { days: [], mins: 90 };

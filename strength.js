@@ -67,7 +67,8 @@ async function push() {
         lsSet(LS.pending, pending); lsSet(LS.cache, body); lsSet(LS.last, nowHM());
         setSync("ok"); break;
       }
-      if (r.status === 401 || r.status === 403) { setSync("error", "Токен не має права запису або протермінований. Підключи новий."); break; }
+      if (r.status === 401) { setSync("error", "Токен протермінований або невірний. Підключи новий."); break; }
+      if (r.status === 403) { setSync("error", "Токен лише читає. На GitHub відредагуй його: Repository permissions → Contents: Read and write."); break; }
       if (r.status !== 409 && r.status !== 422) throw new Error("http " + r.status);
     }
   } catch (e) {
@@ -105,7 +106,11 @@ document.addEventListener("submit", async e => {
   e.preventDefault();
   const v = $("tokIn").value.trim(); if (!v) return;
   token = v;
-  try { await apiGet(); lsSet(LS.token, v); setSync("ok"); queuePush(0); const remote = await loadRemote(); if (remote) mergeRemote(remote); render(); }
+  try {
+    await apiGet();
+    const w = await WK.checkWrite(v);
+    if (w === "readonly") { token = null; setSync("error", "Токен лише читає. На GitHub відредагуй його: Repository permissions → Contents: Read and write, потім встав ще раз."); return; }
+    lsSet(LS.token, v); setSync("ok"); queuePush(0); const remote = await loadRemote(); if (remote) mergeRemote(remote); render(); }
   catch (err) { token = null; setSync("error", err.status === 401 ? "Токен невірний." : err.status === 403 || err.status === 404 ? "Токен не має доступу до training-dashboard. Перевір Repository access і Contents: Read and write." : "Не вдалося перевірити токен: немає зв'язку."); }
 });
 document.addEventListener("click", e => {

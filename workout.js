@@ -181,7 +181,7 @@ window.WK = (() => {
   async function apiGet() {
     const r = await fetch(`${API}?ref=${BRANCH}&t=${Date.now()}`, { headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json" }, cache: "no-store" });
     if (r.status === 404) return { sha: null, data: { workouts: [], recurring: [] } };
-    if (!r.ok) { const e = new Error("http " + r.status); e.status = r.status; throw e; }
+    if (!r.ok) throw await httpErr(r);
     const j = await r.json();
     return { sha: j.sha, data: JSON.parse(b64dec(j.content || "") || "{}") };
   }
@@ -204,9 +204,31 @@ window.WK = (() => {
       const r = await fetch(API, { method: "PUT", headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
         body: JSON.stringify({ message, content: b64enc(JSON.stringify(data, null, 1)), branch: BRANCH, ...(cur.sha ? { sha: cur.sha } : {}) }) });
       if (r.ok) { lsSet(LS_CACHE, data); return data; }
-      if (r.status !== 409 && r.status !== 422) { const e = new Error("http " + r.status); e.status = r.status; throw e; }
+      if (r.status !== 409 && r.status !== 422) throw await httpErr(r);
     }
     throw new Error("conflict");
+  }
+
+  async function httpErr(r) { let m = ""; try { m = (await r.json()).message || ""; } catch { } const e = new Error(m || "http " + r.status); e.status = r.status; e.gh = m; return e; }
+  // Пояснення помилки GitHub людською мовою
+  function ghErrText(e) {
+    if (e.status === 0) return "Немає токена GitHub — підключи його в Налаштуваннях.";
+    if (e.status === 401) return "GitHub не приймає токен: він невірний або протермінований. Створи новий у Налаштуваннях.";
+    if (e.status === 403 || e.status === 404) return "Токен лише читає репозиторій. На GitHub: Settings → Developer settings → Fine-grained tokens → твій токен → Edit → Repository permissions → Contents: Read and write → Update." + (e.gh ? ` (GitHub: ${e.gh})` : "");
+    return "Не вдалося зберегти: немає зв'язку з GitHub" + (e.status ? ` (код ${e.status})` : "") + ".";
+  }
+  // Перевірка права запису без змін у репозиторії: видалення неіснуючого файлу.
+  // З правом запису GitHub відповідає 404/409/422 (файлу нема), без нього — 403.
+  async function checkWrite(tok = token()) {
+    if (!tok) return "none";
+    const h = { Authorization: `Bearer ${tok}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" };
+    try {
+      const g = await fetch(`https://api.github.com/repos/${REPO}`, { headers: h });
+      if (g.status === 401) return "invalid";
+      if (!g.ok) return "noaccess";
+      const r = await fetch(`https://api.github.com/repos/${REPO}/contents/.write-check`, { method: "DELETE", headers: h, body: JSON.stringify({ message: "check", sha: "0000000000000000000000000000000000000000", branch: BRANCH }) });
+      return r.status === 403 ? "readonly" : r.status === 401 ? "invalid" : "ok";
+    } catch { return "offline"; }
   }
 
   // ---------- довільний файл у репозиторії (налаштування, keyring) ----------
@@ -214,7 +236,7 @@ window.WK = (() => {
     if (token()) {
       const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}?ref=${branch}&t=${Date.now()}`, { headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json" }, cache: "no-store" });
       if (r.status === 404) return { sha: null, data: null };
-      if (!r.ok) { const e = new Error("http " + r.status); e.status = r.status; throw e; }
+      if (!r.ok) throw await httpErr(r);
       const j = await r.json(); return { sha: j.sha, data: JSON.parse(b64dec(j.content || "") || "null") };
     }
     const r = await fetch(`https://raw.githubusercontent.com/${REPO}/${branch}/${path}?t=${Date.now()}`, { cache: "no-store" });
@@ -228,7 +250,7 @@ window.WK = (() => {
       const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, { method: "PUT", headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
         body: JSON.stringify({ message, content: b64enc(JSON.stringify(data, null, 1)), branch, ...(cur.sha ? { sha: cur.sha } : {}) }) });
       if (r.ok) return data;
-      if (r.status !== 409 && r.status !== 422) { const e = new Error("http " + r.status); e.status = r.status; throw e; }
+      if (r.status !== 409 && r.status !== 422) throw await httpErr(r);
     }
     throw new Error("conflict");
   }
@@ -284,5 +306,5 @@ window.WK = (() => {
     </div>`;
   }
 
-  return { ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
+  return { ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();

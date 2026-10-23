@@ -223,7 +223,7 @@ document.addEventListener("click", e => {
   const id = e.target.dataset?.edit || e.target.dataset?.copy; if (!id) return;
   const w = PD.workouts.find(x => x.id === id); if (w) fill(w, !!e.target.dataset.copy);
 });
-const errText = e => e.status === 0 ? "Немає токена GitHub — підключи його в Налаштуваннях." : e.status === 401 || e.status === 403 ? "Токен не має права запису або протермінований." : "Не вдалося зберегти: немає зв'язку з GitHub. Текст лишився у формі.";
+const errText = e => WK.ghErrText(e);
 $("form").addEventListener("submit", async e => {
   e.preventDefault();
   const d = draft();
