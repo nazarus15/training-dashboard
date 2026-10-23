@@ -22,26 +22,45 @@ window.AUTH = (() => {
     const base = await crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveKey"]);
     return crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt: unb64(kr.salt), iterations: kr.iter }, base, { name: "AES-GCM", length: 256 }, false, usage);
   }
-  async function pkcs8From(pw, kr) {
-    const k = await kek(pw, kr, ["decrypt"]);
-    return crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(kr.iv) }, k, unb64(kr.wrapped)); // кидає помилку при невірному паролі
+  // Код відновлення: друга копія приватного ключа в keyring.json (поле recovery), зашифрована довгим випадковим кодом.
+  const normCode = s => s.toUpperCase().replace(/[^A-Z2-9]/g, "");
+  async function unwrap(secret, w) {
+    const k = await kek(secret, w, ["decrypt"]);
+    return crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(w.iv) }, k, unb64(w.wrapped)); // кидає помилку при невірному секреті
   }
-  async function unlock(pw) {
+  async function wrap(secret, raw) {
+    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const w = { v: 1, kdf: "PBKDF2-SHA256", iter: 600000, salt: b64(salt), iv: b64(iv) };
+    w.wrapped = b64(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await kek(secret, w, ["encrypt"]), raw));
+    return w;
+  }
+  // приймає пароль або код відновлення; повертає { raw, via }
+  async function pkcs8From(secret, kr) {
+    try { return { raw: await unwrap(secret, kr), via: "password" }; }
+    catch (e) {
+      const c = normCode(secret);
+      if (kr.recovery && c.length >= 16) return { raw: await unwrap(c, kr.recovery), via: "recovery" };
+      throw e;
+    }
+  }
+  async function unlock(secret) {
     const kr = await keyring();
-    const raw = await pkcs8From(pw, kr);
+    const { raw, via } = await pkcs8From(secret, kr);
     priv = await crypto.subtle.importKey("pkcs8", raw, RSA, false, ["decrypt"]);
     await idbSet(priv);
-    return true;
+    return via;
   }
-  async function newKeyring(curPw, newPw) {
-    const kr = await keyring();
-    const raw = await pkcs8From(curPw, kr);
-    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
-    const nk = { v: 1, kdf: "PBKDF2-SHA256", iter: 600000, salt: b64(salt), iv: b64(iv) };
-    const k = await kek(newPw, nk, ["encrypt"]);
-    nk.wrapped = b64(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, k, raw));
-    return nk;
+  // новий пароль; поле recovery у keyring.json зберігається (див. settings.html)
+  async function newKeyring(cur, newPw) { const { raw } = await pkcs8From(cur, await keyring()); return wrap(newPw, raw); }
+  // новий код відновлення: XXXXX-XXXXX-XXXXX-XXXXX (≈100 біт)
+  async function newRecovery(cur) {
+    const { raw } = await pkcs8From(cur, await keyring());
+    const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", r = crypto.getRandomValues(new Uint8Array(20));
+    const code = Array.from(r, x => A[x % 32]).join("").match(/.{5}/g).join("-");
+    const rec = await wrap(normCode(code), raw); rec.createdAt = new Date().toISOString();
+    return { code, rec };
   }
+  const hasRecovery = async () => { try { return (await keyring()).recovery?.createdAt || null; } catch { return null; } };
   async function logout() { priv = null; await idbSet(null); }
 
   // ---------- шифрування об'єктів ----------
@@ -99,14 +118,18 @@ html.locked body>*:not(#authGate):not(.reload-fab){visibility:hidden}
 
   function gate(resolve) {
     const g = document.createElement("div"); g.id = "authGate";
-    g.innerHTML = `<form><h1>Форма Назара</h1><p>Сайт закритий паролем. На цьому пристрої його треба ввести один раз.</p><input type="password" id="authPw" autocomplete="current-password" placeholder="Пароль" aria-label="Пароль" required><button type="submit">Увійти</button><p class="err" id="authErr" role="alert"></p></form>`;
+    g.innerHTML = `<form><h1>Форма Назара</h1><p>Сайт закритий паролем. На цьому пристрої його треба ввести один раз.</p><input type="password" id="authPw" autocomplete="current-password" placeholder="Пароль або код відновлення" aria-label="Пароль або код відновлення" required><button type="submit">Увійти</button><p class="err" id="authErr" role="alert"></p><p style="font-size:12px">Забув пароль — введи код відновлення з Налаштувань.</p></form>`;
     document.body.appendChild(g);
     const f = g.querySelector("form"), btn = f.querySelector("button");
     setTimeout(() => g.querySelector("input").focus(), 50);
     f.onsubmit = async e => {
       e.preventDefault(); btn.disabled = true; btn.textContent = "Перевіряю…"; g.querySelector("#authErr").textContent = "";
-      try { await unlock(g.querySelector("input").value); g.remove(); document.documentElement.classList.remove("locked"); resolve(); }
-      catch (err) { g.querySelector("#authErr").textContent = err.message === "keyring" ? "Не вдалося завантажити ключ. Перевір інтернет." : "Невірний пароль."; btn.disabled = false; btn.textContent = "Увійти"; }
+      try {
+        const via = await unlock(g.querySelector("input").value);
+        if (via === "recovery") { try { sessionStorage.setItem("forma-recovered", "1"); } catch { } location.href = "settings.html#pwForm"; return; }
+        g.remove(); document.documentElement.classList.remove("locked"); resolve();
+      }
+      catch (err) { g.querySelector("#authErr").textContent = err.message === "keyring" ? "Не вдалося завантажити ключ. Перевір інтернет." : "Невірний пароль або код."; btn.disabled = false; btn.textContent = "Увійти"; }
     };
   }
 
@@ -119,5 +142,5 @@ html.locked body>*:not(#authGate):not(.reload-fab){visibility:hidden}
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", start) : start();
   });
 
-  return { ready, load, decrypt, encrypt, unlock, newKeyring, logout, keyMismatch };
+  return { ready, load, decrypt, encrypt, unlock, newKeyring, newRecovery, hasRecovery, logout, keyMismatch };
 })();

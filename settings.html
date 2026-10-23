@@ -55,13 +55,26 @@ textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
 
   <form class="card" id="pwForm" autocomplete="off">
     <h2>Пароль сайту</h2>
-    <p>Дані на сайті й у репозиторії зашифровані, пароль їх відкриває. Пристрої, де вже виконано вхід, після зміни пароля лишаються залогіненими. Якщо пароль забути, його не відновити — доведеться створити нові ключі (попроси Claude).</p>
+    <p id="recBanner" class="msg ok" hidden>Ти увійшов кодом відновлення. Задай новий пароль: у поле «Поточний» встав той самий код.</p>
+    <p>Дані на сайті й у репозиторії зашифровані, пароль їх відкриває. Пристрої, де вже виконано вхід, після зміни пароля лишаються залогіненими. Якщо забудеш пароль, увійди кодом відновлення (нижче) і задай новий.</p>
     <div class="grid2">
-      <label class="f">Поточний пароль<input type="password" id="pwCur" autocomplete="current-password" required></label>
+      <label class="f">Поточний пароль або код відновлення<input type="password" id="pwCur" autocomplete="current-password" required></label>
       <label class="f">Новий пароль<input type="password" id="pwNew" autocomplete="new-password" minlength="8" required></label>
       <label class="f">Новий ще раз<input type="password" id="pwNew2" autocomplete="new-password" minlength="8" required></label>
     </div>
     <div class="acts"><button class="btn" type="submit" id="pwBtn">Змінити пароль</button><button class="btn ghost" type="button" id="logout">Вийти на цьому пристрої</button><span class="msg" id="pwMsg" role="status"></span></div>
+  </form>
+
+  <form class="card" id="recForm" autocomplete="off">
+    <h2>Код відновлення</h2>
+    <p id="recState">Перевіряю…</p>
+    <p>Код замінює пароль на екрані входу. Збережи його поза сайтом: у менеджері паролів, нотатках iPhone або на папері. Новий код скасовує попередній.</p>
+    <label class="f">Поточний пароль<input type="password" id="recPw" autocomplete="current-password" required></label>
+    <div class="acts"><button class="btn" type="submit" id="recBtn">Створити код</button><span class="msg" id="recMsg" role="status"></span></div>
+    <div id="recOut" hidden style="display:flex;flex-direction:column;gap:8px">
+      <code id="recCode" style="font-family:var(--f-data);font-size:20px;letter-spacing:.06em;padding:12px;border:1px dashed var(--ink);border-radius:6px;text-align:center;user-select:all;word-break:break-all"></code>
+      <div class="acts"><button class="btn ghost" type="button" id="recCopy">Скопіювати</button><span class="muted" style="font-size:13px">Код показується лише зараз.</span></div>
+    </div>
   </form>
 
   <form class="card" id="metForm">
@@ -119,12 +132,29 @@ $("pwForm").onsubmit = async e => {
   $("pwBtn").disabled = true; msg("pwMsg", "Шифрую ключ новим паролем…");
   try {
     let nk;
-    try { nk = await AUTH.newKeyring($("pwCur").value, $("pwNew").value); } catch { msg("pwMsg", "Поточний пароль невірний.", "err"); return; }
-    await WK.ghPut("keyring.json", "main", () => nk, "Новий пароль сайту");
+    try { nk = await AUTH.newKeyring($("pwCur").value, $("pwNew").value); } catch { msg("pwMsg", "Поточний пароль або код невірний.", "err"); return; }
+    await WK.ghPut("keyring.json", "main", cur => ({ ...nk, ...(cur?.recovery ? { recovery: cur.recovery } : {}) }), "Новий пароль сайту");
+    try { sessionStorage.removeItem("forma-recovered"); } catch { } $("recBanner").hidden = true;
     $("pwForm").reset(); msg("pwMsg", "Пароль змінено. Сайт оновиться за хвилину-дві.", "ok");
   } catch (err) { msg("pwMsg", errText(err), "err"); }
   finally { $("pwBtn").disabled = false; }
 };
+
+const fmtD = s => new Date(s).toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" });
+async function renderRec() { const at = await AUTH.hasRecovery(); $("recState").innerHTML = at ? `<span class="pill done">Є</span> Створено ${fmtD(at)}.` : `<span class="pill today">Немає</span> Створи код, щоб не втратити доступ.`; $("recBtn").textContent = at ? "Створити новий код" : "Створити код"; }
+$("recForm").onsubmit = async e => {
+  e.preventDefault(); $("recBtn").disabled = true; msg("recMsg", "Створюю…"); $("recOut").hidden = true;
+  try {
+    let r;
+    try { r = await AUTH.newRecovery($("recPw").value); } catch { msg("recMsg", "Пароль невірний.", "err"); return; }
+    await WK.ghPut("keyring.json", "main", cur => ({ ...cur, recovery: r.rec }), "Новий код відновлення");
+    $("recPw").value = ""; $("recCode").textContent = r.code; $("recOut").hidden = false;
+    $("recState").innerHTML = `<span class="pill done">Є</span> Створено щойно. Запрацює на екрані входу за хвилину-дві.`;
+    msg("recMsg", "Збережи код зараз.", "ok");
+  } catch (err) { msg("recMsg", errText(err), "err"); }
+  finally { $("recBtn").disabled = false; }
+};
+$("recCopy").onclick = async () => { try { await navigator.clipboard.writeText($("recCode").textContent); msg("recMsg", "Скопійовано.", "ok"); } catch { msg("recMsg", "Виділи код і скопіюй вручну.", "err"); } };
 $("logout").onclick = async () => { await AUTH.logout(); location.reload(); };
 
 let PD = null;
@@ -148,7 +178,8 @@ $("metForm").onsubmit = async e => {
 
 (async () => {
   await AUTH.ready;
-  renderGh(); verifyGh();
+  renderGh(); verifyGh(); renderRec();
+  try { if (sessionStorage.getItem("forma-recovered")) { $("recBanner").hidden = false; $("pwForm").scrollIntoView(); } } catch { }
   const [S, P] = await Promise.all([WK.loadSettings(), WK.loadPlanned()]); PD = P;
   $("ftpFloor").value = S.ftpFloor; $("aiCtx").value = S.aiContext || WKX.DEFAULT_CONTEXT;
   const r = PD.recurring.find(x => x.sport === "bjj") || { days: [], mins: 90 };
