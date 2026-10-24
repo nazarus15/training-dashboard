@@ -334,7 +334,7 @@ window.WK = (() => {
     ["bike_np", "bike", "Найвища нормалізована потужність (20+ хв)"], ["bike_ef", "bike", "Найкраща аеробна ефективність"], ["bike_longest", "bike", "Найдовший заїзд"],
     ["bike_dist", "bike", "Найбільша відстань"], ["bike_load", "bike", "Найбільше навантаження за заїзд"], ["bike_kj", "bike", "Найбільше роботи, кДж"],
     ["bike_elev", "bike", "Найбільший набір висоти"], ["bike_week", "bike", "Найбільше годин за тиждень"], ["bike_month", "bike", "Найбільше кілометрів за місяць"],
-    ["str_table", "strength", "Прогрес у вправах (вага, 1ПМ, динаміка)"], ["str_ton", "strength", "Найбільший тоннаж за тренування"], ["str_sets", "strength", "Найбільше робочих підходів за тренування"],
+    ["str_table", "strength", "Прогрес у вправах за категоріями (вага за раз, найбільший підхід)"], ["str_ton", "strength", "Найбільший тоннаж за тренування"], ["str_sets", "strength", "Найбільше робочих підходів за тренування"],
     ["str_streak", "strength", "Найдовша серія тижнів із силовим"], ["str_total", "strength", "Усього силових"],
   ];
   return { RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };

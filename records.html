@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1792837952">
-<link rel="stylesheet" href="workout.css?v=1792837952">
+<link rel="stylesheet" href="ui.css?v=1792838711">
+<link rel="stylesheet" href="workout.css?v=1792838711">
 <style>
 /* Layout: три розділи (БЖЖ, вело, силове), у кожному сітка карток-рекордів; для силового — таблиця прогресу вправ. */
 .wrap{max-width:1100px}
@@ -38,8 +38,19 @@
 .st .up{color:var(--good);font-family:var(--f-data);font-size:12px}
 .st .down{color:var(--bad);font-family:var(--f-data);font-size:12px}
 .st svg{display:block}
+h3.cat{font-size:17px;margin:6px 0 -4px}
+@media (max-width:640px){
+  .st thead{display:none}
+  .st table,.st tbody,.st tr,.st td{display:block;width:100%}
+  .st tr{padding:10px 12px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+  .st tr:last-child{border-bottom:none}
+  .st td{padding:0;border:none;white-space:normal}
+  .st td.nm{grid-column:1/-1;font-weight:600}
+  .st td.emp,.st td[data-l="Динаміка"]:not(:has(svg)){display:none}
+  .st td[data-l]::before{content:attr(data-l);display:block;font-family:var(--f-data);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+}
 </style>
-<script src="auth.js?v=1792837952"></script>
+<script src="auth.js?v=1792838711"></script>
 </head>
 <body>
 <div class="wrap">
@@ -53,7 +64,7 @@
   <p class="intro">Рахується автоматично з тренувань intervals.icu (2 роки), кривої потужності за весь час і силового журналу. «Новий» — рекорд за останні 14 днів. Що показувати, обирається в Налаштуваннях.</p>
   <div id="out"><div class="notice">Рахую…</div></div>
 </div>
-<script src="workout.js?v=1792837952"></script>
+<script src="workout.js?v=1792838711"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id), esc = WK.esc;
@@ -129,10 +140,21 @@ function spark(vals) {
   const pts = vals.map((v, i) => `${(i / (vals.length - 1) * (w - 4) + 2).toFixed(1)},${(h - 2 - (v - mn) / k * (h - 4)).toFixed(1)}`).join(" ");
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
-function strengthCards(A, PD, JL) {
+// категорії вправ за назвою (рух), порядок — порядок таблиць
+const CATS = [
+  ["core", "Кор і стабільність", /планк|турецьк|прес|підйом.{0,4}ніг|копенгаген|паллоф|pallof|dead ?bug|hollow|скручув|фермер/i],
+  ["power", "Вибухові", /мах|ривок|поштовх|стриб|swing|jump|кидок/i],
+  ["legs", "Ноги", /присід|випад|болгар|степ|squat|lunge|ног/i],
+  ["hinge", "Задня ланка", /румунськ|станов|deadlift|гіперекст|міст|good ?morning|нахил.{0,6}зі штанг/i],
+  ["push", "Жими", /жим|віджим|бруси|press|push|dips/i],
+  ["pull", "Тяги і підтягування", /підтяг|тяга|row|pull/i],
+  ["other", "Інше", /./],
+];
+const catOf = name => CATS.find(c => c[2].test(name))[0];
+function strengthCards(A, PD, JL, BW) {
   const c = [], logs = JL?.logs || {};
   const sess = (PD?.workouts || []).filter(w => w.sport === "strength").map(w => WK.session(w)).sort((a, b) => a.date < b.date ? -1 : 1);
-  const per = {}; // key → { name, type, hist: [{date, topW, topR, e1rm, reps, secs}] }
+  const per = {}; // key → { name, type, hist: [{date, maxW, maxWr, setW, setR, setSum, reps, secs}] }
   const sessStats = [];
   for (const s of sess) {
     const L = logs[s.id]; if (!L) continue;
@@ -142,24 +164,34 @@ function strengthCards(A, PD, JL) {
       if (!done.length) continue;
       sets += done.length;
       const p = per[ex.key] ??= { name: ex.name, type: ex.type, hist: [] };
-      if (ex.type === "time") p.hist.push({ date: s.date, secs: Math.max(...done.map(x => +x.r)) });
-      else {
-        const top = done.reduce((b, x) => { const e = (+x.w || 0) * (1 + (+x.r) / 30); return e > b.e ? { e, w: +x.w || 0, r: +x.r } : b; }, { e: -1 });
-        ton += done.reduce((t, x) => t + (+x.w || 0) * (+x.r), 0);
-        p.hist.push({ date: s.date, topW: Math.max(...done.map(x => +x.w || 0)), topR: Math.max(...done.map(x => +x.r)), w: top.w, r: top.r, e1rm: top.w ? top.e : null });
-      }
+      if (ex.type === "time") { p.hist.push({ date: s.date, secs: Math.max(...done.map(x => +x.r)) }); continue; }
+      // вага в підході: штанга/гиря — вказана вага; вага тіла — власна вага + обтяження
+      const load = x => ex.type === "bw" ? (BW || 0) + (+x.w || 0) : (+x.w || 0);
+      const heavy = done.reduce((b, x) => load(x) > load(b) || (load(x) === load(b) && +x.r > +b.r) ? x : b, done[0]);
+      const big = done.reduce((b, x) => load(x) * +x.r > load(b) * +b.r ? x : b, done[0]);
+      ton += done.reduce((t, x) => t + load(x) * (+x.r), 0);
+      p.hist.push({ date: s.date, add: +heavy.w || 0, maxW: load(heavy), maxWr: +heavy.r, setW: load(big), setAdd: +big.w || 0, setR: +big.r, setSum: load(big) * +big.r, reps: Math.max(...done.map(x => +x.r)) });
     }
     if (sets) sessStats.push({ date: s.date, title: s.title, ton, sets });
   }
-  const rows = Object.values(per).sort((a, b) => a.name.localeCompare(b.name, "uk"));
-  const tbl = rows.length ? `<div class="st"><table><thead><tr><th>Вправа</th><th>Рекорд</th><th>1ПМ (розрах.)</th><th>Динаміка</th><th>Останнє</th></tr></thead><tbody>${rows.map(p => {
+  const kg = v => nf(v, v % 1 ? 1 : 0);
+  const wTxt = (p, w, add) => p.type === "bw" ? (add ? `тіло + ${kg(add)} кг` : `вага тіла`) : `${kg(w)} кг`;
+  const row = p => {
     const h = p.hist, last = h.at(-1);
-    if (p.type === "time") { const b = best(h, x => x.secs); return `<tr><td>${esc(p.name)}</td><td class="num">${b.secs} с · ${fd(b.date)}</td><td>—</td><td>${spark(h.map(x => x.secs))}</td><td class="num">${last.secs} с</td></tr>`; }
-    const weighted = h.some(x => x.topW > 0);
-    if (!weighted) { const b = best(h, x => x.topR); return `<tr><td>${esc(p.name)}</td><td class="num">${b.topR} повт · ${fd(b.date)}</td><td>—</td><td>${spark(h.map(x => x.topR))}</td><td class="num">${last.topR} повт</td></tr>`; }
-    const b = best(h, x => x.e1rm), first = h.find(x => x.e1rm), d = b && first ? b.e1rm - first.e1rm : 0;
-    return `<tr><td>${esc(p.name)}${isNew(b?.date) && h.length > 1 && b === best(h, x => x.e1rm) && b.date === last.date ? ` <span class="up">новий</span>` : ""}</td><td class="num">${nf(b.w, b.w % 1 ? 1 : 0)} кг × ${b.r} · ${fd(b.date)}</td><td class="num">${nf(b.e1rm, 1)} кг ${d > 0 ? `<span class="up">+${nf(d, 1)}</span>` : ""}</td><td>${spark(h.filter(x => x.e1rm).map(x => x.e1rm))}</td><td class="num">${nf(last.w, last.w % 1 ? 1 : 0)} кг × ${last.r}</td></tr>`;
-  }).join("")}</tbody></table></div>` : `<div class="rec empty"><span class="lbl">Прогрес у вправах</span><span class="val">ще немає</span><span class="sub">Запиши підходи в Силовому журналі — тут з'являться рекорди ваги, розрахунковий 1ПМ (формула Епплі) і динаміка по кожній вправі.</span></div>`;
+    if (p.type === "time") { const b = best(h, x => x.secs); return `<tr><td class="nm">${esc(p.name)}</td><td class="num" data-l="Найдовше">${b.secs} с<br><span class="muted" style="font-size:12px">${fd(b.date)}</span></td><td class="emp">—</td><td data-l="Динаміка">${spark(h.map(x => x.secs))}</td><td class="num" data-l="Останнє">${last.secs} с · ${fd(last.date)}</td></tr>`; }
+    const bw = best(h, x => x.maxW * 1000 + x.maxWr), bs = best(h, x => x.setSum);
+    const newRec = h.length > 1 && (bs.date === last.date && isNew(last.date));
+    return `<tr><td class="nm">${esc(p.name)}${newRec ? ` <span class="up">новий</span>` : ""}</td>
+      <td class="num" data-l="Вага за раз">${wTxt(p, bw.maxW, bw.add)} × ${bw.maxWr}<br><span class="muted" style="font-size:12px">${fd(bw.date)}</span></td>
+      <td class="num" data-l="Найбільший підхід">${kg(bs.setSum)} кг<br><span class="muted" style="font-size:12px">${wTxt(p, bs.setW, bs.setAdd)} × ${bs.setR} · ${fd(bs.date)}</span></td>
+      <td data-l="Динаміка">${spark(h.map(x => x.setSum))}</td>
+      <td class="num" data-l="Останнє">${wTxt(p, last.setW, last.setAdd)} × ${last.setR}<br><span class="muted" style="font-size:12px">${fd(last.date)}</span></td></tr>`;
+  };
+  const rows = Object.values(per);
+  const byCat = CATS.map(([id, name]) => [name, rows.filter(p => catOf(p.name) === id).sort((a, b) => a.name.localeCompare(b.name, "uk"))]).filter(x => x[1].length);
+  const tbl = rows.length ? byCat.map(([name, ps]) => `<h3 class="cat">${name}</h3><div class="st"><table><thead><tr><th>Вправа</th><th>Найбільша вага за раз</th><th>Найбільший підхід (вага × повтори)</th><th>Динаміка підходу</th><th>Останнє</th></tr></thead><tbody>${ps.map(row).join("")}</tbody></table></div>`).join("")
+    + `<p class="intro" style="font-size:12px">Вага за раз — найважчий виконаний підхід. Найбільший підхід — максимум «вага × повтори» в одному підході. Для вправ з вагою тіла рахується власна вага${BW ? ` (${kg(BW)} кг)` : ""} плюс обтяження.</p>`
+    : `<div class="rec empty"><span class="lbl">Прогрес у вправах</span><span class="val">ще немає</span><span class="sub">Запиши підходи в Силовому журналі — тут з'являться рекорди ваги за раз і найбільшого підходу по кожній вправі, згруповані за рухами.</span></div>`;
   c.push({ id: "str_table", wide: true, html: tbl });
   const T = best(sessStats, x => x.ton), S = best(sessStats, x => x.sets);
   c.push(card("str_ton", "Найбільший тоннаж за тренування", T?.ton ? Math.round(T.ton) : null, "кг", T && `${esc(T.title)} · ${fd(T.date)}`, T?.date));
@@ -184,7 +216,7 @@ function strengthCards(A, PD, JL) {
     const [, color] = WK.SPORT[sport];
     return `<section class="sport" style="--sc:${color}"><h2><i></i>${title}</h2>${vis.filter(c => c.wide).map(c => c.html).join("")}<div class="rgrid">${vis.filter(c => !c.wide).map(c => c.html).join("")}</div></section>`;
   };
-  $("out").innerHTML = [sec("bjj", "БЖЖ", bjjCards(A)), sec("bike", "Велосипед", bikeCards(A, P)), sec("strength", "Силові", strengthCards(A, PD, JL))].join("") || `<div class="notice">Усі рекорди приховані в Налаштуваннях.</div>`;
+  $("out").innerHTML = [sec("bjj", "БЖЖ", bjjCards(A)), sec("bike", "Велосипед", bikeCards(A, P)), sec("strength", "Силові", strengthCards(A, PD, JL, P?.weight))].join("") || `<div class="notice">Усі рекорди приховані в Налаштуваннях.</div>`;
   $("out").style.cssText = "display:flex;flex-direction:column;gap:26px";
 })();
 </script>
