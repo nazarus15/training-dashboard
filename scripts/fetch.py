@@ -364,6 +364,33 @@ def garmin() -> None:
     G: dict = {}
     d = today.isoformat()
 
+    # --- Training Readiness Garmin: у Personal API офіційно не задокументовано, тому пробуємо відомі шляхи
+    # веб-версії. Не рахується як помилка: якщо жоден не відповів — просто немає на цьому пристрої/API.
+    def _probe_tr():
+        tried = []
+        for path in (f"/metrics-service/metrics/trainingreadiness/{d}", f"/metrics-service/metrics/trainingreadiness/{(today - timedelta(days=13)).isoformat()}/{d}",
+                     f"/trainingreadiness-service/trainingreadiness/{d}", f"/wellness-service/wellness/trainingReadiness/{d}"):
+            try:
+                r = s.get(GARMIN_BASE + path, timeout=30)
+                tried.append(f"{path.split('/')[1]}: {r.status_code}")
+                if r.ok and r.content:
+                    data = r.json()
+                    rows = data if isinstance(data, list) else [data]
+                    rows = [x for x in rows if isinstance(x, dict) and x.get("score") is not None]
+                    if rows:
+                        G["trainingReadiness"] = [{k: x.get(k) for k in ("calendarDate", "timestamp", "score", "level", "feedbackLong", "feedbackShort",
+                            "sleepScore", "sleepScoreFactorPercent", "recoveryTime", "recoveryTimeFactorPercent", "acwrFactorPercent",
+                            "acuteLoad", "stressHistoryFactorPercent", "hrvFactorPercent", "hrvWeeklyAverage", "sleepHistoryFactorPercent", "inputContext")} for x in rows]
+                        parts["trainingReadiness"] = "ok"
+                        return
+            except Exception as e:
+                tried.append(f"{path.split('/')[1]}: {type(e).__name__}")
+        parts["trainingReadiness"] = "недоступно через Personal API (" + ", ".join(tried) + ")"
+    try:
+        _probe_tr()
+    except Exception as e:
+        parts["trainingReadiness"] = "проба: " + short_err(e)
+
     # --- HRV: тиждень + нічна крива
     hrv7 = call("hrv", f"/hrv-service/hrv/daily/{(today - timedelta(days=6)).isoformat()}/{d}")
     def _hrv7():
