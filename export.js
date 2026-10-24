@@ -73,8 +73,8 @@ B
   const f = (v, n = 0) => v == null || isNaN(v) ? "—" : (+v).toFixed(n).replace(".", ",");
   const hm = s => { if (!s) return "—"; const m = Math.round(s / 60); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}`; };
   const rows = o => o ? o.rows.map(r => Object.fromEntries(o.cols.map((c, i) => [c, r[i]]))) : [];
-  const isBjj = a => a.type === "BJJ" || /mixed martial|бжж|bjj|jiu/i.test(a.name || "") && a.moving >= 1800 && ((+a.date.slice(11, 13) >= 17 && +a.date.slice(11, 13) <= 21) || (a.avgHr ?? 100) >= 100);
-  const sportOf = a => /Ride$|Cyclocross/.test(a.type || "") ? "Вело" : isBjj(a) ? "БЖЖ" : /mixed martial/i.test(a.name || "") ? "Інше (ходьба/легка активність)" : a.type === "Strength" || a.type === "WeightTraining" || /strength|силов/i.test(a.name || "") ? "Силове" : a.type || "Інше";
+  const isBjj = a => a.type === "BJJ" || /mixed martial|бжж|bjj|jiu/i.test(a.name || "");
+  const sportOf = a => /Ride$|Cyclocross/.test(a.type || "") ? "Вело" : isBjj(a) ? "БЖЖ" : a.type === "Strength" || a.type === "WeightTraining" || /strength|силов/i.test(a.name || "") ? "Силове" : a.type || "Інше";
 
   function build({ W, A, P, G, JL, PD, EV, days, ctx, withRules }) {
     const t = WK.today(), from = WK.addDays(t, -days + 1);

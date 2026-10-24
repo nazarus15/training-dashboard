@@ -49,7 +49,7 @@ function run(W, A, P, G) {
   const sportOf = a => {
     if (/Ride$|Cyclocross/.test(a.type || "")) return "bike";
     if (a.type === "BJJ") return "bjj";
-    if (isMMA(a)) { const h = +a.date.slice(11, 13); return a.moving >= 1800 && (h >= 17 && h <= 21 || (a.avgHr ?? 100) >= 100) ? "bjj" : "other"; }
+    if (isMMA(a)) return "bjj"; // Garmin записує БЖЖ як «Mixed Martial Arts» — усе це БЖЖ
     if (a.type === "Strength" || a.type === "WeightTraining" || /strength|силов/i.test(a.name || "")) return "str";
     if (/Hike|SUP|StandUpPaddling|Swim|Kayak|Rowing|Ski/.test(a.type || "")) return "rest";
     return "other";
