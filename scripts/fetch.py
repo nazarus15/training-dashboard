@@ -152,15 +152,18 @@ def intervals() -> None:
     # wellness
     try:
         w = get("/wellness", oldest=oldest.isoformat(), newest=today.isoformat())
-        cols = ["date", "ctl", "atl", "ramp", "load", "hrv", "rhr", "sleepSecs", "sleepScore", "sleepQuality", "steps", "weight"]
+        cols = ["date", "ctl", "atl", "ramp", "load", "hrv", "rhr", "sleepSecs", "sleepScore", "sleepQuality", "steps", "weight", "readiness", "vo2max"]
         rows = []
         for r in sorted(w, key=lambda x: x["id"]):
             rnd = lambda v, n=1: None if v is None else round(v, n)
             rows.append([r["id"], rnd(r.get("ctl")), rnd(r.get("atl")), rnd(r.get("rampRate"), 2), r.get("ctlLoad"),
                          r.get("hrv"), r.get("restingHR"), r.get("sleepSecs"), r.get("sleepScore"), r.get("sleepQuality"),
-                         r.get("steps"), r.get("weight")])
+                         r.get("steps"), r.get("weight"), r.get("readiness"), r.get("vo2max")])
         write("wellness.json", {"cols": cols, "rows": rows})
-        parts["wellness"] = f"ok ({len(rows)} днів)"
+        n_ready = sum(1 for x in rows if x[12] is not None)
+        keys = sorted({k for r in w for k, v in r.items() if v is not None})
+        parts["wellness"] = f"ok ({len(rows)} днів, readiness у {n_ready})"
+        print("WELLNESS FIELDS", keys)
     except Exception as e:
         parts["wellness"] = short_err(e); ok_all = False
 
