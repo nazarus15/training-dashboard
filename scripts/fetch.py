@@ -161,9 +161,7 @@ def intervals() -> None:
                          r.get("steps"), r.get("weight"), r.get("readiness"), r.get("vo2max")])
         write("wellness.json", {"cols": cols, "rows": rows})
         n_ready = sum(1 for x in rows if x[12] is not None)
-        keys = sorted({k for r in w for k, v in r.items() if v is not None})
-        parts["wellness"] = f"ok ({len(rows)} днів, readiness у {n_ready})"
-        print("WELLNESS FIELDS", keys)
+        parts["wellness"] = f"ok ({len(rows)} днів" + (f", readiness у {n_ready}" if n_ready else "") + ")"
     except Exception as e:
         parts["wellness"] = short_err(e); ok_all = False
 
