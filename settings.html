@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1792828906">
+<link rel="stylesheet" href="ui.css?v=1792829233">
 <style>
 .card{display:flex;flex-direction:column;gap:12px}
 .card h2{font-size:20px}
@@ -52,7 +52,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
 .ovg label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
 .ovg input{width:18px;height:18px;flex:none}
 </style>
-<script src="auth.js?v=1792828906"></script>
+<script src="auth.js?v=1792829233"></script>
 </head>
 <body>
 <div class="wrap">
@@ -68,7 +68,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <h2>Стан системи</h2>
     <div id="health"><p>Перевіряю…</p></div>
     <div id="upd"></div>
-    <div class="acts"><button class="btn ghost" type="button" id="hRefresh">Перевірити ще раз</button></div>
+    <div class="acts"><button class="btn" type="button" id="runNow">Оновити дані зараз</button><button class="btn ghost" type="button" id="hRefresh">Перевірити ще раз</button><span class="msg" id="runMsg" role="status"></span></div>
   </section>
 
   <section class="card" id="ghCard">
@@ -134,8 +134,8 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <div class="acts"><button class="btn" type="submit" id="metBtn">Зберегти</button><span class="msg" id="metMsg" role="status"></span></div>
   </form>
 </div>
-<script src="workout.js?v=1792828906"></script>
-<script src="export.js?v=1792828906"></script>
+<script src="workout.js?v=1792829233"></script>
+<script src="export.js?v=1792829233"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -217,6 +217,45 @@ async function renderHealth(fresh) {
       <dt>intervals.icu</dt><dd class="muted">${parts(S.intervals?.parts)}</dd>
       <dt>Garmin</dt><dd class="muted">${parts(S.garmin?.parts)}</dd></dl></details>`;
 }
+
+// ---------- ручне оновлення даних: запуск workflow через GitHub API ----------
+const API_R = "https://api.github.com/repos/nazarus15/training-dashboard/actions";
+const ghH = () => ({ Authorization: `Bearer ${WK.token()}`, Accept: "application/vnd.github+json" });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+$("runNow").onclick = async () => {
+  if (!WK.token()) { msg("runMsg", "Спершу підключи токен GitHub (нижче).", "err"); return; }
+  const btn = $("runNow"); btn.disabled = true;
+  const t0 = Date.now();
+  let before = null; try { before = (await (await fetch(`data/status.json?t=${Date.now()}`, { cache: "no-store" })).json()).generatedAt; } catch { }
+  try {
+    msg("runMsg", "Запускаю…");
+    const r = await fetch(`${API_R}/workflows/update.yml/dispatches`, { method: "POST", headers: { ...ghH(), "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main" }) });
+    if (r.status === 403 || r.status === 404) { msg("runMsg", "Токену бракує права на Actions. На GitHub: токен → Edit → Repository permissions → Actions: Read and write → Update.", "err"); return; }
+    if (r.status === 401) { msg("runMsg", "Токен невірний або протермінований.", "err"); return; }
+    if (!r.ok) throw new Error(r.status);
+    // стежимо за запуском
+    let run = null;
+    for (let i = 0; i < 90; i++) {
+      await sleep(i < 5 ? 3000 : 6000);
+      const j = await (await fetch(`${API_R}/workflows/update.yml/runs?event=workflow_dispatch&per_page=1&t=${Date.now()}`, { headers: ghH(), cache: "no-store" })).json();
+      run = (j.workflow_runs || []).find(x => new Date(x.created_at).getTime() > t0 - 60000) || null;
+      const sec = Math.round((Date.now() - t0) / 1000);
+      if (!run) { msg("runMsg", `Чекаю, поки GitHub візьме задачу… ${sec} с`); continue; }
+      if (run.status !== "completed") { msg("runMsg", `Збираю дані з intervals.icu і Garmin… ${sec} с`); continue; }
+      break;
+    }
+    if (!run || run.status !== "completed") { msg("runMsg", "Задача ще виконується. Онови сторінку за кілька хвилин."); return; }
+    if (run.conclusion !== "success") { msg("runMsg", `Оновлення завершилось з помилкою. Подробиці: github.com → Actions.`, "err"); return; }
+    // чекаємо, поки сайт перезбереться з новими даними
+    for (let i = 0; i < 40; i++) {
+      msg("runMsg", `Дані зібрано, публікую на сайті… ${Math.round((Date.now() - t0) / 1000)} с`);
+      try { const s = await (await fetch(`data/status.json?t=${Date.now()}`, { cache: "no-store" })).json(); if (s.generatedAt !== before) break; } catch { }
+      await sleep(6000);
+    }
+    msg("runMsg", "Готово: дані оновлено.", "ok"); renderHealth();
+  } catch { msg("runMsg", "Не вдалося запустити: немає зв'язку з GitHub.", "err"); }
+  finally { btn.disabled = false; }
+};
 $("hRefresh").onclick = () => { $("health").innerHTML = "<p>Перевіряю…</p>"; renderHealth(true); };
 try { $("tokExp").value = JSON.parse(localStorage.getItem("td_tok_exp") || "null") || ""; } catch { }
 $("tokExp").onchange = () => { lsSet("td_tok_exp", $("tokExp").value || null); renderHealth(); };
