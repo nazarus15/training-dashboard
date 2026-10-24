@@ -59,6 +59,15 @@ function run(W, A, P, G) {
   acts.sort((a, b) => a.date < b.date ? -1 : 1);
 
   const today = wr[wr.length - 1];
+  // нічна норма HRV: 60 попередніх ночей, ln(rMSSD); z — на скільки σ минула ніч відхиляється від норми
+  const HV = (() => {
+    const h = wr.filter(r => r.hrv).map(r => [r.date, r.hrv]);
+    if (h.length < 15) return null;
+    const [date, v] = h.at(-1), base = h.slice(0, -1).slice(-60).map(x => Math.log(x[1]));
+    const mu = base.reduce((a, b) => a + b, 0) / base.length, sdv = Math.sqrt(base.reduce((a, b) => a + (b - mu) ** 2, 0) / (base.length - 1));
+    const w = h.slice(-7).map(x => Math.log(x[1])), w7 = Math.round(Math.exp(w.reduce((a, b) => a + b, 0) / w.length));
+    return { date, v, z: (Math.log(v) - mu) / sdv, lo: Math.round(Math.exp(mu - sdv)), hi: Math.round(Math.exp(mu + sdv)), n: base.length, w7 };
+  })();
   const shift = (d, n) => { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
   const since42 = shift(today.date, -42), since70 = shift(today.date, -70);
   const loadByDay = {}; acts.forEach(a => { if (a.load) loadByDay[a.day] = (loadByDay[a.day] || 0) + a.load; });
@@ -98,8 +107,14 @@ function run(W, A, P, G) {
   const R = (() => {
     const comps = [];
     const clamp = v => Math.max(0, Math.min(100, Math.round(v)));
-    const hwL = G.hrvWeek?.at(-1), hb = G.hrvBaseline;
-    if (hwL?.[2] && hb) { const v = hwL[2]; const s = v >= hb.balLow && v <= hb.balUp ? 100 : v > hb.balUp ? 85 : v > hb.low ? 65 : 30; comps.push(["HRV минулої ночі", s, .25, `${v} мс, норма ${hb.balLow}–${hb.balUp}`]); }
+    // HRV: минула ніч проти ТВОЄЇ нічної норми (60 ночей, логарифм rMSSD, як у HRV-guided training),
+    // а не проти коридору Garmin — той рахується для 7-денного середнього, не для однієї ночі.
+    if (HV) {
+      let s = HV.z >= 1.5 ? 90 : HV.z >= -0.5 ? 100 : Math.max(10, Math.round(100 + (HV.z + 0.5) * 40));
+      const wk = G.hrvWeek?.at(-1)?.[4];
+      if (wk && wk !== "Balanced") s = Math.max(10, s - (wk === "Unbalanced" ? 10 : 20));
+      comps.push(["HRV минулої ночі", s, .25, `${HV.v} мс${HV.date !== today.date ? ` (ніч на ${HV.date})` : ""}, твоя норма ${HV.lo}–${HV.hi} (${HV.n} ночей), ${HV.z >= 0 ? "+" : "−"}${Math.abs(HV.z).toFixed(1).replace(".", ",")}σ · 7 днів ${HV.w7 ?? "—"} мс, ${wk === "Balanced" ? "збалансований" : wk ? wk.toLowerCase() : "—"}`]);
+    }
     const dl = (G.daily || []).map(r => Object.fromEntries((G.dailyCols || []).map((c, i) => [c, r[i]])));
     const rToday = dl.at(-1)?.rhr, rBase = avg(dl.slice(0, -1).map(x => x.rhr));
     if (rToday && rBase) { const d = rToday - rBase; comps.push(["Пульс спокою", clamp(100 - Math.max(0, d) * 14), .15, `${rToday} уд/хв, норма ${fx(rBase, 1)}`]); }
@@ -112,13 +127,16 @@ function run(W, A, P, G) {
     if (today.tsb != null) { const v = today.tsb; const s = v >= -10 ? 100 : v >= -30 ? 75 : 40; comps.push(["Форма (TSB)", s, .1, `${v > 0 ? "+" : ""}${v}`]); }
     if (!comps.length) return null;
     const wsum = comps.reduce((a, c) => a + c[2], 0);
-    const score = Math.round(comps.reduce((a, c) => a + c[1] * c[2], 0) / wsum);
+    let score = Math.round(comps.reduce((a, c) => a + c[1] * c[2], 0) / wsum);
+    // HRV суттєво нижче норми разом із підвищеним пульсом спокою — класичний сигнал недовідновлення: не вище «Помірної»
+    const dual = HV && HV.z < -1.5 && rToday && rBase && rToday - rBase >= 2;
+    if (dual) score = Math.min(score, 69);
     const level = score >= 85 ? ["Пікова", "good"] : score >= 70 ? ["Висока", "good"] : score >= 50 ? ["Помірна", "warn"] : ["Низька", "bad"];
-    return { score, level, comps };
+    return { score, level, comps, dual };
   })();
   if (R) {
     const col = s => s >= 80 ? "--good" : s >= 55 ? "--warn" : "--bad";
-    const adv = R.score >= 85 ? "Можна робити ключове тренування: інтервали чи важке силове." : R.score >= 70 ? "Звичайний день: план без змін." : R.score >= 50 ? "Краще легше: Z2 або техніка, без максимальних зусиль." : "Відновлення: відпочинок або дуже легка активність.";
+    const adv = (R.dual ? "HRV нижче норми і пульс спокою підвищений одночасно — оцінку обмежено «Помірною». " : "") + (R.score >= 85 ? "Можна робити ключове тренування: інтервали чи важке силове." : R.score >= 70 ? "Звичайний день: план без змін." : R.score >= 50 ? "Краще легше: Z2 або техніка, без максимальних зусиль." : "Відновлення: відпочинок або дуже легка активність.");
     $("readiness").innerHTML = `<div class="big"><span class="eyebrow">Сьогодні</span><b class="${R.level[1]}">${R.score}</b><span class="pill ${R.level[1]}">${R.level[0]}</span><span class="muted" style="font-size:13px">${adv}</span></div>
       <div class="rrows">${R.comps.map(([n, s, w, d]) => `<div class="rrow"><span class="top"><span>${n}</span><b>${s}</b></span><span class="rbar"><i style="width:${s}%;background:var(${col(s)})"></i></span><small>${esc(d)} · вага ${Math.round(w * 100)}%</small></div>`).join("")}</div>`;
   } else $("readiness").innerHTML = `<p class="note">Немає даних Garmin.</p>`;
@@ -130,7 +148,7 @@ function run(W, A, P, G) {
     R && ["Готовність", R.score, "/100", R.level],
     ["Форма (TSB)", today.tsb == null ? "—" : (today.tsb > 0 ? "+" : "") + today.tsb, "", tsbZone(today.tsb ?? 0)],
     ["Фітнес (CTL)", fx(today.ctl, 1), "", [`втома ${fx(today.atl, 1)}`, "grey"]],
-    ["HRV минулої ночі", today.hrv ?? hw?.[2] ?? "—", "мс", hw ? [hw[4] === "Balanced" ? "Збалансований" : "Незбалансований", hw[4] === "Balanced" ? "good" : "warn"] : ["—", "grey"]],
+    ["HRV минулої ночі", HV?.v ?? today.hrv ?? hw?.[2] ?? "—", "мс", HV ? (HV.z >= -1 ? [HV.z > 1.5 ? "Вище норми" : "У нормі", "good"] : [HV.z >= -2 ? "Нижче норми" : "Значно нижче", HV.z >= -2 ? "warn" : "bad"]) : hw ? [hw[4] === "Balanced" ? "Збалансований" : "Незбалансований", hw[4] === "Balanced" ? "good" : "warn"] : ["—", "grey"]],
     ["Пульс спокою", today.rhr ?? "—", "уд/хв", [`30 дн. ${fx(rhr30)}`, "good"]],
     ["Сон", lastSleep ? (lastSleep.sleepSecs / 3600).toFixed(1) : "—", "год", [`оцінка ${lastSleep?.sleepScore ?? "—"}`, (lastSleep?.sleepScore ?? 0) >= 80 ? "good" : "warn"]],
     G.today?.bbNow != null && ["Body Battery", G.today.bbNow, "/100", [`максимум ${G.today.bbHigh ?? "—"}`, G.today.bbNow >= 50 ? "good" : "warn"]],
