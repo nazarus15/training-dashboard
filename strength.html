@@ -119,6 +119,11 @@ button.day:hover{background:var(--soft)}
 .kind{font-family:var(--f-data);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--k)}
 .day.is-today .d b{color:var(--warn)}
 
+/* старіші силові */
+.older{border:1px dashed var(--line);border-radius:6px;padding:8px 12px;background:var(--panel)}
+.older summary{cursor:pointer;color:var(--accent);font-size:14px;font-weight:600}
+.older[open]{display:flex;flex-direction:column;gap:12px}
+.older .week h3{font-size:15px;color:var(--muted)}
 /* history */
 .hist{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
 .hist table{border-collapse:collapse;width:100%;font-size:13px}
@@ -148,8 +153,8 @@ button.day:hover{background:var(--soft)}
 .round.is-done .rset .field input{opacity:.7}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="workout.css?v=1792839467">
-<script src="auth.js?v=1792839467"></script>
+<link rel="stylesheet" href="workout.css?v=1792839704">
+<script src="auth.js?v=1792839704"></script>
 </head>
 <body>
 <div class="wrap">
@@ -180,7 +185,7 @@ button.day:hover{background:var(--soft)}
   <div style="display:flex;gap:8px"><button type="button" id="tPlus">+30 с</button><button type="button" id="tStop">Закрити</button></div>
 </div>
 
-<script src="workout.js?v=1792839467"></script>
-<script src="strength.js?v=1792839467"></script>
+<script src="workout.js?v=1792839704"></script>
+<script src="strength.js?v=1792839704"></script>
 </body>
 </html>

@@ -172,16 +172,25 @@ function renderSchedule() {
   $("scheduleWrap").hidden = false;
   const from = WK.monday(todayISO), to = WK.addDays(from, 13);
   const its = WK.items(planned, events, from, to).filter(x => x.sport === "strength");
-  const weeks = [0, 7].map(o => ({ title: (o ? "Наступний тиждень" : "Цей тиждень"), days: its.filter(x => x.date >= WK.addDays(from, o) && x.date <= WK.addDays(from, o + 6)).map(x => ({ date: x.date, kind: x.sport, title: x.title, session: x.sport === "strength" ? x.id : null, detail: [WK.fmtMin(x.mins), WK.subtype(x)].filter(Boolean).join(" · ") })) }));
-  $("schedule").innerHTML = weeks.map(w => `<div class="week"><h3>${esc(w.title)}</h3><div class="days">${w.days.length ? "" : `<div class="day"><span class="t"><small>Силових не заплановано</small></span></div>`}${w.days.map(d => {
+  const toDay = x => ({ date: x.date, kind: "strength", title: x.title, session: x.id, detail: [WK.fmtMin(x.mins), WK.subtype(x)].filter(Boolean).join(" · ") });
+  const weeks = [0, 7].map(o => ({ title: (o ? "Наступний тиждень" : "Цей тиждень"), days: its.filter(x => x.date >= WK.addDays(from, o) && x.date <= WK.addDays(from, o + 6)).map(toDay) }));
+  const dayHtml = d => {
     const s = d.session ? sessions[d.session] : null;
     const [kName, kCol] = KIND[d.kind] || KIND.other;
     const pill = s ? statusPill(s, logs[s.id]) : d.date === todayISO ? `<span class="pill today">Сьогодні</span>` : "";
     const dd = dObj(d.date);
-    const inner = `<span class="d">${DOW[dd.getDay()]}<b>${dd.getDate()}.${String(dd.getMonth() + 1).padStart(2, "0")}</b></span><span class="t"><span class="kind" style="--k:var(${kCol})">${kName}</span><strong>${esc(d.title)}</strong>${d.detail ? `<small>${esc(d.detail.replace(/ · в intervals\.icu$/, ""))}</small>` : ""}</span>${pill}`;
+    const inner = `<span class="d">${DOW[dd.getDay()]}<b>${dd.getDate()}.${String(dd.getMonth() + 1).padStart(2, "0")}</b></span><span class="t"><span class="kind" style="--k:var(${kCol})">${kName}</span><strong>${esc(d.title)}</strong>${d.detail ? `<small>${esc(d.detail)}</small>` : ""}</span>${pill}`;
     const cls = `day${d.date === todayISO ? " is-today" : ""}${s && selected === s.id ? " sel" : ""}`;
     return s ? `<button type="button" class="${cls}" data-s="${esc(s.id)}">${inner}</button>` : `<div class="${cls}">${inner}</div>`;
-  }).join("")}</div></div>`).join("");
+  };
+  // старіші за цей тиждень — згорнуті, найновіші зверху, по тижнях
+  const old = Object.values(sessions).filter(s => s.date < from).sort((a, b) => a.date < b.date ? 1 : -1);
+  const fx = s => WK.strengthEffects(s)?.main;
+  const oldWeeks = old.reduce((o, s) => { const k = WK.monday(s.date); (o[k] ??= []).push(s); return o; }, {});
+  const fmtW = k => { const a = dObj(k), b = dObj(WK.addDays(k, 6)); return `${a.getDate()} ${MON[a.getMonth()]} – ${b.getDate()} ${MON[b.getMonth()]}`; };
+  const openOld = old.some(s => s.id === selected);
+  const oldHtml = old.length ? `<details class="older"${openOld ? " open" : ""}><summary>Старіші силові (${old.length})</summary>${Object.entries(oldWeeks).map(([k, ss]) => `<div class="week"><h3>${fmtW(k)}</h3><div class="days">${ss.map(s => dayHtml({ date: s.date, kind: "strength", title: s.title, session: s.id, detail: [WK.fmtMin(s.mins), fx(s) ? WK.FX[fx(s)].name : ""].filter(Boolean).join(" · ") })).join("")}</div></div>`).join("")}</details>` : "";
+  $("schedule").innerHTML = oldHtml + weeks.map(w => `<div class="week"><h3>${esc(w.title)}</h3><div class="days">${w.days.length ? "" : `<div class="day"><span class="t"><small>Силових не заплановано</small></span></div>`}${w.days.map(dayHtml).join("")}</div></div>`).join("");
 }
 function renderSession() {
   const s = sessions[selected];
