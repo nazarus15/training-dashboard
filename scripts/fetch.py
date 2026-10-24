@@ -167,8 +167,8 @@ def intervals() -> None:
 
     # активності
     try:
-        acts = get("/activities", oldest=oldest.isoformat(), newest=today.isoformat())
-        cols = ["date", "type", "name", "moving", "distKm", "load", "avgHr", "maxHr", "trimp", "intensity", "hrZones", "avgW", "np", "pZones", "ef", "decoupling", "pmFtp", "cadence", "elev", "kcal", "hrr", "polarization", "trainer", "ftp", "vi", "kj", "strain", "powerHr", "wbalDep", "device"]
+        acts = get("/activities", oldest=(today - timedelta(days=730)).isoformat(), newest=today.isoformat())  # 2 роки — для рекордів
+        cols = ["date", "type", "name", "moving", "distKm", "load", "avgHr", "maxHr", "trimp", "intensity", "hrZones", "avgW", "np", "pZones", "ef", "decoupling", "pmFtp", "cadence", "elev", "kcal", "hrr", "polarization", "trainer", "ftp", "vi", "kj", "strain", "powerHr", "wbalDep", "device", "id"]
         r1 = lambda v: None if v is None else round(v, 1)
         rows = []
         for a in sorted(acts, key=lambda x: x.get("start_date_local") or ""):
@@ -187,7 +187,7 @@ def intervals() -> None:
                 a.get("icu_ftp"), r1(a.get("icu_variability_index")),
                 round(a["icu_joules"] / 1000) if a.get("icu_joules") else None, r1(a.get("strain_score")),
                 round(a["icu_power_hr"], 2) if a.get("icu_power_hr") else None, a.get("icu_max_wbal_depletion"),
-                a.get("device_name"),
+                a.get("device_name"), a.get("id"),
             ])
         write("activities.json", {"cols": cols, "rows": rows})
         parts["activities"] = f"ok ({len(rows)} записів)"
@@ -217,6 +217,16 @@ def intervals() -> None:
             power["curve"] = [[s_, m[s_]] for s_ in want if m.get(s_) is not None]
             power["range"] = f"{(c.get('start_date_local') or '')[:10]} — {(c.get('end_date_local') or '')[:10]} (42 дні)"
             power["models"] = [[p.get("type"), p.get("ftp"), p.get("wPrime"), p.get("pMax")] for p in (c.get("powerModels") or [])]
+        # рекорди потужності за весь час (для розділу «Рекорди»): [секунди, ватти, id активності]
+        try:
+            pa = get("/power-curves", type="Ride", curves="all", newest=today.isoformat() + "T23:59:59")
+            ca = (pa.get("list") or [None])[0]
+            if ca and ca.get("secs"):
+                ids = ca.get("activity_id") or []
+                ma = {s_: (w_, ids[i] if i < len(ids) else None) for i, (s_, w_) in enumerate(zip(ca["secs"], ca["watts"]))}
+                power["curveAll"] = [[s_, ma[s_][0], ma[s_][1]] for s_ in [5, 15, 30, 60, 120, 300, 600, 1200, 1800, 3600, 5400, 7200] if s_ in ma and ma[s_][0]]
+        except Exception as e:
+            parts["powerAll"] = short_err(e)
             ranks = c.get("ranks") or {}
             age = power.get("age")
             group = None

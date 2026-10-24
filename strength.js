@@ -196,6 +196,7 @@ function renderSession() {
   for (const g of Object.keys(groups)) {
     const exs = groups[g];
     html += `<div class="block"><div class="eyebrow">${exs[0].block ? esc(exs[0].block) : exs.length > 1 ? "Суперсет" : "Блок"}${exs[0].rest ? ` · відпочинок ${exs[0].rest} с${exs.length > 1 ? " після пари" : ""}` : ""}</div>`;
+    if (exs.length > 1) { html += supersetHtml(s, L, g, exs) + `</div>`; continue; }
     for (const ex of exs) {
       const prev = lastResult(ex.key, s.date), hint = progressHint(ex, prev);
       const unit = UNIT[ex.type] ?? "кг", ru = REPS_UNIT[ex.type] || "повт";
@@ -237,6 +238,28 @@ function renderHistory() {
   $("hist").innerHTML = `<thead><tr><th>Вправа</th><th>Дата</th><th>Результат</th><th style="text-align:right">Тоннаж, кг</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.name)}</td><td class="num">${fmtDay(r.date)}</td><td class="num">${esc(r.res)}</td><td class="num">${r.ton ? Math.round(r.ton) : "—"}</td></tr>`).join("")}</tbody>`;
 }
 
+
+// ---------- суперсет: одна галочка на раунд (пару вправ) ----------
+const FIRST = { bw: "Перший раз: стільки повторів, скільки чисто, із запасом 1–2.", time: "Перший раз: тримай стільки, скільки виходить рівно, без провисання.", kb: "Перший раз: гиря, з якою лишається запас 2 повтори." };
+function supersetHtml(s, L, g, exs) {
+  const col = `var(${GROUP_COLOR[g] || "--line"})`;
+  let h = `<div class="ss" style="--c:${col}">`;
+  for (const ex of exs) {
+    const prev = lastResult(ex.key, s.date), hint = progressHint(ex, prev);
+    h += `<div class="ex ss-ex"><div class="ex-top"><span class="ex-name"><span class="tag">${esc(ex.label || "")}</span>${esc(ex.name)}</span><span class="ex-target">${ex.sets}×${esc(ex.reps)}${ex.type === "time" ? " с" : ""}${ex.perSide ? "/бік" : ""}${ex.load ? " · " + esc(ex.load) : ""}${ex.rir ? " · запас " + esc(ex.rir) : ""}</span></div>
+      <div class="ex-meta">${ex.cue ? `<span>${esc(ex.cue)}</span>` : ""}${prev ? `<span>Минулого разу (${fmtDay(prev.date)}): <span class="num">${esc(describe(prev, ex.type))}</span></span>` : `<span>${esc(ex.firstTime || FIRST[ex.type] || "Перший раз: підбери вагу, з якою лишається запас повторів.")}</span>`}${hint ? `<span class="prog">${esc(hint)}</span>` : ""}</div></div>`;
+  }
+  const rounds = Math.max(...exs.map(e => e.sets)), rest = Math.max(...exs.map(e => e.rest || 0));
+  h += `<div class="rounds">`;
+  for (let i = 0; i < rounds; i++) {
+    const inRound = exs.filter(e => i < e.sets), done = inRound.every(e => L.sets[e.key][i]?.done);
+    h += `<div class="round${done ? " is-done" : ""}"><span class="n">${i + 1}</span><div class="rrows">${inRound.map(ex => {
+      const st = L.sets[ex.key][i], id = `${s.id}-${ex.key}`, unit = UNIT[ex.type] ?? "кг", ru = REPS_UNIT[ex.type] || "повт";
+      return `<div class="rset"><span class="tag">${esc(ex.label)}</span>${ex.type === "time" ? `<span class="muted" style="font-size:13px">${ex.perSide ? "кожен бік" : ""}</span>` : `<label class="field"><input id="w-${esc(id)}-${i}" inputmode="decimal" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="w" value="${esc(st.w)}" placeholder="${ex.type === "bw" ? "0" : "—"}" aria-label="${esc(ex.name)}, раунд ${i + 1}, вага"><span>${unit}</span></label>`}<span class="x">${ex.type === "time" ? "" : "×"}</span><label class="field"><input id="r-${esc(id)}-${i}" inputmode="numeric" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="r" value="${esc(st.r)}" aria-label="${esc(ex.name)}, раунд ${i + 1}, ${ex.type === "time" ? "секунди" : "повтори"}"><span>${ru}</span></label></div>`;
+    }).join("")}</div><button type="button" class="check round-check" aria-pressed="${done}" data-s="${esc(s.id)}" data-keys="${esc(inRound.map(e => e.key).join(","))}" data-i="${i}" data-rest="${rest}" aria-label="Раунд ${i + 1} суперсету виконано">✓</button></div>`;
+  }
+  return h + `</div></div>`;
+}
 // ---------- interactions ----------
 let inputTimer = null;
 document.addEventListener("input", e => {
@@ -247,6 +270,8 @@ document.addEventListener("input", e => {
 document.addEventListener("click", e => {
   const day = e.target.closest("button.day");
   if (day) { selected = day.dataset.s; render(); $("sessionWrap").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); return; }
+  const rc = e.target.closest(".round-check");
+  if (rc) { const sets = rc.dataset.keys.split(",").map(k => logs[rc.dataset.s].sets[k][+rc.dataset.i]); const v = !sets.every(x => x.done); sets.forEach(x => x.done = v); changed(rc.dataset.s); renderSession(); renderSchedule(); renderHistory(); if (v && +rc.dataset.rest) startTimer(+rc.dataset.rest); return; }
   const chk = e.target.closest(".check");
   if (chk) { const st = logs[chk.dataset.s].sets[chk.dataset.k][+chk.dataset.i]; st.done = !st.done; changed(chk.dataset.s); renderSession(); renderSchedule(); renderHistory(); if (st.done && +chk.dataset.rest) startTimer(+chk.dataset.rest); return; }
   const rpe = e.target.closest("[data-rpe]");
@@ -258,7 +283,12 @@ document.addEventListener("click", e => {
 // ---------- rest timer ----------
 let tEnd = 0, tInt = null;
 function startTimer(sec) { tEnd = Date.now() + sec * 1000; $("timer").hidden = false; tick(); clearInterval(tInt); tInt = setInterval(tick, 250); }
-function tick() { const left = Math.round((tEnd - Date.now()) / 1000); const a = Math.abs(left); $("tLeft").textContent = (left < 0 ? "+" : "") + Math.floor(a / 60) + ":" + String(a % 60).padStart(2, "0"); $("timer").classList.toggle("over", left < 0); }
+function tick() {
+  const left = Math.round((tEnd - Date.now()) / 1000), go = left <= 0;
+  if (go) { if (!$("timer").classList.contains("over")) { $("tLeft").innerHTML = `<span class="go"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>Працюєм!!!</span>`; try { navigator.vibrate?.([200, 100, 200]); } catch { } } }
+  else $("tLeft").textContent = Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0");
+  $("timer").classList.toggle("over", go);
+}
 $("tPlus").onclick = () => { tEnd += 30000; tick(); };
 $("tStop").onclick = () => { clearInterval(tInt); $("timer").hidden = true; };
 

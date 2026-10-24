@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1792829834">
-<link rel="stylesheet" href="workout.css?v=1792829834">
+<link rel="stylesheet" href="ui.css?v=1792837952">
+<link rel="stylesheet" href="workout.css?v=1792837952">
 <style>
 /* Layout: місяць як стовпчик тижнів; кожен день — рядок із запланованими й виконаними тренуваннями. */
 .wrap{max-width:1100px}
@@ -46,7 +46,7 @@
 .pweek.other h3{opacity:.7}
 .pday .t small.fxsrc{font-size:11px;font-family:var(--f-data)}
 </style>
-<script src="auth.js?v=1792829834"></script>
+<script src="auth.js?v=1792837952"></script>
 </head>
 <body>
 <div class="wrap">
@@ -55,7 +55,7 @@
       <div class="eyebrow">План і виконане</div>
       <h1>Календар</h1>
     </div>
-    <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html" aria-current="page">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="settings.html">Налаштування</a></nav>
+    <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html" aria-current="page">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="records.html">Рекорди</a><a href="settings.html">Налаштування</a></nav>
   </header>
 
   <div class="mbar">
@@ -68,7 +68,7 @@
   <div class="plan-weeks" id="cal"><div class="notice">Завантажую…</div></div>
   <div id="leg"></div>
 </div>
-<script src="workout.js?v=1792829834"></script>
+<script src="workout.js?v=1792837952"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id), esc = WK.esc;

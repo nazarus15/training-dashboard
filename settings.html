@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1792829834">
+<link rel="stylesheet" href="ui.css?v=1792837952">
 <style>
 .card{display:flex;flex-direction:column;gap:12px}
 .card h2{font-size:20px}
@@ -52,7 +52,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
 .ovg label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
 .ovg input{width:18px;height:18px;flex:none}
 </style>
-<script src="auth.js?v=1792829834"></script>
+<script src="auth.js?v=1792837952"></script>
 </head>
 <body>
 <div class="wrap">
@@ -61,7 +61,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
       <div class="eyebrow">Форма Назара</div>
       <h1>Налаштування</h1>
     </div>
-    <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="settings.html" aria-current="page">Налаштування</a></nav>
+    <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="records.html">Рекорди</a><a href="settings.html" aria-current="page">Налаштування</a></nav>
   </header>
 
   <section class="card" id="healthCard">
@@ -115,6 +115,13 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <div class="acts"><button class="btn" type="submit" id="ovBtn">Зберегти</button><button class="btn ghost" type="button" id="ovAll">Показати все</button><span class="msg" id="ovMsg" role="status"></span></div>
   </form>
 
+  <form class="card" id="recsForm">
+    <h2>Рекорди: що показувати</h2>
+    <p>Познач показники для сторінки «Рекорди». Рахуються вони автоматично.</p>
+    <div id="recsList"></div>
+    <div class="acts"><button class="btn" type="submit" id="recsBtn">Зберегти</button><button class="btn ghost" type="button" id="recsAll">Показати все</button><span class="msg" id="recsMsg" role="status"></span></div>
+  </form>
+
   <form class="card" id="metForm">
     <h2>Базові метрики</h2>
     <div class="grid2">
@@ -134,8 +141,8 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <div class="acts"><button class="btn" type="submit" id="metBtn">Зберегти</button><span class="msg" id="metMsg" role="status"></span></div>
   </form>
 </div>
-<script src="workout.js?v=1792829834"></script>
-<script src="export.js?v=1792829834"></script>
+<script src="workout.js?v=1792837952"></script>
+<script src="export.js?v=1792837952"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -286,6 +293,28 @@ $("ovForm").onsubmit = async e => {
   catch (err) { msg("ovMsg", "На цьому пристрої застосовано. " + errText(err), "err"); }
   finally { $("ovBtn").disabled = false; }
 };
+
+// ---------- рекорди: видимість ----------
+function renderRecs(s) {
+  const hid = new Set(s?.records?.hidden || []);
+  const groups = [["bjj", "БЖЖ"], ["bike", "Велосипед"], ["strength", "Силові"]];
+  $("recsList").innerHTML = groups.map(([sp, n]) => `<div class="ovg"><label style="font-weight:600"><input type="checkbox" data-rg="${sp}"${WK.RECORDS.filter(r => r[1] === sp).every(r => hid.has(r[0])) ? "" : " checked"}>${n}</label><div class="sub">${WK.RECORDS.filter(r => r[1] === sp).map(([id, , name]) => `<label><input type="checkbox" data-rec="${id}" data-sp="${sp}"${hid.has(id) ? "" : " checked"}>${WK.esc(name)}</label>`).join("")}</div></div>`).join("");
+}
+document.addEventListener("change", e => {
+  if (e.target.dataset?.rg) document.querySelectorAll(`[data-sp="${e.target.dataset.rg}"]`).forEach(i => i.checked = e.target.checked);
+});
+$("recsAll").onclick = () => document.querySelectorAll("[data-rec],[data-rg]").forEach(i => i.checked = true);
+$("recsForm").onsubmit = async e => {
+  e.preventDefault();
+  const hidden = [...document.querySelectorAll("[data-rec]")].filter(i => !i.checked).map(i => i.dataset.rec);
+  const now = new Date().toISOString();
+  let cache = {}; try { cache = JSON.parse(localStorage.getItem("td_settings_cache") || "{}") || {}; } catch { }
+  lsSet("td_settings_cache", { ...cache, records: { hidden }, updatedAt: now });
+  $("recsBtn").disabled = true; msg("recsMsg", "Зберігаю…");
+  try { const d = await WK.ghPut("settings.json", "journal", cur => ({ ...(cur || {}), records: { hidden }, updatedAt: now }), "Видимість рекордів"); lsSet("td_settings_cache", d); msg("recsMsg", "Збережено.", "ok"); }
+  catch (err) { msg("recsMsg", "На цьому пристрої застосовано. " + errText(err), "err"); }
+  finally { $("recsBtn").disabled = false; }
+};
 $("logout").onclick = async () => { await AUTH.logout(); location.reload(); };
 
 let PD = null;
@@ -312,7 +341,7 @@ $("metForm").onsubmit = async e => {
   renderGh(); verifyGh(); renderRec(); renderHealth();
   try { if (sessionStorage.getItem("forma-recovered")) { $("recBanner").hidden = false; $("pwForm").scrollIntoView(); } } catch { }
   const [S, P] = await Promise.all([WK.loadSettings(), WK.loadPlanned()]); PD = P;
-  renderOv(S);
+  renderOv(S); renderRecs(S);
   $("ftpFloor").value = S.ftpFloor; $("aiCtx").value = S.aiContext || WKX.DEFAULT_CONTEXT;
   const r = PD.recurring.find(x => x.sport === "bjj") || { days: [], mins: 90 };
   $("bjjDays").innerHTML = DAYS.map((d, i) => `<label><input type="checkbox" value="${i + 1}"${r.days.includes(i + 1) ? " checked" : ""}>${d}</label>`).join("");

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<link rel="apple-touch-icon" href="icon-forma.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Форма">
+<meta name="theme-color" content="#eef1f4">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Рекорди · Форма Назара</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="ui.css?v=1792837952">
+<link rel="stylesheet" href="workout.css?v=1792837952">
+<style>
+/* Layout: три розділи (БЖЖ, вело, силове), у кожному сітка карток-рекордів; для силового — таблиця прогресу вправ. */
+.wrap{max-width:1100px}
+.sport{display:flex;flex-direction:column;gap:12px}
+.sport h2{display:flex;align-items:center;gap:10px}
+.sport h2 i{width:10px;height:22px;border-radius:2px;background:var(--sc)}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.rec{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;position:relative;min-width:0}
+.rec .lbl{font-size:13px;color:var(--muted);padding-right:52px}
+.rec .val{font-family:var(--f-display);font-size:34px;font-weight:700;line-height:1.05}
+.rec .val small{font-family:var(--f-data);font-size:13px;font-weight:400;color:var(--muted);margin-left:4px}
+.rec .sub{font-size:12px;color:var(--muted)}
+.rec .new{position:absolute;top:10px;right:10px;font-family:var(--f-data);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--panel);background:var(--good);padding:2px 6px;border-radius:99px}
+.rec.empty .val{font-size:20px;color:var(--muted)}
+.intro{margin:0;color:var(--muted);font-size:14px}
+.st{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.st table{border-collapse:collapse;width:100%;font-size:14px}
+.st th,.st td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+.st tr:last-child td{border-bottom:none}
+.st th{font-family:var(--f-data);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.st td.num{font-family:var(--f-data)}
+.st .up{color:var(--good);font-family:var(--f-data);font-size:12px}
+.st .down{color:var(--bad);font-family:var(--f-data);font-size:12px}
+.st svg{display:block}
+</style>
+<script src="auth.js?v=1792837952"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Прогрес по кожному спорту</div>
+      <h1>Рекорди</h1>
+    </div>
+    <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="records.html" aria-current="page">Рекорди</a><a href="settings.html">Налаштування</a></nav>
+  </header>
+  <p class="intro">Рахується автоматично з тренувань intervals.icu (2 роки), кривої потужності за весь час і силового журналу. «Новий» — рекорд за останні 14 днів. Що показувати, обирається в Налаштуваннях.</p>
+  <div id="out"><div class="notice">Рахую…</div></div>
+</div>
+<script src="workout.js?v=1792837952"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id), esc = WK.esc;
+const MON = ["січ", "лют", "бер", "квіт", "трав", "черв", "лип", "серп", "вер", "жовт", "лист", "груд"];
+const fd = s => { if (!s) return ""; const d = new Date(s.slice(0, 10) + "T12:00:00"); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`; };
+const hm = s => { const m = Math.round((s || 0) / 60); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}`; };
+const nf = (v, n = 0) => (+v).toFixed(n).replace(".", ",");
+const isNew = d => d && (Date.now() - new Date(d.slice(0, 10) + "T12:00:00")) / 864e5 <= 14;
+const sportOf = a => {
+  if (/Ride$|Cyclocross/.test(a.type || "")) return "bike";
+  if (a.type === "BJJ") return "bjj";
+  if (/mixed martial|бжж|bjj|jiu/i.test(a.name || "")) { const h = +a.date.slice(11, 13); return a.moving >= 1800 && (h >= 17 && h <= 21 || (a.avgHr ?? 100) >= 100) ? "bjj" : "other"; }
+  if (a.type === "Strength" || a.type === "WeightTraining" || /strength|силов/i.test(a.name || "")) return "str";
+  return "other";
+};
+const best = (arr, f) => arr.reduce((b, a) => (f(a) ?? -Infinity) > (b ? f(b) ?? -Infinity : -Infinity) ? a : b, null);
+const groupBy = (arr, k) => arr.reduce((o, a) => ((o[k(a)] ??= []).push(a), o), {});
+function streak(dates, minPerWeek) {
+  const wk = groupBy(dates, d => WK.monday(d.slice(0, 10)));
+  const keys = Object.keys(wk).filter(k => wk[k].length >= minPerWeek).sort();
+  let bestN = 0, bestEnd = null, cur = 0, prev = null;
+  for (const k of keys) { cur = prev && WK.addDays(prev, 7) === k ? cur + 1 : 1; prev = k; if (cur > bestN) { bestN = cur; bestEnd = k; } }
+  const thisW = WK.monday(WK.today()), lastW = WK.addDays(thisW, -7);
+  let now = 0; for (let k = keys.includes(thisW) ? thisW : lastW; keys.includes(k); k = WK.addDays(k, -7)) now++;
+  return { best: bestN, end: bestEnd, now };
+}
+const card = (id, label, val, unit, sub, date) => ({ id, html: `<div class="rec${val == null ? " empty" : ""}">${isNew(date) && val != null ? `<span class="new">Новий</span>` : ""}<span class="lbl">${esc(label)}</span><span class="val">${val == null ? "ще немає" : val}${val != null && unit ? `<small>${unit}</small>` : ""}</span><span class="sub">${sub || ""}</span></div>` });
+
+function bjjCards(A) {
+  const b = A.filter(a => a.sport === "bjj"), c = [];
+  const L = best(b, a => a.moving), LD = best(b, a => a.load), HR = best(b, a => a.maxHr), K = best(b, a => a.kcal);
+  const hard = a => Array.isArray(a.hrZones) ? (a.hrZones[3] || 0) + (a.hrZones[4] || 0) : null, H = best(b, hard);
+  c.push(card("bjj_longest", "Найдовше тренування", L && hm(L.moving), "год", L && fd(L.date), L?.date));
+  c.push(card("bjj_load", "Найбільше навантаження за тренування", LD && LD.load, "", LD && `${fd(LD.date)} · ${hm(LD.moving)}`, LD?.date));
+  c.push(card("bjj_hard", "Найбільше часу в зонах 4–5", H && hard(H) ? Math.round(hard(H) / 60) : null, "хв", H && fd(H.date), H?.date));
+  c.push(card("bjj_maxhr", "Найвищий пульс", HR && HR.maxHr, "уд/хв", HR && fd(HR.date), HR?.date));
+  c.push(card("bjj_kcal", "Найбільше калорій", K && K.kcal, "ккал", K && fd(K.date), K?.date));
+  const wk = Object.entries(groupBy(b, a => WK.monday(a.day))).sort((x, y) => y[1].length - x[1].length || (x[0] < y[0] ? 1 : -1))[0];
+  c.push(card("bjj_week", "Найбільше тренувань за тиждень", wk && wk[1].length, "", wk && `тиждень з ${fd(wk[0])}`, wk && wk[1].at(-1).date));
+  const mo = Object.entries(groupBy(b, a => a.day.slice(0, 7))).map(([k, v]) => [k, v.reduce((s, a) => s + a.moving, 0), v]).sort((x, y) => y[1] - x[1])[0];
+  c.push(card("bjj_month", "Найбільше годин на килимі за місяць", mo && hm(mo[1]), "год", mo && `${MON[+mo[0].slice(5) - 1]} ${mo[0].slice(0, 4)} · ${mo[2].length} тренувань`, mo && mo[2].at(-1).date));
+  const s = streak(b.map(a => a.day), 2);
+  c.push(card("bjj_streak", "Найдовша серія тижнів (2+ тренування)", s.best || null, "тиж.", s.best ? `зараз: ${s.now} тиж.` : "", s.end && WK.addDays(s.end, 6) >= WK.addDays(WK.today(), -14) && s.now === s.best ? WK.today() : null));
+  c.push(card("bjj_total", "Усього тренувань", b.length || null, "", b.length ? `${hm(b.reduce((x, a) => x + a.moving, 0))} год · з ${fd(b[0].date)}` : ""));
+  return c;
+}
+function bikeCards(A, P) {
+  const r = A.filter(a => a.sport === "bike"), c = [], w = P?.weight;
+  const byId = Object.fromEntries(A.filter(a => a.id).map(a => [String(a.id), a]));
+  const pa = Object.fromEntries((P?.curveAll || []).map(x => [x[0], x]));
+  for (const [s, lbl] of [[5, "Потужність 5 с"], [60, "Потужність 1 хв"], [300, "Потужність 5 хв"], [1200, "Потужність 20 хв"], [3600, "Потужність 60 хв"]]) {
+    const x = pa[s] || (P?.curve || []).find(y => y[0] === s), act = x?.[2] ? byId[String(x[2]).replace(/^i/, "")] || byId[String(x[2])] : null;
+    c.push(card("bike_p" + s, lbl, x ? x[1] : null, "Вт", x ? [w ? `${nf(x[1] / w, 2)} Вт/кг` : "", act ? fd(act.date) : pa[s] ? "" : "за 42 дні"].filter(Boolean).join(" · ") : "", act?.date));
+  }
+  const NP = best(r.filter(a => a.moving >= 1200), a => a.np), EF = best(r.filter(a => a.moving >= 1800 && a.np && a.avgHr), a => a.np / a.avgHr);
+  c.push(card("bike_np", "Найвища нормалізована потужність (20+ хв)", NP?.np ?? null, "Вт", NP && `${fd(NP.date)} · ${hm(NP.moving)}`, NP?.date));
+  c.push(card("bike_ef", "Найкраща аеробна ефективність", EF ? nf(EF.np / EF.avgHr, 2) : null, "Вт/уд", EF && `NP ${EF.np} Вт при пульсі ${EF.avgHr} · ${fd(EF.date)}`, EF?.date));
+  const LG = best(r, a => a.moving), D = best(r, a => a.distKm), LD = best(r, a => a.load), KJ = best(r, a => a.kj), EL = best(r, a => a.elev);
+  c.push(card("bike_longest", "Найдовший заїзд", LG && hm(LG.moving), "год", LG && `${fd(LG.date)}${LG.distKm ? ` · ${nf(LG.distKm, 1)} км` : ""}`, LG?.date));
+  c.push(card("bike_dist", "Найбільша відстань", D?.distKm ? nf(D.distKm, 1) : null, "км", D && fd(D.date), D?.date));
+  c.push(card("bike_load", "Найбільше навантаження за заїзд", LD?.load ?? null, "", LD && fd(LD.date), LD?.date));
+  c.push(card("bike_kj", "Найбільше роботи", KJ?.kj ?? null, "кДж", KJ && fd(KJ.date), KJ?.date));
+  c.push(card("bike_elev", "Найбільший набір висоти", EL?.elev ?? null, "м", EL && fd(EL.date), EL?.date));
+  const wk = Object.entries(groupBy(r, a => WK.monday(a.day))).map(([k, v]) => [k, v.reduce((s, a) => s + a.moving, 0), v]).sort((x, y) => y[1] - x[1])[0];
+  c.push(card("bike_week", "Найбільше годин за тиждень", wk && hm(wk[1]), "год", wk && `тиждень з ${fd(wk[0])} · ${wk[2].length} заїзди`, wk && wk[2].at(-1).date));
+  const mo = Object.entries(groupBy(r.filter(a => a.distKm), a => a.day.slice(0, 7))).map(([k, v]) => [k, v.reduce((s, a) => s + a.distKm, 0), v]).sort((x, y) => y[1] - x[1])[0];
+  c.push(card("bike_month", "Найбільше кілометрів за місяць", mo && Math.round(mo[1]), "км", mo && `${MON[+mo[0].slice(5) - 1]} ${mo[0].slice(0, 4)}`, mo && mo[2].at(-1).date));
+  return c;
+}
+function spark(vals) {
+  if (vals.length < 2) return "";
+  const w = 90, h = 24, mn = Math.min(...vals), mx = Math.max(...vals), k = mx - mn || 1;
+  const pts = vals.map((v, i) => `${(i / (vals.length - 1) * (w - 4) + 2).toFixed(1)},${(h - 2 - (v - mn) / k * (h - 4)).toFixed(1)}`).join(" ");
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function strengthCards(A, PD, JL) {
+  const c = [], logs = JL?.logs || {};
+  const sess = (PD?.workouts || []).filter(w => w.sport === "strength").map(w => WK.session(w)).sort((a, b) => a.date < b.date ? -1 : 1);
+  const per = {}; // key → { name, type, hist: [{date, topW, topR, e1rm, reps, secs}] }
+  const sessStats = [];
+  for (const s of sess) {
+    const L = logs[s.id]; if (!L) continue;
+    let ton = 0, sets = 0;
+    for (const ex of s.exercises) {
+      const done = (L.sets?.[ex.key] || []).filter(x => x.done && +x.r > 0);
+      if (!done.length) continue;
+      sets += done.length;
+      const p = per[ex.key] ??= { name: ex.name, type: ex.type, hist: [] };
+      if (ex.type === "time") p.hist.push({ date: s.date, secs: Math.max(...done.map(x => +x.r)) });
+      else {
+        const top = done.reduce((b, x) => { const e = (+x.w || 0) * (1 + (+x.r) / 30); return e > b.e ? { e, w: +x.w || 0, r: +x.r } : b; }, { e: -1 });
+        ton += done.reduce((t, x) => t + (+x.w || 0) * (+x.r), 0);
+        p.hist.push({ date: s.date, topW: Math.max(...done.map(x => +x.w || 0)), topR: Math.max(...done.map(x => +x.r)), w: top.w, r: top.r, e1rm: top.w ? top.e : null });
+      }
+    }
+    if (sets) sessStats.push({ date: s.date, title: s.title, ton, sets });
+  }
+  const rows = Object.values(per).sort((a, b) => a.name.localeCompare(b.name, "uk"));
+  const tbl = rows.length ? `<div class="st"><table><thead><tr><th>Вправа</th><th>Рекорд</th><th>1ПМ (розрах.)</th><th>Динаміка</th><th>Останнє</th></tr></thead><tbody>${rows.map(p => {
+    const h = p.hist, last = h.at(-1);
+    if (p.type === "time") { const b = best(h, x => x.secs); return `<tr><td>${esc(p.name)}</td><td class="num">${b.secs} с · ${fd(b.date)}</td><td>—</td><td>${spark(h.map(x => x.secs))}</td><td class="num">${last.secs} с</td></tr>`; }
+    const weighted = h.some(x => x.topW > 0);
+    if (!weighted) { const b = best(h, x => x.topR); return `<tr><td>${esc(p.name)}</td><td class="num">${b.topR} повт · ${fd(b.date)}</td><td>—</td><td>${spark(h.map(x => x.topR))}</td><td class="num">${last.topR} повт</td></tr>`; }
+    const b = best(h, x => x.e1rm), first = h.find(x => x.e1rm), d = b && first ? b.e1rm - first.e1rm : 0;
+    return `<tr><td>${esc(p.name)}${isNew(b?.date) && h.length > 1 && b === best(h, x => x.e1rm) && b.date === last.date ? ` <span class="up">новий</span>` : ""}</td><td class="num">${nf(b.w, b.w % 1 ? 1 : 0)} кг × ${b.r} · ${fd(b.date)}</td><td class="num">${nf(b.e1rm, 1)} кг ${d > 0 ? `<span class="up">+${nf(d, 1)}</span>` : ""}</td><td>${spark(h.filter(x => x.e1rm).map(x => x.e1rm))}</td><td class="num">${nf(last.w, last.w % 1 ? 1 : 0)} кг × ${last.r}</td></tr>`;
+  }).join("")}</tbody></table></div>` : `<div class="rec empty"><span class="lbl">Прогрес у вправах</span><span class="val">ще немає</span><span class="sub">Запиши підходи в Силовому журналі — тут з'являться рекорди ваги, розрахунковий 1ПМ (формула Епплі) і динаміка по кожній вправі.</span></div>`;
+  c.push({ id: "str_table", wide: true, html: tbl });
+  const T = best(sessStats, x => x.ton), S = best(sessStats, x => x.sets);
+  c.push(card("str_ton", "Найбільший тоннаж за тренування", T?.ton ? Math.round(T.ton) : null, "кг", T && `${esc(T.title)} · ${fd(T.date)}`, T?.date));
+  c.push(card("str_sets", "Найбільше робочих підходів за тренування", S?.sets ?? null, "", S && `${esc(S.title)} · ${fd(S.date)}`, S?.date));
+  const dates = [...new Set([...A.filter(a => a.sport === "str").map(a => a.day), ...sessStats.map(x => x.date)])].sort();
+  const st = streak(dates, 1);
+  c.push(card("str_streak", "Найдовша серія тижнів із силовим", st.best || null, "тиж.", st.best ? `зараз: ${st.now} тиж.` : ""));
+  c.push(card("str_total", "Усього силових", dates.length || null, "", dates.length ? `з ${fd(dates[0])} · у журналі ${sessStats.length}` : ""));
+  return c;
+}
+
+(async () => {
+  await AUTH.ready;
+  const [Araw, P, PD, JL, S] = await Promise.all([AUTH.load("activities"), AUTH.load("power"), WK.loadPlanned(), WK.ghGet("logs.json", "journal").then(x => AUTH.decrypt(x.data)).catch(() => null), WK.loadSettings()]);
+  let A = Araw ? Araw.rows.map(r => Object.fromEntries(Araw.cols.map((c, i) => [c, r[i]]))).filter(a => (a.moving || 0) >= 300) : [];
+  { const seen = new Set(); A = A.filter(a => { const k = a.date + a.moving; if (seen.has(k)) return false; seen.add(k); return true; }); }
+  A.forEach(a => { a.sport = sportOf(a); a.day = a.date.slice(0, 10); });
+  A.sort((a, b) => a.date < b.date ? -1 : 1);
+  const hidden = new Set(S?.records?.hidden || []);
+  const sec = (sport, title, cards) => {
+    const vis = cards.filter(c => !hidden.has(c.id)); if (!vis.length) return "";
+    const [, color] = WK.SPORT[sport];
+    return `<section class="sport" style="--sc:${color}"><h2><i></i>${title}</h2>${vis.filter(c => c.wide).map(c => c.html).join("")}<div class="rgrid">${vis.filter(c => !c.wide).map(c => c.html).join("")}</div></section>`;
+  };
+  $("out").innerHTML = [sec("bjj", "БЖЖ", bjjCards(A)), sec("bike", "Велосипед", bikeCards(A, P)), sec("strength", "Силові", strengthCards(A, PD, JL))].join("") || `<div class="notice">Усі рекорди приховані в Налаштуваннях.</div>`;
+  $("out").style.cssText = "display:flex;flex-direction:column;gap:26px";
+})();
+</script>
+</body>
+</html>

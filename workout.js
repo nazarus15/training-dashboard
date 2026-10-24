@@ -272,11 +272,13 @@ window.WK = (() => {
   }
   async function loadSettings() {
     let s = null;
+    const c = lsGet("td_settings_cache", null);
     try { s = (await ghGet("settings.json", BRANCH)).data; } catch { }
-    if (s) lsSet("td_settings_cache", s); else s = lsGet("td_settings_cache", {}) || {};
+    // свіжіший локальний кеш (щойно збережене, а raw GitHub ще віддає стару версію) має перевагу
+    if (s && !(c?.updatedAt && (!s.updatedAt || c.updatedAt > s.updatedAt))) lsSet("td_settings_cache", s); else s = c || s || {};
     let priv = {};
     try { priv = (s.private && window.AUTH ? await AUTH.decrypt(s.private) : {}) || {}; } catch { }
-    return { ftpFloor: s.ftpFloor || 231, overview: s.overview, updatedAt: s.updatedAt, ...priv };
+    return { ftpFloor: s.ftpFloor || 231, overview: s.overview, records: s.records, updatedAt: s.updatedAt, ...priv };
   }
 
   // ---------- календар: план + intervals ----------
@@ -323,5 +325,17 @@ window.WK = (() => {
   }
 
   const TILES = [["ready", "Готовність"], ["tsb", "Форма (TSB)"], ["ctl", "Фітнес (CTL)"], ["hrv", "HRV минулої ночі"], ["rhr", "Пульс спокою"], ["sleep", "Сон"], ["bb", "Body Battery"], ["ftp", "FTP"]];
-  return { actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
+  // каталог рекордів: [id, вид, назва] — для сторінки «Рекорди» і перемикачів у Налаштуваннях
+  const RECORDS = [
+    ["bjj_longest", "bjj", "Найдовше тренування"], ["bjj_load", "bjj", "Найбільше навантаження за тренування"], ["bjj_hard", "bjj", "Найбільше часу в зонах 4–5"],
+    ["bjj_maxhr", "bjj", "Найвищий пульс"], ["bjj_kcal", "bjj", "Найбільше калорій"], ["bjj_week", "bjj", "Найбільше тренувань за тиждень"],
+    ["bjj_month", "bjj", "Найбільше годин на килимі за місяць"], ["bjj_streak", "bjj", "Найдовша серія тижнів (2+ тренування)"], ["bjj_total", "bjj", "Усього тренувань"],
+    ["bike_p5", "bike", "Потужність 5 с"], ["bike_p60", "bike", "Потужність 1 хв"], ["bike_p300", "bike", "Потужність 5 хв"], ["bike_p1200", "bike", "Потужність 20 хв"], ["bike_p3600", "bike", "Потужність 60 хв"],
+    ["bike_np", "bike", "Найвища нормалізована потужність (20+ хв)"], ["bike_ef", "bike", "Найкраща аеробна ефективність"], ["bike_longest", "bike", "Найдовший заїзд"],
+    ["bike_dist", "bike", "Найбільша відстань"], ["bike_load", "bike", "Найбільше навантаження за заїзд"], ["bike_kj", "bike", "Найбільше роботи, кДж"],
+    ["bike_elev", "bike", "Найбільший набір висоти"], ["bike_week", "bike", "Найбільше годин за тиждень"], ["bike_month", "bike", "Найбільше кілометрів за місяць"],
+    ["str_table", "strength", "Прогрес у вправах (вага, 1ПМ, динаміка)"], ["str_ton", "strength", "Найбільший тоннаж за тренування"], ["str_sets", "strength", "Найбільше робочих підходів за тренування"],
+    ["str_streak", "strength", "Найдовша серія тижнів із силовим"], ["str_total", "strength", "Усього силових"],
+  ];
+  return { RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();
