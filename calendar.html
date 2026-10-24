@@ -12,8 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1792762338">
-<link rel="stylesheet" href="workout.css?v=1792762338">
+<link rel="stylesheet" href="ui.css?v=1792828906">
+<link rel="stylesheet" href="workout.css?v=1792828906">
 <style>
 /* Layout: місяць як стовпчик тижнів; кожен день — рядок із запланованими й виконаними тренуваннями. */
 .wrap{max-width:1100px}
@@ -46,7 +46,7 @@
 .pweek.other h3{opacity:.7}
 .pday .t small.fxsrc{font-size:11px;font-family:var(--f-data)}
 </style>
-<script src="auth.js?v=1792762338"></script>
+<script src="auth.js?v=1792828906"></script>
 </head>
 <body>
 <div class="wrap">
@@ -68,7 +68,7 @@
   <div class="plan-weeks" id="cal"><div class="notice">Завантажую…</div></div>
   <div id="leg"></div>
 </div>
-<script src="workout.js?v=1792762338"></script>
+<script src="workout.js?v=1792828906"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id), esc = WK.esc;
@@ -122,12 +122,12 @@ function render() {
     const s = it.sess;
     const exList = s?.exercises?.length ? `<details><summary>Вправи (${s.exercises.length})</summary><ol>${s.exercises.map(e => `<li><b>${esc(e.name)}</b><span class="num">${e.sets}×${esc(e.reps)}${e.type === "time" ? " с" : ""}${e.perSide ? "/бік" : ""}</span></li>`).join("")}</ol></details>` : "";
     const title = it.sport === "strength" ? `<a href="strength.html?s=${encodeURIComponent(it.id)}">${esc(it.title)}</a>` : it.src === "planner" ? `<a href="planner.html?edit=${encodeURIComponent(it.id)}">${esc(it.title)}</a>` : esc(it.title);
-    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}</span>${pill}</span><strong>${title}</strong>${detail ? `<small>${esc(detail)}</small>` : ""}${actual[0] ? `<small class="act">${actLine(actual[0])}</small>` : ""}${WK.barsHtml(fx)}${afx ? `<small class="fxsrc">Ефект за фактом${afx.by === "hr" ? " (за пульсом)" : ""}</small>` : ""}${exList}`;
+    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}</span>${pill}</span>${it.sport === "bjj" ? "" : `<strong>${title}</strong>`}${detail ? `<small>${esc(detail)}</small>` : ""}${actual[0] ? `<small class="act">${actLine(actual[0])}</small>` : ""}${WK.barsHtml(fx)}${afx ? `<small class="fxsrc">Ефект за фактом${afx.by === "hr" ? " (за пульсом)" : ""}</small>` : ""}${exList}`;
   };
   const extra = a => {
     const [sn, sc] = WK.SPORT[SP_BACK[a.sport]] || WK.SPORT.other;
     const fx = a.sport === "bike" ? WK.actEffects(a) : null, main = fx?.main ? WK.FX[fx.main] : null;
-    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}<span class="unpl">поза планом</span></span><span class="pill done">Виконано</span></span><strong>${esc(a.name || sn)}</strong><small class="act">${actLine(a)}</small>${WK.barsHtml(fx)}${fx?.by === "hr" ? `<small class="fxsrc">Ефект за пульсом</small>` : ""}`;
+    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}<span class="unpl">поза планом</span></span><span class="pill done">Виконано</span></span>${a.sport === "bjj" ? "" : `<strong>${esc(a.name || sn)}</strong>`}<small class="act">${actLine(a)}</small>${WK.barsHtml(fx)}${fx?.by === "hr" ? `<small class="fxsrc">Ефект за пульсом</small>` : ""}`;
   };
   let html = "";
   for (let w = from; w <= to; w = WK.addDays(w, 7)) {

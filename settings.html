@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1792762338">
+<link rel="stylesheet" href="ui.css?v=1792828906">
 <style>
 .card{display:flex;flex-direction:column;gap:12px}
 .card h2{font-size:20px}
@@ -33,6 +33,17 @@ textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
 .hl b{font-family:var(--f-data);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--c);white-space:nowrap}
 .updkv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 12px;font-size:13px;margin:0}
 .updkv dt{color:var(--muted)} .updkv dd{margin:0}
+h3.sub{font-size:17px;margin:4px 0 0}
+.srcs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.src{display:flex;flex-direction:column;gap:3px;border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.src b{font-size:15px} .src small{font-size:12px;color:var(--muted)} .src small.err{color:var(--bad)}
+.st{font-family:var(--f-data);font-size:13px;font-weight:600} .st.ok{color:var(--good)} .st.bad{color:var(--bad)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+.tbl table{border-collapse:collapse;width:100%;font-size:13px}
+.tbl th,.tbl td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl tr:last-child td{border-bottom:none}
+.tbl th{font-family:var(--f-data);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.note{font-size:12px;color:var(--muted);margin:0}
 .histd{display:flex;gap:3px;flex-wrap:wrap} .histd i{width:8px;height:16px;border-radius:2px;display:block}
 .ovg{border-top:1px solid var(--line);padding:10px 0}
 .ovg:first-child{border-top:none}
@@ -41,7 +52,7 @@ textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
 .ovg label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
 .ovg input{width:18px;height:18px;flex:none}
 </style>
-<script src="auth.js?v=1792762338"></script>
+<script src="auth.js?v=1792828906"></script>
 </head>
 <body>
 <div class="wrap">
@@ -123,8 +134,8 @@ textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
     <div class="acts"><button class="btn" type="submit" id="metBtn">Зберегти</button><span class="msg" id="metMsg" role="status"></span></div>
   </form>
 </div>
-<script src="workout.js?v=1792762338"></script>
-<script src="export.js?v=1792762338"></script>
+<script src="workout.js?v=1792828906"></script>
+<script src="export.js?v=1792828906"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -190,13 +201,21 @@ async function renderHealth(fresh) {
   $("health").innerHTML = h.issues.length ? `<ul class="hl">${h.issues.map(i => `<li style="--c:var(--${i.lvl === "bad" ? "bad" : "warn"})"><b>${i.area}</b><span>${WK.esc(i.text)}</span></li>`).join("")}</ul>` : `<p><span class="pill done">Усе працює</span></p>`;
   const S = h.status; if (!S) return;
   const parts = p => Object.entries(p || {}).map(([k, v]) => `${PART[k] || k}: ${WK.esc(v)}`).join("<br>");
-  const hist = (S.history || []).slice(-14).map(x => `<i title="${WK.esc(x.at)}" style="background:var(${x.intervals && x.garmin ? "--good" : x.intervals ? "--warn" : "--bad"})"></i>`).join("");
-  $("upd").innerHTML = `<details class="howto"><summary>Оновлення даних</summary><dl class="updkv" style="margin-top:8px">
-    <dt>Останнє</dt><dd>${new Date(S.generatedAt).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}${S.slot ? ` · ${{ evening: "вечірнє", morning: "ранкове", retry: "повтор", manual: "вручну" }[S.slot] || S.slot}` : ""}</dd>
-    <dt>Розклад</dt><dd>23:00 і 10:00, повтор о 12:00, якщо вранці не прийшов сон</dd>
-    <dt>intervals.icu</dt><dd>${S.intervals?.ok ? "ok" : "помилка"}<br><span class="muted">${parts(S.intervals?.parts)}</span></dd>
-    <dt>Garmin</dt><dd>${S.garmin?.ok ? "ok" : WK.esc(S.garmin?.error || "помилка")}${S.garmin?.dataDate ? ` · дані за ${S.garmin.dataDate}` : ""}<br><span class="muted">${parts(S.garmin?.parts)}</span></dd>
-    <dt>14 запусків</dt><dd><span class="histd">${hist}</span></dd></dl></details>`;
+  const SLOT = { evening: "вечір", morning: "ранок", retry: "повтор", manual: "вручну" };
+  const dt = s => new Date(s).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const okb = (v, txt) => v === undefined ? `<span class="muted">—</span>` : `<span class="st ${v ? "ok" : "bad"}">${v ? "✓" : "✕"}${txt ? " " + txt : ""}</span>`;
+  const H = (S.history || []).slice(-12).reverse();
+  const lastOk = k => (S.history || []).filter(x => x[k]).at(-1)?.at;
+  $("upd").innerHTML = `<h3 class="sub">Останні оновлення даних</h3>
+    <div class="srcs">
+      <div class="src"><b>intervals.icu</b>${okb(S.intervals?.ok, S.intervals?.ok ? "працює" : "помилка")}<small>Останнє успішне: ${lastOk("intervals") ? dt(lastOk("intervals")) : "—"}</small>${S.intervals?.ok ? "" : `<small class="err">${WK.esc(S.intervals?.error || "")}</small>`}</div>
+      <div class="src"><b>Garmin</b>${okb(S.garmin?.ok, S.garmin?.ok ? "працює" : "помилка")}<small>Останнє успішне: ${lastOk("garmin") ? dt(lastOk("garmin")) : "—"}${S.garmin?.dataDate ? ` · дані за ${S.garmin.dataDate}` : ""}</small>${S.garmin?.ok ? "" : `<small class="err">${WK.esc(S.garmin?.error || "")}</small>`}</div>
+    </div>
+    <div class="tbl"><table><thead><tr><th>Коли</th><th>Тип</th><th>intervals</th><th>Garmin</th><th>Сон</th></tr></thead><tbody>${H.map(x => `<tr><td>${dt(x.at)}</td><td>${SLOT[x.slot] || "—"}</td><td>${okb(x.intervals)}</td><td>${okb(x.garmin)}</td><td>${okb(x.sleepToday)}</td></tr>`).join("")}</tbody></table></div>
+    <p class="note">Розклад: 23:00 і 10:00, повтор о 12:00, якщо вранці не прийшов сон. GitHub запускає заплановані оновлення із затримкою, іноді до кількох годин. «Сон» — чи був уже сон за поточну ніч.</p>
+    <details class="howto"><summary>Деталі останнього оновлення</summary><dl class="updkv" style="margin-top:8px">
+      <dt>intervals.icu</dt><dd class="muted">${parts(S.intervals?.parts)}</dd>
+      <dt>Garmin</dt><dd class="muted">${parts(S.garmin?.parts)}</dd></dl></details>`;
 }
 $("hRefresh").onclick = () => { $("health").innerHTML = "<p>Перевіряю…</p>"; renderHealth(true); };
 try { $("tokExp").value = JSON.parse(localStorage.getItem("td_tok_exp") || "null") || ""; } catch { }
