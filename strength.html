@@ -148,8 +148,8 @@ button.day:hover{background:var(--soft)}
 .round.is-done .rset .field input{opacity:.7}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="workout.css?v=1792838711">
-<script src="auth.js?v=1792838711"></script>
+<link rel="stylesheet" href="workout.css?v=1792839467">
+<script src="auth.js?v=1792839467"></script>
 </head>
 <body>
 <div class="wrap">
@@ -168,15 +168,11 @@ button.day:hover{background:var(--soft)}
   </section>
 
   <section id="scheduleWrap" hidden style="display:flex;flex-direction:column;gap:12px">
-    <h2>Два тижні</h2>
+    <h2>Силові на 2 тижні</h2>
     <div id="schedule" style="display:flex;flex-direction:column;gap:16px"></div>
-    <p class="muted" style="margin:0;font-size:13px">Вело — з intervals.icu (синхронізується на Wahoo), силові й БЖЖ — з <a href="planner.html">Планера</a>. Тут записуєш підходи, а саме тренування засікай на Garmin як звичайно.</p>
+    <p class="muted" style="margin:0;font-size:13px">Силові з <a href="planner.html">Планера</a>. Тут записуєш підходи, а саме тренування засікай на Garmin як звичайно.</p>
   </section>
 
-  <section id="histWrap" hidden style="display:flex;flex-direction:column;gap:12px">
-    <h2>Прогрес у вправах</h2>
-    <div class="hist"><table id="hist"></table></div>
-  </section>
 </div>
 
 <div class="timer" id="timer" hidden role="timer" aria-live="off">
@@ -184,7 +180,7 @@ button.day:hover{background:var(--soft)}
   <div style="display:flex;gap:8px"><button type="button" id="tPlus">+30 с</button><button type="button" id="tStop">Закрити</button></div>
 </div>
 
-<script src="workout.js?v=1792838711"></script>
-<script src="strength.js?v=1792838711"></script>
+<script src="workout.js?v=1792839467"></script>
+<script src="strength.js?v=1792839467"></script>
 </body>
 </html>

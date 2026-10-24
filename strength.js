@@ -171,9 +171,9 @@ function statusPill(s, L) {
 function renderSchedule() {
   $("scheduleWrap").hidden = false;
   const from = WK.monday(todayISO), to = WK.addDays(from, 13);
-  const its = WK.items(planned, events, from, to);
+  const its = WK.items(planned, events, from, to).filter(x => x.sport === "strength");
   const weeks = [0, 7].map(o => ({ title: (o ? "Наступний тиждень" : "Цей тиждень"), days: its.filter(x => x.date >= WK.addDays(from, o) && x.date <= WK.addDays(from, o + 6)).map(x => ({ date: x.date, kind: x.sport, title: x.title, session: x.sport === "strength" ? x.id : null, detail: [WK.fmtMin(x.mins), WK.subtype(x)].filter(Boolean).join(" · ") })) }));
-  $("schedule").innerHTML = weeks.map(w => `<div class="week"><h3>${esc(w.title)}</h3><div class="days">${w.days.length ? "" : `<div class="day"><span class="t"><small>Нічого не заплановано</small></span></div>`}${w.days.map(d => {
+  $("schedule").innerHTML = weeks.map(w => `<div class="week"><h3>${esc(w.title)}</h3><div class="days">${w.days.length ? "" : `<div class="day"><span class="t"><small>Силових не заплановано</small></span></div>`}${w.days.map(d => {
     const s = d.session ? sessions[d.session] : null;
     const [kName, kCol] = KIND[d.kind] || KIND.other;
     const pill = s ? statusPill(s, logs[s.id]) : d.date === todayISO ? `<span class="pill today">Сьогодні</span>` : "";
@@ -222,6 +222,7 @@ function renderSession() {
   if (focus && $(focus)) $(focus).focus();
 }
 function renderHistory() {
+  if (!$("histWrap")) return;
   const rows = [];
   const byDate = Object.values(sessions).sort((a, b) => a.date < b.date ? -1 : 1);
   const names = {};
