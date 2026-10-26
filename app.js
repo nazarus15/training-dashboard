@@ -317,9 +317,10 @@ function run(W, A, P, G) {
     const order = ["bike", "bjj", "str", "other", "rest"];
     $("lgWeek").innerHTML = order.map(s => `<span><i style="background:var(${SPORTS[s][1]})"></i>${SPORTS[s][0]}</span>`).join("") + `<span><i style="background:var(--ink)"></i>Години</span>`;
     mk("cWeek", { data: { labels: weekKeys.map(dShort), datasets: [
-      ...order.map(s => ({ type: "bar", label: SPORTS[s][0], data: weekKeys.map(w => weeks[w][s] || 0), backgroundColor: css(SPORTS[s][1]), stack: "l" })),
-      { type: "line", label: "Години", data: weekKeys.map(w => +(weeks[w].secs / 3600).toFixed(1)), borderColor: css("--ink"), pointRadius: 3, pointBackgroundColor: css("--ink"), yAxisID: "h", borderWidth: 1.5 } ] },
-      options: { interaction: { mode: "index", intersect: false }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid, title: { display: true, text: "навантаження" } }, h: { position: "right", grid: { display: false }, min: 0, title: { display: true, text: "год" } } } } });
+      ...order.map(s => ({ type: "bar", label: SPORTS[s][0], data: weekKeys.map(w => weeks[w][s] || 0), backgroundColor: css(SPORTS[s][1]), stack: "l", order: 2 })),
+      // лінія годин поверх стовпчиків (менший order — малюється вище), з обвідкою, щоб її було видно на будь-якому кольорі
+      { type: "line", label: "Години", data: weekKeys.map(w => +(weeks[w].secs / 3600).toFixed(1)), borderColor: css("--ink"), borderWidth: 3, pointRadius: 4.5, pointBorderWidth: 2, pointBorderColor: css("--panel"), pointBackgroundColor: css("--ink"), yAxisID: "h", order: 0, tension: .25 } ] },
+      options: { interaction: { mode: "index", intersect: false }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid, title: { display: true, text: "навантаження" } }, h: { position: "right", grid: { display: false }, min: 0, ticks: { color: css("--ink") }, title: { display: true, text: "год", color: css("--ink") } } } } });
 
     if (gHas.acute) { const sh = G.loadHistory; mk("cAcute", { type: "line", data: { labels: sh.map(r => dShort(r[0])), datasets: [
       { label: "Мін. коридор", data: sh.map(r => Math.round(r[2] * .8)), borderWidth: 0, pointRadius: 0, fill: false },

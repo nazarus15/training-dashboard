@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1d2b38"/>
+      <stop offset="1" stop-color="#121b24"/>
+    </linearGradient>
+    <linearGradient id="ln" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#4f9fe0"/>
+      <stop offset="0.55" stop-color="#5b95f5"/>
+      <stop offset="1" stop-color="#f0933f"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- лінія форми: спокійний підйом, пульсовий пік, вихід угору -->
+  <path d="M92 360 L176 330 L214 330 L242 214 L278 400 L306 292 L340 262 L404 152"
+        fill="none" stroke="url(#ln)" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="404" cy="152" r="50" fill="#f0933f"/>
+  <circle cx="404" cy="152" r="18" fill="#121b24"/>
+</svg>
