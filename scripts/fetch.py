@@ -261,7 +261,7 @@ def intervals() -> None:
         out = [{"date": (e.get("start_date_local") or "")[:10], "name": e.get("name"), "category": e.get("category"),
                 "type": e.get("type"), "mins": round((e.get("moving_time") or 0) / 60) or None,
                 "load": e.get("icu_training_load"), "if": round(e["icu_intensity"]) if e.get("icu_intensity") else None,
-                "zones": zone_secs((e.get("workout_doc") or {}).get("zoneTimes"))} for e in evs if e.get("category") in ("WORKOUT", "NOTE", "RACE_A", "RACE_B", "RACE_C")]
+                "zones": zone_secs((e.get("workout_doc") or {}).get("zoneTimes")), "id": e.get("id"), "desc": e.get("description")} for e in evs if e.get("category") in ("WORKOUT", "NOTE", "RACE_A", "RACE_B", "RACE_C")]
         write("events.json", {"events": sorted(out, key=lambda x: x["date"])})
         parts["events"] = f"ok ({len(out)} подій)"
     except Exception as e:

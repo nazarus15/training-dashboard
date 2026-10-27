@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1793010860">
+<link rel="stylesheet" href="ui.css?v=1793115014">
 <style>
 .card{display:flex;flex-direction:column;gap:12px}
 .card h2{font-size:20px}
@@ -55,7 +55,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
 .ovg label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
 .ovg input{width:18px;height:18px;flex:none}
 </style>
-<script src="auth.js?v=1793010860"></script>
+<script src="auth.js?v=1793115014"></script>
 </head>
 <body>
 <div class="wrap">
@@ -85,6 +85,19 @@ h3.sub{font-size:17px;margin:4px 0 0}
       <li>Токен зберігається лише в цьому браузері. Потрібен для журналу, Планера і цих налаштувань.</li></ol><p style="margin-top:8px">Вже є токен, але лише на читання? Не створюй новий: github.com → Settings → Developer settings → Personal access tokens → Fine-grained tokens → твій токен → <b>Edit</b> → Repository permissions → <b>Contents: Read and write</b> → Update. Потім встав той самий токен сюди ще раз.</p></details>
     <label class="f" id="expWrap" style="max-width:260px">Токен діє до (необов'язково)<input type="date" id="tokExp"></label>
     <div class="acts"><button class="btn ghost" type="button" id="ghOff" hidden>Відключити на цьому пристрої</button><span class="msg" id="ghMsg" role="status"></span></div>
+  </section>
+
+  <section class="card" id="gcalCard">
+    <h2>Google Calendar</h2>
+    <p>Заплановані тренування (вело з intervals.icu, силові й БЖЖ з Планера) автоматично потрапляють у календар-підписку. Він оновлюється разом із даними сайту, а Google перечитує його сам — зазвичай раз на кілька годин.</p>
+    <div class="acts"><input id="icsUrl" readonly value="https://nazarus15.github.io/training-dashboard/data/calendar.ics" aria-label="Адреса календаря" style="flex:1;min-width:220px;font-family:var(--f-data);font-size:13px"><button class="btn" type="button" id="icsCopy">Скопіювати</button></div>
+    <details class="howto"><summary>Як підключити (1 хв)</summary><ol>
+      <li>Скопіюй адресу вище.</li>
+      <li>На комп'ютері відкрий <a href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl" target="_blank" rel="noopener">Google Calendar → Додати календар → За URL</a>.</li>
+      <li>Встав адресу → «Додати календар». З'явиться календар «Тренування · Форма» — йому можна змінити колір.</li>
+      <li>На iPhone він з'явиться сам, якщо Google-акаунт підключений у «Календарі». Або напряму: <a href="webcal://nazarus15.github.io/training-dashboard/data/calendar.ics">підписатися в Календарі iPhone</a>.</li></ol>
+      <p style="margin-top:8px">Події: вело і силові — на весь день (у них немає часу), БЖЖ і тренування з Планера з часом — у свій час. В описі — повний текст тренування. Календар лише для читання: змінюй план у Планері чи intervals.icu.</p></details>
+    <span class="msg" id="icsMsg" role="status"></span>
   </section>
 
   <form class="card" id="pwForm" autocomplete="off">
@@ -144,8 +157,8 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <div class="acts"><button class="btn" type="submit" id="metBtn">Зберегти</button><span class="msg" id="metMsg" role="status"></span></div>
   </form>
 </div>
-<script src="workout.js?v=1793010860"></script>
-<script src="export.js?v=1793010860"></script>
+<script src="workout.js?v=1793115014"></script>
+<script src="export.js?v=1793115014"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -318,6 +331,8 @@ $("recsForm").onsubmit = async e => {
   catch (err) { msg("recsMsg", "На цьому пристрої застосовано. " + errText(err), "err"); }
   finally { $("recsBtn").disabled = false; }
 };
+
+$("icsCopy").onclick = async () => { try { await navigator.clipboard.writeText($("icsUrl").value); msg("icsMsg", "Адресу скопійовано.", "ok"); } catch { $("icsUrl").select(); msg("icsMsg", "Виділив адресу — скопіюй вручну."); } };
 $("logout").onclick = async () => { await AUTH.logout(); location.reload(); };
 
 let PD = null;

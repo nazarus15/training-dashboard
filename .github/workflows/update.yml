@@ -50,6 +50,10 @@ jobs:
           SLOT: ${{ steps.gate.outputs.slot }}
         run: python scripts/fetch.py
 
+      - name: Календар для Google Calendar (data/calendar.ics)
+        if: always() && steps.gate.outputs.run == 'true'
+        run: python scripts/ics.py
+
       - name: Закомітити зміни
         if: always() && steps.gate.outputs.run == 'true'
         run: |
