@@ -199,8 +199,12 @@ function renderSession() {
   const L = logFor(s);
   const groups = {};
   for (const ex of s.exercises || []) (groups[ex.group || "A"] ??= []).push(ex);
-  let html = `<div class="s-head"><div class="eyebrow">${DOW[dObj(s.date).getDay()]}, ${fmtDay(s.date)} · ${WK.fmtMin(s.mins)}</div>
-    <div class="row"><h3 style="font-size:28px">${esc(s.title)}</h3>${statusPill(s, L)}</div>${s.goal ? `<p>${esc(s.goal)}</p>` : ""}${WK.barsHtml(WK.strengthEffects(s))}<a class="muted" style="font-size:13px" href="planner.html?edit=${encodeURIComponent(s.id)}">Змінити в Планері</a></div>`;
+  const hmT = iso => new Date(iso).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+  const timing = L.finishedAt && L.startedAt ? `<div class="timing done">${hmT(L.startedAt)}–${hmT(L.finishedAt)} · ${Math.round((new Date(L.finishedAt) - new Date(L.startedAt)) / 6e4)} хв (оцінка ${WK.fmtMin(s.mins)})</div>`
+    : L.startedAt ? `<div class="timing run">Почато о ${hmT(L.startedAt)} · орієнтовно до ${hmT(new Date(new Date(L.startedAt).getTime() + s.mins * 6e4).toISOString())}</div>`
+    : L.status ? "" : `<div class="timing"><button type="button" class="btn" data-start="1">▶ Почати тренування</button><span class="muted">Оціночний час: ${WK.fmtMin(s.mins)}. Старт і фініш збережуться в журналі.</span></div>`;
+  let html = `<div class="s-head"><div class="eyebrow">${DOW[dObj(s.date).getDay()]}, ${fmtDay(s.date)} · оцінка ${WK.fmtMin(s.mins)}</div>
+    <div class="row"><h3 style="font-size:28px">${esc(s.title)}</h3>${statusPill(s, L)}</div>${s.goal ? `<p>${esc(s.goal)}</p>` : ""}${WK.barsHtml(WK.strengthEffects(s))}${timing}<a class="muted" style="font-size:13px" href="planner.html?edit=${encodeURIComponent(s.id)}">Змінити в Планері</a></div>`;
   if (s.warmup?.length) html += `<div class="block warm"><div class="eyebrow">Розминка · ${esc(s.warmupTime || "8–10 хв")}</div><ul>${s.warmup.map(w => `<li>${esc(w)}</li>`).join("")}</ul></div>`;
   for (const g of Object.keys(groups)) {
     const exs = groups[g];
@@ -270,6 +274,15 @@ function supersetHtml(s, L, g, exs) {
   }
   return h + `</div></div>`;
 }
+
+// ---------- старт і фініш тренування: зберігаються в зашифрованому журналі ----------
+function startSession(sid, quiet) {
+  const L = logFor(sessions[sid]); if (L.startedAt) return;
+  L.startedAt = new Date().toISOString(); changed(sid); if (!quiet) queuePush(0); markPlan(sid);
+}
+function markPlan(sid) {
+  // Час старту/фінішу зберігається лише в зашифрованому журналі. Синхронізацію з календарем додамо після вибору способу.
+}
 // ---------- interactions ----------
 let inputTimer = null;
 document.addEventListener("input", e => {
@@ -281,13 +294,21 @@ document.addEventListener("click", e => {
   const day = e.target.closest("button.day");
   if (day) { selected = day.dataset.s; render(); $("sessionWrap").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); return; }
   const rc = e.target.closest(".round-check");
+  if (rc && !logs[rc.dataset.s].startedAt) startSession(rc.dataset.s, true);
   if (rc) { const sets = rc.dataset.keys.split(",").map(k => logs[rc.dataset.s].sets[k][+rc.dataset.i]); const v = !sets.every(x => x.done); sets.forEach(x => x.done = v); changed(rc.dataset.s); renderSession(); renderSchedule(); renderHistory(); if (v && +rc.dataset.rest) startTimer(+rc.dataset.rest); return; }
   const chk = e.target.closest(".check");
+  if (chk && !logs[chk.dataset.s].startedAt) startSession(chk.dataset.s, true);
   if (chk) { const st = logs[chk.dataset.s].sets[chk.dataset.k][+chk.dataset.i]; st.done = !st.done; changed(chk.dataset.s); renderSession(); renderSchedule(); renderHistory(); if (st.done && +chk.dataset.rest) startTimer(+chk.dataset.rest); return; }
   const rpe = e.target.closest("[data-rpe]");
   if (rpe) { const L = logs[selected]; const v = +rpe.dataset.rpe; L.rpe = L.rpe === v ? null : v; changed(selected); renderSession(); return; }
+  if (e.target.closest("[data-start]")) { startSession(selected); render(); return; }
   const fin = e.target.closest("[data-finish]");
-  if (fin) { const L = logs[selected]; L.status = fin.dataset.finish || null; if (L.status === "done") L.finishedAt = new Date().toISOString(); changed(selected); queuePush(0); render(); }
+  if (fin) {
+    const L = logs[selected]; L.status = fin.dataset.finish || null;
+    if (L.status === "done") { if (!L.startedAt) startSession(selected, true); L.finishedAt = new Date().toISOString(); }
+    else { delete L.finishedAt; if (!L.status) delete L.startedAt; }
+    changed(selected); queuePush(0); render(); markPlan(selected);
+  }
 });
 
 // ---------- rest timer ----------

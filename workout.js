@@ -337,5 +337,10 @@ window.WK = (() => {
     ["str_table", "strength", "Прогрес у вправах за категоріями (вага за раз, найбільший підхід)"], ["str_ton", "strength", "Найбільший тоннаж за тренування"], ["str_sets", "strength", "Найбільше робочих підходів за тренування"],
     ["str_streak", "strength", "Найдовша серія тижнів із силовим"], ["str_total", "strength", "Усього силових"],
   ];
-  return { RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
+  // запуск оновлення даних (і календаря) через GitHub Actions; потрібне право Actions у токені, без нього — тихо нічого
+  async function triggerUpdate() {
+    if (!token()) return false;
+    try { const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/update.yml/dispatches`, { method: "POST", headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main" }) }); return r.ok; } catch { return false; }
+  }
+  return { triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();
