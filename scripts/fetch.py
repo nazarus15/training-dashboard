@@ -583,7 +583,7 @@ def gcal_sync():
         ftp = ((_MEM.get("power.json") or read("power.json") or {}).get("zones") or {}).get("ftp")
         evs = build_events(_MEM.get("activities.json"), ftp)
         r = requests.post(url, data=json.dumps({"secret": secret, "source": "plan", "from": START.isoformat(), "to": END.isoformat(), "events": evs}),
-                          headers={"Content-Type": "text/plain"}, timeout=120)
+                          headers={"Content-Type": "text/plain"}, timeout=330)
         j = r.json() if r.ok else {}
         if not j.get("ok"):
             return {"ok": False, "error": j.get("error") or f"HTTP {r.status_code}"}
