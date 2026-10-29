@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1793288799">
-<link rel="stylesheet" href="workout.css?v=1793288799">
+<link rel="stylesheet" href="ui.css?v=1793294195">
+<link rel="stylesheet" href="workout.css?v=1793294195">
 <style>
 /* Layout: місяць як стовпчик тижнів; кожен день — рядок із запланованими й виконаними тренуваннями. */
 .wrap{max-width:1100px}
@@ -52,7 +52,7 @@
 .pday .addprog{font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;width:fit-content}
 .pday .t small.fxsrc{font-size:11px;font-family:var(--f-data)}
 </style>
-<script src="auth.js?v=1793288799"></script>
+<script src="auth.js?v=1793294195"></script>
 </head>
 <body>
 <div class="wrap">
@@ -74,7 +74,7 @@
   <div class="plan-weeks" id="cal"><div class="notice">Завантажую…</div></div>
   <div id="leg"></div>
 </div>
-<script src="workout.js?v=1793288799"></script>
+<script src="workout.js?v=1793294195"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id), esc = WK.esc;
@@ -190,7 +190,14 @@ addEventListener("resize", syncTop);
 function shift(n) { const [y, m] = cur.split("-").map(Number); const d = new Date(y, m - 1 + n, 1); cur = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; render(); }
 $("prev").onclick = () => shift(-1);
 $("next").onclick = () => shift(1);
-$("now").onclick = () => { cur = WK.today().slice(0, 7); render(); };
+$("now").onclick = () => {
+  cur = WK.today().slice(0, 7); render();
+  // на телефоні прокрутити до сьогоднішнього дня (на комп'ютері поточний тиждень і так показується по горизонталі)
+  if (!matchMedia("(min-width:821px)").matches) {
+    const el = $("cal").querySelector(".pday.today");
+    if (el) el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+  }
+};
 
 (async () => {
   await AUTH.ready;
