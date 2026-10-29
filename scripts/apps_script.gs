@@ -19,22 +19,39 @@ function setup() {
   Logger.log('SECRET: ' + p.getProperty('SECRET'));
 }
 
+let CAL_ = null;
 function cal_() {
+  if (CAL_) return CAL_;
   const p = P();
   const id = p.getProperty('CAL_ID');
   let c = id ? CalendarApp.getCalendarById(id) : null;
   if (!c) {
+    // календар видалили або його ще немає: створюємо заново і скидаємо збережені стани, щоб усі події намалювались знову
     c = CalendarApp.createCalendar(CAL_NAME, { timeZone: TZ, color: CalendarApp.Color.BLUE, summary: 'Тренування з сайту «Форма Назара»' });
     p.setProperty('CAL_ID', c.getId());
+    const all = p.getProperties();
+    Object.keys(all).filter(k => k.indexOf('h:') === 0 || k.indexOf('e:') === 0).forEach(k => p.deleteProperty(k));
+    CAL_RESET_ = true;
   }
-  return c;
+  return CAL_ = c;
+}
+let CAL_RESET_ = false;
+// повністю перемалювати всі події (на випадок ручних змін у календарі)
+function resync() {
+  const p = P(), all = p.getProperties();
+  Object.keys(all).filter(k => k.indexOf('h:') === 0).forEach(k => p.deleteProperty(k));
+  const uids = new Set(Object.keys(all).filter(k => /^[bo]:/.test(k)).map(k => k.slice(2)));
+  uids.forEach(u => render_(u));
 }
 
 function out_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 function get_(k) { const v = P().getProperty(k); return v ? JSON.parse(v) : null; }
 function put_(k, v) { v == null ? P().deleteProperty(k) : P().setProperty(k, JSON.stringify(v)); }
 
-function doGet() { return out_({ ok: true, service: 'forma-calendar' }); }
+function doGet() {
+  const id = P().getProperty('CAL_ID'), c = id ? CalendarApp.getCalendarById(id) : null;
+  return out_({ ok: true, service: 'forma-calendar', calendar: c ? c.getName() : null, hidden: c ? c.isHidden() : null, selected: c ? c.isSelected() : null });
+}
 
 function doPost(e) {
   let body;
@@ -60,6 +77,8 @@ function doPost(e) {
         touched.add(o.uid);
       });
     }
+    cal_();
+    if (CAL_RESET_) { const all = P().getProperties(); Object.keys(all).filter(k => /^[bo]:/.test(k)).forEach(k => touched.add(k.slice(2))); }
     let n = 0;
     touched.forEach(uid => { if (render_(uid)) n++; });
     return out_({ ok: true, changed: n });
@@ -89,4 +108,11 @@ function render_(uid) {
   }
   f ? P().setProperty('h:' + uid, hash) : P().deleteProperty('h:' + uid);
   return true;
+}
+// показати календар у списку Google Calendar (якщо його прибрали зі списку)
+function show() {
+  const c = cal_();
+  c.setHidden(false);
+  c.setSelected(true);
+  Logger.log(c.getName() + ' · ' + c.getId());
 }
