@@ -135,6 +135,8 @@ button.day:hover{background:var(--soft)}
 .gnp{display:flex;flex-direction:column;gap:6px;border:1px solid var(--warn);border-radius:6px;padding:10px 12px;background:color-mix(in srgb,var(--warn) 7%,var(--panel));font-size:14px}
 .gnp .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .err{color:var(--bad);font-size:13px}
+.progform{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.progform textarea{font-family:var(--f-data);font-size:14px;width:100%;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
 /* старт / фініш */
 .timing{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:14px}
 .timing.run{color:var(--warn);font-weight:600}
@@ -173,8 +175,8 @@ button.day:hover{background:var(--soft)}
 .round.is-done .rset .field input{opacity:.7}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="workout.css?v=1793284336">
-<script src="auth.js?v=1793284336"></script>
+<link rel="stylesheet" href="workout.css?v=1793284873">
+<script src="auth.js?v=1793284873"></script>
 </head>
 <body>
 <div class="wrap">
@@ -194,7 +196,6 @@ button.day:hover{background:var(--soft)}
 
   <section id="scheduleWrap" hidden style="display:flex;flex-direction:column;gap:12px">
     <h2>Силові на 2 тижні</h2>
-    <div id="garminNoPlan"></div>
     <details class="manual" id="manualWrap"><summary>+ Додати силове вручну</summary>
       <form id="manualForm" autocomplete="off">
         <p class="muted" style="margin:0;font-size:13px">Для тренування без плану: записане браслетом, чи взагалі без запису. Вправи й ваги — за бажанням.</p>
@@ -204,7 +205,7 @@ button.day:hover{background:var(--soft)}
           <label class="f2">Кінець<input type="time" name="en" required></label>
           <label class="f2">Назва<input name="title" placeholder="Силове"></label>
         </div>
-        <label class="f2">Вправи (необов'язково, формат як у Планері)<textarea name="text" rows="5" placeholder="- Жим лежачи 4x6 @штанга&#10;- Підтягування 4x5 @вага тіла"></textarea></label>
+        <label class="f2">Програма: вправи (необов'язково, формат як у Планері)<textarea name="text" rows="5" placeholder="- Жим лежачи 4x6 @штанга&#10;- Підтягування 4x5 @вага тіла"></textarea></label>
         <label class="f2">Нотатки<input name="note" placeholder="Як пройшло"></label>
         <div class="actions"><button class="btn" type="submit">Додати</button><span class="muted" id="manualMsg" style="font-size:13px"></span></div>
       </form></details>
@@ -219,7 +220,7 @@ button.day:hover{background:var(--soft)}
   <div style="display:flex;gap:8px"><button type="button" id="tPlus">+30 с</button><button type="button" id="tStop">Закрити</button></div>
 </div>
 
-<script src="workout.js?v=1793284336"></script>
-<script src="strength.js?v=1793284336"></script>
+<script src="workout.js?v=1793284873"></script>
+<script src="strength.js?v=1793284873"></script>
 </body>
 </html>

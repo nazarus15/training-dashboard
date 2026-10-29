@@ -194,7 +194,8 @@ def build_events(acts=None, ftp=None, planned=None):
         sp = w.get("sport") or "other"
         mins = w.get("mins") or (strength_minutes(w.get("text")) if sp == "strength" and w.get("text") else None)
         link = SITE + (f"strength.html?s={w['id']}" if sp == "strength" else "calendar.html")
-        desc = "\n".join([f"Оціночний час: {mins} хв" if mins else "", "", w.get("text") or "", "", link]).strip()
+        body = w.get("text") or ("Програми ще немає — додати: " + link if sp == "strength" else "")
+        desc = "\n".join([f"Оціночний час: {mins} хв" if mins else "", "", body, "", link]).strip()
         title = f"{SPORT.get(sp, 'Тренування')} · {w.get('title') or SPORT.get(sp, '')}"
         start = _at(d, w["time"]) if w.get("time") else None
         add(w["id"], d, sp, title, desc, start, start + timedelta(minutes=mins or 60) if start else None, done=match(d, sp))
@@ -214,5 +215,5 @@ def build_events(acts=None, ftp=None, planned=None):
         if i in used or a["_sp"] not in ("bike", "bjj", "strength", "run"):
             continue
         add(f"act-{a.get('id') or a['date']}", a["_st"].date(), a["_sp"], f"{SPORT[a['_sp']]}" + (f" · {a['name']}" if a.get("name") and a["_sp"] != "bjj" else ""),
-            "Поза планом\n\n" + SITE + "calendar.html", done=a)
+            "Поза планом\n\n" + (f"Додати програму тренування: {SITE}strength.html?add={a['_st']:%Y-%m-%d}&st={a['_st']:%H:%M}&en={(a['_st'] + timedelta(seconds=a.get('moving') or 0)):%H:%M}" if a["_sp"] == "strength" else SITE + "calendar.html"), done=a)
     return ev
