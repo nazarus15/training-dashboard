@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1793283638">
+<link rel="stylesheet" href="ui.css?v=1793284336">
 <style>
 .card{display:flex;flex-direction:column;gap:12px}
 .card h2{font-size:20px}
@@ -56,7 +56,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
 .ovg label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
 .ovg input{width:18px;height:18px;flex:none}
 </style>
-<script src="auth.js?v=1793283638"></script>
+<script src="auth.js?v=1793284336"></script>
 </head>
 <body>
 <div class="wrap">
@@ -163,8 +163,8 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <div class="acts"><button class="btn" type="submit" id="metBtn">Зберегти</button><span class="msg" id="metMsg" role="status"></span></div>
   </form>
 </div>
-<script src="workout.js?v=1793283638"></script>
-<script src="export.js?v=1793283638"></script>
+<script src="workout.js?v=1793284336"></script>
+<script src="export.js?v=1793284336"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -342,8 +342,8 @@ $("recsForm").onsubmit = async e => {
 let SETP = {};
 function renderGcal(s) {
   const on = s.gcalUrl && s.gcalSecret;
-  $("gcalState").innerHTML = on ? `<span class="pill done">Підключено</span> Сайт надсилає силові з журналу. План і Garmin — з автооновлення (потрібні секрети GCAL_URL і GCAL_SECRET у GitHub).` : `<span class="pill today">Не підключено</span>`;
-  $("gcalUrl").value = s.gcalUrl || ""; $("gcalSecret").value = s.gcalSecret ? "••••••••" : "";
+  $("gcalState").innerHTML = on ? `<span class="pill done">Підключено</span> Сайт надсилає силові з журналу. План і Garmin — з автооновлення (потрібен секрет GCAL_SECRET у GitHub).` : `<span class="pill today">Не підключено</span>`;
+  $("gcalUrl").value = s.gcalUrl || "https://script.google.com/macros/s/AKfycbz7sidAahcGzuyJ-vcuExzQ29349CX3tzsGy3QjBSRYC6Z8VF2IHOWTAoLpNLFlK-S6DA/exec"; $("gcalSecret").value = s.gcalSecret ? "••••••••" : "";
 }
 $("gcalForm").onsubmit = async e => {
   e.preventDefault();
