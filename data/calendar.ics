@@ -3,622 +3,630 @@ VERSION:2.0
 PRODID:-//Forma Nazara//UK
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
-X-WR-CALNAME:Тренування · Форма
+X-WR-CALNAME:Тренування · Форма (план)
 X-WR-TIMEZONE:Europe/Kyiv
 REFRESH-INTERVAL;VALUE=DURATION:PT6H
 X-PUBLISHED-TTL:PT6H
 BEGIN:VEVENT
 UID:icu-146863082@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART;VALUE=DATE:20261027
 DTEND;VALUE=DATE:20261028
 TRANSP:TRANSPARENT
 SUMMARY:Вело · Sweet Spot 3×15
-DESCRIPTION:72 хв\nНавантаження 71\n\nКлючове тре
- нування тижня. Прогресія від 3×12 до 3×15 х
- в: 202–209 Вт\, каденс 85–95. Минулий тиждень
-  був легшим (без станка\, навантаження н
- ижче звичного)\, відновлення в нормі — м
- ожна додати обсяг у sweet spot. Якщо в останн
- ьому відрізку не тримаєш 200 Вт\, скороти 
- його до 12 хв\, а не знижуй потужність.\nПе
- ред стартом еспресо за 30–45 хв.\n\nWarmup\n- 10m
-  ramp 50-70%\n- 1m 95%\n- 3m 55%\n\nMain set 3x\n- 11m 88-91%\n- 5m 55%\
- n\nCooldown\n- 10m ramp 60-45%\n\n\nhttps://nazarus15.github.io/training
- -dashboard/calendar.html
+DESCRIPTION:План: 72 хв · навантаження 71\n\nКлюч
+ ове тренування тижня. Прогресія від 3×12 
+ до 3×15 хв: 202–209 Вт\, каденс 85–95. Минулий 
+ тиждень був легшим (без станка\, наванта
+ ження нижче звичного)\, відновлення в но
+ рмі — можна додати обсяг у sweet spot. Якщо в
+  останньому відрізку не тримаєш 200 Вт\, с
+ короти його до 12 хв\, а не знижуй потужні
+ сть.\nПеред стартом еспресо за 30–45 хв.\n\n
+ Розминка\n  • 10 хв · плавно 50→70% FTP\n  • 1 х
+ в · 95% FTP\n  • 3 хв · 55% FTP\nОсновна частина ×
+ 3\n  • 11 хв · 88–91% FTP\n  • 5 хв · 55% FTP\nЗаминк
+ а\n  • 10 хв · плавно 60→45% FTP\n\nhttps://nazarus15.gith
+ ub.io/training-dashboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863152@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART;VALUE=DATE:20261031
 DTEND;VALUE=DATE:20261101
 TRANSP:TRANSPARENT
 SUMMARY:Вело · Z2 + темп 2×12 — 2 год
-DESCRIPTION:120 хв\nНавантаження 94\n\nАеробна ба
- за з темповими вставками. Garmin показує н
- естачу інтенсивного аеробного наванта
- ження\, а decoupling у темповому заїзді 18.10 бу
- в 13\,5% — тому темп короткими блоками пос
- ередині\, решта рівна Z2. Пульс у Z2 до 140\, 
- у темпі до 155.\nПий 500–750 мл на годину: вод
- а + 1/4 ч. л. солі + 2 ст. л. цукру чи меду на п
- ляшку 500 мл. Вуглеводи з 30-ї хвилини.\n\nWarm
- up\n- 10m ramp 50-65%\n\nMain set\n- 40m 63-70%\n\nTempo 2x\n- 12m 80-85
- %\n- 6m 60%\n\nZ2\n- 24m 63-70%\n\nCooldown\n- 10m 55%\n\n\nhttps://naza
- rus15.github.io/training-dashboard/calendar.html
+DESCRIPTION:План: 120 хв · навантаження 94\n\nАеро
+ бна база з темповими вставками. Garmin пок
+ азує нестачу інтенсивного аеробного на
+ вантаження\, а decoupling у темповому заїзді 
+ 18.10 був 13\,5% — тому темп короткими блока
+ ми посередині\, решта рівна Z2. Пульс у Z2 
+ до 140\, у темпі до 155.\nПий 500–750 мл на годи
+ ну: вода + 1/4 ч. л. солі + 2 ст. л. цукру чи ме
+ ду на пляшку 500 мл. Вуглеводи з 30-ї хвили
+ ни.\n\nРозминка\n  • 10 хв · плавно 50→65% FTP\n
+ Основна частина\n  • 40 хв · 63–70% FTP\nTempo ×2\
+ n  • 12 хв · 80–85% FTP\n  • 6 хв · 60% FTP\nZ2\n  • 24 х
+ в · 63–70% FTP\nЗаминка\n  • 10 хв · 55% FTP\n\nhttps://
+ nazarus15.github.io/training-dashboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863096@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART;VALUE=DATE:20261101
 DTEND;VALUE=DATE:20261102
 TRANSP:TRANSPARENT
 SUMMARY:Вело · Z2 — 75 хв
-DESCRIPTION:75 хв\nНавантаження 47\n\nЛегка аероб
- на\, після вчорашньої довгої. Якщо ноги 
- важкі — тримай нижню межу\, пульс до 135.\n
- \nWarmup\n- 10m ramp 50-62%\n\nMain set\n- 55m 60-67%\n\nCooldown\n- 10m
-  50%\n\n\nhttps://nazarus15.github.io/training-dashboard/calendar.html
+DESCRIPTION:План: 75 хв · навантаження 47\n\nЛегк
+ а аеробна\, після вчорашньої довгої. Якщ
+ о ноги важкі — тримай нижню межу\, пульс
+  до 135.\n\nРозминка\n  • 10 хв · плавно 50→62% F
+ TP\nОсновна частина\n  • 55 хв · 60–67% FTP\nЗам
+ инка\n  • 10 хв · 50% FTP\n\nhttps://nazarus15.github.io/traini
+ ng-dashboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-10-24@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART;VALUE=DATE:20261024
 DTEND;VALUE=DATE:20261025
 TRANSP:TRANSPARENT
 SUMMARY:Силове · Сила Б
-DESCRIPTION:≈50 хв\n\nМета: Задня ланка\, жим над
-  головою\, одна нога\, плечі й кор для БЖЖ
- . Порядок вправ мінімізує зміну млинців
- : спершу важка румунська тяга\, потім ле
- гший жим стоячи.\n\nРозминка 8–10 хв\n- 90/90 +
-  hip airplane — 2x5 на бік\n- Гоблет-присід з пау
- зою внизу — 2x8\n- Скапулярні підтягуванн
- я — 2x8\n- Легкі махи гирею — 1x10\n- Перша вп
- рава: 2–3 розминкові підходи з наростан
- ням ваги\n\nA\n- Румунська тяга зі штангою 
- 4x7 @штанга відп 90с RIR 2-3 // Таз назад\, спин
- а рівна\, штанга ковзає по стегнах до се
- редини гомілки.\n- Підтягування зворотн
- им хватом 4x5-8 @вага тіла відп 90с RIR 1-2 // По
- вна амплітуда. Коли 4×8 легко — гиря між 
- ступнями. // Перший раз: стільки повторі
- в\, скільки чисто\, з запасом 1–2.\n\nB\n- Жим
-  штанги стоячи 3x6 @штанга відп 90с RIR 2 // Сі
- дниці й прес напружені\, без прогину в п
- опереку.\n- Болгарські випади з гирями 3x8
- /бік @гиря відп 90с RIR 2 // Задня нога на лав
- ці\, корпус злегка вперед.\n\nC\n- Турецьки
- й підйом з гирею 2x2/бік @гиря відп 60с // По
- вільно\, очі на гирю. Корисно для плечей 
- у БЖЖ.\n- Бічна планка 2x30с/бік відп 60с\n\nhtt
- ps://nazarus15.github.io/training-dashboard/strength.html?s=s-2026-10-24
-END:VEVENT
-BEGIN:VEVENT
-UID:s-2026-10-29@forma-nazara
-DTSTAMP:20261029T135230Z
-DTSTART;VALUE=DATE:20261029
-DTEND;VALUE=DATE:20261030
-TRANSP:TRANSPARENT
-SUMMARY:Силове · Сила В — верх
-DESCRIPTION:≈65 хв\n\nМета: Верх тіла без ніг: жи
- ми\, тяги і хват для БЖЖ. Штанга по черзі 
- для жиму лежачи\, тяги в нахилі і жиму ст
- оячи — вага знижується від блоку до бло
- ку\, млинці лише знімаєш.\n\nРозминка 8 хв\
- n- Скапулярні підтягування — 2x8\n- Віджим
- ання — 2x10\n- Жим лежачи з грифом — 1x10\n- Л
- егкі махи гирею — 1x10\n\nA відп 2хв\n- Жим ле
- жачи 4x5-6 @штанга RIR 2 // Лопатки зведені\, г
- риф на нижню частину грудей. Перший раз:
-  вага\, з якою лишається 2 повтори в запа
- сі.\n- Підтягування зворотним хватом 4x5 @+
- 16кг RIR 1-2 // Минулого разу +16 кг: 6\, 5\, 5\, 4. М
- ета — 5 у кожному підході.\n\nB відп 90с\n- Т
- яга штанги в нахилі 4x8 @штанга RIR 2 // Корп
- ус під 45°\, тягни до пупка\, без ривка кор
- пусом.\n- Жим штанги стоячи 3x6 @40кг RIR 2 // С
- ідниці й прес напружені. Якщо всі 6 легк
- о — останній підхід 42\,5 кг.\n\nC відп 60с\n- 
- Тяга гирі в нахилі однією рукою 3x10/бік @2
- 4кг // Опора рукою й коліном на лавку.\n- Т
- урецький підйом з гирею 2x2/бік @16кг // Ста
- більність плечей для БЖЖ.\n\nКоло 2x відп 1
- хв\n- Вис на турніку 40с // Хват для БЖЖ: тр
- имай повну хватку\, плечі активні.\n- Hollow 
- body 30с\n\nhttps://nazarus15.github.io/training-dashboard/strength.htm
- l?s=s-2026-10-29
-END:VEVENT
-BEGIN:VEVENT
-UID:s-2026-11-03@forma-nazara
-DTSTAMP:20261029T135230Z
-DTSTART;VALUE=DATE:20261103
-DTEND;VALUE=DATE:20261104
-TRANSP:TRANSPARENT
-SUMMARY:Силове · Сила А
-DESCRIPTION:≈60 хв\n\nМета: Ноги\, жим\, тяга\, виб
- ухова сила. Важкий присід першим\, потім
-  знімаєш млинці на жим лежачи.\n\nРозминк
+DESCRIPTION:Оціночний час: 50 хв\n\nМета: Задня л
+ анка\, жим над головою\, одна нога\, плечі
+  й кор для БЖЖ. Порядок вправ мінімізує 
+ зміну млинців: спершу важка румунська т
+ яга\, потім легший жим стоячи.\n\nРозминк
  а 8–10 хв\n- 90/90 + hip airplane — 2x5 на бік\n- Гобле
  т-присід з паузою внизу — 2x8\n- Скапулярн
  і підтягування — 2x8\n- Легкі махи гирею 
  — 1x10\n- Перша вправа: 2–3 розминкові підх
- оди з наростанням ваги\n\nA\n- Махи гирею 3x
- 10 @гиря відп 60с // Вибухово стегнами\, рук
- и лише тримають гирю.\n\nB\n- Присід зі шта
- нгою 4x5 @штанга відп 120с RIR 2-3 // Глибина — 
- стегно паралельно або нижче\, коліна за 
- носками.\n- Підтягування прямим хватом 4x
- 5-8 @вага тіла відп 120с RIR 1-2 // Опускання 3 с
- . Коли 4×8 легко — гиря між ступнями. // Пе
- рший раз: стільки повторів\, скільки чис
- то\, з запасом 1–2.\n\nC\n- Жим лежачи 3x6 @шта
- нга відп 90с RIR 2 // Лопатки зведені\, ноги 
- в підлогу.\n- Тяга гирі однією рукою з уп
- ором у лавку 3x10/бік @гиря відп 90с RIR 2\n\nW\n-
-  Підйом ніг у висі 3x10 @вага тіла відп 60с /
- / Без розгойдування.\n- Копенгагенська п
- ланка на лавці 2x20с/бік відп 60с // Аддукто
- ри: захист пахової зони в БЖЖ.\n\nhttps://nazarus
- 15.github.io/training-dashboard/strength.html?s=s-2026-11-03
+ оди з наростанням ваги\n\nA\n- Румунська т
+ яга зі штангою 4x7 @штанга відп 90с RIR 2-3 // Т
+ аз назад\, спина рівна\, штанга ковзає по
+  стегнах до середини гомілки.\n- Підтягу
+ вання зворотним хватом 4x5-8 @вага тіла ві
+ дп 90с RIR 1-2 // Повна амплітуда. Коли 4×8 лег
+ ко — гиря між ступнями. // Перший раз: ст
+ ільки повторів\, скільки чисто\, з запас
+ ом 1–2.\n\nB\n- Жим штанги стоячи 3x6 @штанга 
+ відп 90с RIR 2 // Сідниці й прес напружені\, 
+ без прогину в попереку.\n- Болгарські ви
+ пади з гирями 3x8/бік @гиря відп 90с RIR 2 // З
+ адня нога на лавці\, корпус злегка впере
+ д.\n\nC\n- Турецький підйом з гирею 2x2/бік @г
+ иря відп 60с // Повільно\, очі на гирю. Кор
+ исно для плечей у БЖЖ.\n- Бічна планка 2x30
+ с/бік відп 60с\n\nhttps://nazarus15.github.io/training-dashboar
+ d/strength.html?s=s-2026-10-24
+END:VEVENT
+BEGIN:VEVENT
+UID:s-2026-10-29@forma-nazara
+DTSTAMP:20261029T144038Z
+DTSTART;VALUE=DATE:20261029
+DTEND;VALUE=DATE:20261030
+TRANSP:TRANSPARENT
+SUMMARY:Силове · Сила В — верх
+DESCRIPTION:Оціночний час: 65 хв\n\nМета: Верх ті
+ ла без ніг: жими\, тяги і хват для БЖЖ. Шт
+ анга по черзі для жиму лежачи\, тяги в на
+ хилі і жиму стоячи — вага знижується ві
+ д блоку до блоку\, млинці лише знімаєш.\n\
+ nРозминка 8 хв\n- Скапулярні підтягуванн
+ я — 2x8\n- Віджимання — 2x10\n- Жим лежачи з г
+ рифом — 1x10\n- Легкі махи гирею — 1x10\n\nA ві
+ дп 2хв\n- Жим лежачи 4x5-6 @штанга RIR 2 // Лопа
+ тки зведені\, гриф на нижню частину груд
+ ей. Перший раз: вага\, з якою лишається 2 
+ повтори в запасі.\n- Підтягування зворот
+ ним хватом 4x5 @+16кг RIR 1-2 // Минулого разу +1
+ 6 кг: 6\, 5\, 5\, 4. Мета — 5 у кожному підході.\
+ n\nB відп 90с\n- Тяга штанги в нахилі 4x8 @шта
+ нга RIR 2 // Корпус під 45°\, тягни до пупка\, 
+ без ривка корпусом.\n- Жим штанги стоячи 
+ 3x6 @40кг RIR 2 // Сідниці й прес напружені. Як
+ що всі 6 легко — останній підхід 42\,5 кг.\n
+ \nC відп 60с\n- Тяга гирі в нахилі однією ру
+ кою 3x10/бік @24кг // Опора рукою й коліном н
+ а лавку.\n- Турецький підйом з гирею 2x2/бі
+ к @16кг // Стабільність плечей для БЖЖ.\n\nК
+ оло 2x відп 1хв\n- Вис на турніку 40с // Хват 
+ для БЖЖ: тримай повну хватку\, плечі акт
+ ивні.\n- Hollow body 30с\n\nhttps://nazarus15.github.io/training-da
+ shboard/strength.html?s=s-2026-10-29
+END:VEVENT
+BEGIN:VEVENT
+UID:s-2026-11-03@forma-nazara
+DTSTAMP:20261029T144038Z
+DTSTART;VALUE=DATE:20261103
+DTEND;VALUE=DATE:20261104
+TRANSP:TRANSPARENT
+SUMMARY:Силове · Сила А
+DESCRIPTION:Оціночний час: 60 хв\n\nМета: Ноги\, ж
+ им\, тяга\, вибухова сила. Важкий присід 
+ першим\, потім знімаєш млинці на жим леж
+ ачи.\n\nРозминка 8–10 хв\n- 90/90 + hip airplane — 2x5 
+ на бік\n- Гоблет-присід з паузою внизу — 
+ 2x8\n- Скапулярні підтягування — 2x8\n- Легк
+ і махи гирею — 1x10\n- Перша вправа: 2–3 роз
+ минкові підходи з наростанням ваги\n\nA\n-
+  Махи гирею 3x10 @гиря відп 60с // Вибухово с
+ тегнами\, руки лише тримають гирю.\n\nB\n- П
+ рисід зі штангою 4x5 @штанга відп 120с RIR 2-3 
+ // Глибина — стегно паралельно або нижч
+ е\, коліна за носками.\n- Підтягування пр
+ ямим хватом 4x5-8 @вага тіла відп 120с RIR 1-2 //
+  Опускання 3 с. Коли 4×8 легко — гиря між 
+ ступнями. // Перший раз: стільки повторі
+ в\, скільки чисто\, з запасом 1–2.\n\nC\n- Жим
+  лежачи 3x6 @штанга відп 90с RIR 2 // Лопатки з
+ ведені\, ноги в підлогу.\n- Тяга гирі одні
+ єю рукою з упором у лавку 3x10/бік @гиря ві
+ дп 90с RIR 2\n\nW\n- Підйом ніг у висі 3x10 @вага 
+ тіла відп 60с // Без розгойдування.\n- Копе
+ нгагенська планка на лавці 2x20с/бік відп
+  60с // Аддуктори: захист пахової зони в Б
+ ЖЖ.\n\nhttps://nazarus15.github.io/training-dashboard/strength.html?s=
+ s-2026-11-03
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-02@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261002T153000Z
 DTEND:20261002T170000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-05@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261005T153000Z
 DTEND:20261005T170000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-07@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261007T153000Z
 DTEND:20261007T170000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-09@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261009T153000Z
 DTEND:20261009T170000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-12@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261012T153000Z
 DTEND:20261012T170000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-14@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261014T153000Z
 DTEND:20261014T170000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-16@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261016T153000Z
 DTEND:20261016T170000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-19@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261019T153000Z
 DTEND:20261019T170000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-21@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261021T153000Z
 DTEND:20261021T170000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-23@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261023T153000Z
 DTEND:20261023T170000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-26@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261026T163000Z
 DTEND:20261026T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-28@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261028T163000Z
 DTEND:20261028T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-10-30@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261030T163000Z
 DTEND:20261030T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-02@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261102T163000Z
 DTEND:20261102T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-04@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261104T163000Z
 DTEND:20261104T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-06@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261106T163000Z
 DTEND:20261106T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-09@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261109T163000Z
 DTEND:20261109T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-11@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261111T163000Z
 DTEND:20261111T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-13@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261113T163000Z
 DTEND:20261113T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-16@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261116T163000Z
 DTEND:20261116T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-18@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261118T163000Z
 DTEND:20261118T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-20@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261120T163000Z
 DTEND:20261120T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-23@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261123T163000Z
 DTEND:20261123T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-25@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261125T163000Z
 DTEND:20261125T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-27@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261127T163000Z
 DTEND:20261127T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-11-30@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261130T163000Z
 DTEND:20261130T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-02@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261202T163000Z
 DTEND:20261202T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-04@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261204T163000Z
 DTEND:20261204T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-07@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261207T163000Z
 DTEND:20261207T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-09@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261209T163000Z
 DTEND:20261209T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-11@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261211T163000Z
 DTEND:20261211T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-14@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261214T163000Z
 DTEND:20261214T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-16@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261216T163000Z
 DTEND:20261216T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-18@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261218T163000Z
 DTEND:20261218T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-21@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261221T163000Z
 DTEND:20261221T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-23@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261223T163000Z
 DTEND:20261223T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-25@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261225T163000Z
 DTEND:20261225T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-28@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261228T163000Z
 DTEND:20261228T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2026-12-30@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20261230T163000Z
 DTEND:20261230T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-01@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270101T163000Z
 DTEND:20270101T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-04@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270104T163000Z
 DTEND:20270104T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-06@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270106T163000Z
 DTEND:20270106T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-08@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270108T163000Z
 DTEND:20270108T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-11@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270111T163000Z
 DTEND:20270111T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-13@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270113T163000Z
 DTEND:20270113T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-15@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270115T163000Z
 DTEND:20270115T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-18@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270118T163000Z
 DTEND:20270118T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-20@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270120T163000Z
 DTEND:20270120T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-22@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270122T163000Z
 DTEND:20270122T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-25@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270125T163000Z
 DTEND:20270125T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 BEGIN:VEVENT
 UID:rec-bjj-2027-01-27@forma-nazara
-DTSTAMP:20261029T135230Z
+DTSTAMP:20261029T144038Z
 DTSTART:20270127T163000Z
 DTEND:20270127T180000Z
 SUMMARY:БЖЖ
-DESCRIPTION:90 хв\n\nhttps://nazarus15.github.io/training-dashboard/cal
- endar.html
+DESCRIPTION:План: 90 хв\n\nhttps://nazarus15.github.io/training-das
+ hboard/calendar.html
 END:VEVENT
 END:VCALENDAR
