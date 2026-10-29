@@ -47,7 +47,7 @@ def expand_bike(desc: str, ftp=None) -> str:
         ln = raw.strip()
         if not ln:
             continue
-        step = re.match(r"^-\s*(\S+)\s+(ramp\s+)?(\d+)(?:\s*-\s*(\d+))?%", ln, re.I)
+        step = re.match(r"^-\s*(\S+)\s+(?:@\s*)?(ramp\s+)?(\d+)(?:\s*-\s*(\d+))?%", ln, re.I)
         if step:
             started = True
             dur, ramp, a, b = _dur(step.group(1)), step.group(2), int(step.group(3)), step.group(4) and int(step.group(4))
@@ -67,7 +67,14 @@ def expand_bike(desc: str, ftp=None) -> str:
             out.append(f"{known or name}{' ×' + head.group(2) if head.group(2) else ''}")
         else:
             intro.append(ln)
-    return "\n".join(intro + ([""] if intro and out else []) + out)
+    # заголовки без кроків після них (наприклад «FTP: 231W» у кінці) переносимо в опис
+    clean = []
+    for i, x in enumerate(out):
+        if not x.startswith("- ") and not (i + 1 < len(out) and out[i + 1].startswith("- ")):
+            intro.append(x)
+        else:
+            clean.append(x)
+    return "\n".join(intro + ([""] if intro and clean else []) + clean)
 
 
 # ---------- силові: оцінка тривалості з тексту (як на сайті) ----------

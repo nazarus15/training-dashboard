@@ -329,7 +329,7 @@ window.WK = (() => {
     const w = p => ftp ? Math.round(ftp * p / 100) : null;
     for (const raw of String(desc || "").split(/\r?\n/)) {
       const ln = raw.trim(); if (!ln) continue;
-      const st = ln.match(/^-\s*(\S+)\s+(ramp\s+)?(\d+)(?:\s*-\s*(\d+))?%/i);
+      const st = ln.match(/^-\s*(\S+)\s+(?:@\s*)?(ramp\s+)?(\d+)(?:\s*-\s*(\d+))?%/i);
       if (st) {
         started = true; if (!sec) out.push(sec = { name: "", reps: 0, steps: [] });
         const a = +st[3], b = st[4] ? +st[4] : null, ramp = !!st[2];
