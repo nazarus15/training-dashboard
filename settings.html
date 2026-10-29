@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1793284873">
+<link rel="stylesheet" href="ui.css?v=1793284889">
 <style>
 .card{display:flex;flex-direction:column;gap:12px}
 .card h2{font-size:20px}
@@ -56,7 +56,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
 .ovg label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
 .ovg input{width:18px;height:18px;flex:none}
 </style>
-<script src="auth.js?v=1793284873"></script>
+<script src="auth.js?v=1793284889"></script>
 </head>
 <body>
 <div class="wrap">
@@ -163,8 +163,8 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <div class="acts"><button class="btn" type="submit" id="metBtn">Зберегти</button><span class="msg" id="metMsg" role="status"></span></div>
   </form>
 </div>
-<script src="workout.js?v=1793284873"></script>
-<script src="export.js?v=1793284873"></script>
+<script src="workout.js?v=1793284889"></script>
+<script src="export.js?v=1793284889"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -347,7 +347,7 @@ function renderGcal(s) {
 }
 $("gcalForm").onsubmit = async e => {
   e.preventDefault();
-  const url = $("gcalUrl").value.trim(), sec = $("gcalSecret").value.trim();
+  const url = $("gcalUrl").value.trim(), sec = $("gcalSecret").value.replace("SECRET:", "").replace(/\s+/g, "");
   if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(url)) { msg("gcalMsg", "Адреса має виглядати як https://script.google.com/macros/s/…/exec", "err"); return; }
   const next = { ...SETP, gcalUrl: url, gcalSecret: sec === "••••••••" ? SETP.gcalSecret : sec };
   if (!next.gcalSecret) { msg("gcalMsg", "Встав секрет.", "err"); return; }

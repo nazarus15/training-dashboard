@@ -572,7 +572,9 @@ def garmin() -> None:
 def gcal_sync():
     """Приватна синхронізація з Google Calendar через веб-застосунок Apps Script у Google-акаунті власника.
     План + фактичне виконання (час, пульс, навантаження) йдуть лише туди, публічно не зберігаються."""
-    url, secret = (os.environ.get("GCAL_URL") or "").strip(), (os.environ.get("GCAL_SECRET") or "").strip()
+    url = (os.environ.get("GCAL_URL") or "").strip()
+    # секрет копіюють з журналу Apps Script — прибираємо пробіли, переноси і можливий префікс «SECRET:»
+    secret = "".join((os.environ.get("GCAL_SECRET") or "").replace("SECRET:", "").split())
     if not url or not secret:
         return {"ok": None, "info": "не налаштовано"}
     try:
