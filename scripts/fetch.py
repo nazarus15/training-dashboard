@@ -15,6 +15,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
 import sys
 import traceback
 from datetime import date, datetime, timedelta, timezone
@@ -171,6 +172,8 @@ def intervals() -> None:
         cols = ["date", "type", "name", "moving", "distKm", "load", "avgHr", "maxHr", "trimp", "intensity", "hrZones", "avgW", "np", "pZones", "ef", "decoupling", "pmFtp", "cadence", "elev", "kcal", "hrr", "polarization", "trainer", "ftp", "vi", "kj", "strain", "powerHr", "wbalDep", "device", "id"]
         r1 = lambda v: None if v is None else round(v, 1)
         rows = []
+        # вело, записане браслетом (Garmin CIRQA), дублює заїзд з Wahoo — не беремо його взагалі
+        acts = [a for a in acts if not (re.search(r"Ride$|Cyclocross", a.get("type") or "") and re.search(r"cirqa|smart band", a.get("device_name") or "", re.I))]
         for a in sorted(acts, key=lambda x: x.get("start_date_local") or ""):
             hrr = a.get("icu_hrr")
             rows.append([

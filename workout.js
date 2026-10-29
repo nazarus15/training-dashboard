@@ -319,6 +319,35 @@ window.WK = (() => {
     await gcalPush(ov); return ov.length;
   }
 
+
+  // ---------- вело: кроки тренування intervals.icu → список з ватами (як «вправи» силового) ----------
+  const SEC_UA = { "tempo": "Темп", "warmup": "Розминка", "warm up": "Розминка", "main set": "Основна частина", "cooldown": "Заминка", "cool down": "Заминка" };
+  function bikeSteps(desc, ftp) {
+    const out = []; let sec = null, started = false;
+    const dur = s => { let x = 0; for (const m of s.matchAll(/(\d+(?:\.\d+)?)\s*(h|m|s)/g)) x += +m[1] * { h: 3600, m: 60, s: 1 }[m[2]]; return x; };
+    const fd = x => { const m = Math.floor(x / 60), s = x % 60; return m ? `${m} хв${s ? " " + s + " с" : ""}` : `${s} с`; };
+    const w = p => ftp ? Math.round(ftp * p / 100) : null;
+    for (const raw of String(desc || "").split(/\r?\n/)) {
+      const ln = raw.trim(); if (!ln) continue;
+      const st = ln.match(/^-\s*(\S+)\s+(ramp\s+)?(\d+)(?:\s*-\s*(\d+))?%/i);
+      if (st) {
+        started = true; if (!sec) out.push(sec = { name: "", reps: 0, steps: [] });
+        const a = +st[3], b = st[4] ? +st[4] : null, ramp = !!st[2];
+        const txt = ramp && b ? (ftp ? `плавно ${w(a)}→${w(b)} Вт` : `плавно ${a}→${b}%`) : b ? (ftp ? `${w(a)}–${w(b)} Вт` : `${a}–${b}%`) : (ftp ? `${w(a)} Вт` : `${a}%`);
+        sec.steps.push({ dur: fd(dur(st[1])), secs: dur(st[1]), txt, pct: ramp && b ? `${a}→${b}%` : b ? `${a}–${b}%` : `${a}%` });
+        continue;
+      }
+      const h = ln.match(/^(.*?)(?:\s+(\d+)\s*[xх×])?\s*$/), name = h[1].trim(), known = SEC_UA[name.toLowerCase()];
+      if (known || h[2] || (started && ln.length < 32)) { started = true; out.push(sec = { name: known || name, reps: h[2] ? +h[2] : 0, steps: [] }); }
+    }
+    return out.filter(s => s.steps.length);
+  }
+  function bikeStepsHtml(desc, ftp) {
+    const ss = bikeSteps(desc, ftp); if (!ss.length) return "";
+    const n = ss.reduce((a, s) => a + s.steps.length * (s.reps || 1), 0);
+    return `<details><summary>Інтервали (${n})</summary><ol class="bsteps">${ss.map(s => `${s.name ? `<li class="bsec">${esc(s.name)}${s.reps ? ` ×${s.reps}` : ""}</li>` : ""}${s.steps.map(x => `<li><b>${x.dur}</b><span class="num">${esc(x.txt)}${ftp ? ` <small>${x.pct}</small>` : ""}</span></li>`).join("")}`).join("")}</ol></details>`;
+  }
+
   // ---------- календар: план + intervals ----------
   const SPORT = { bike: ["Вело", "#3c8dd0"], strength: ["Силове", "#e0761b"], bjj: ["БЖЖ", "#7a4cc2"], run: ["Біг", "#2ea36b"], other: ["Інше", "#8a96a3"] };
   const evSport = t => /ride|cycl/i.test(t || "") ? "bike" : /run/i.test(t || "") ? "run" : "other";
@@ -380,5 +409,5 @@ window.WK = (() => {
     if (!token()) return false;
     try { const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/update.yml/dispatches`, { method: "POST", headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main" }) }); return r.ok; } catch { return false; }
   }
-  return { gcalCache, gcalPush, gcalFlush, gcalSyncJournal, strengthOverride, triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
+  return { bikeSteps, bikeStepsHtml, gcalCache, gcalPush, gcalFlush, gcalSyncJournal, strengthOverride, triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();

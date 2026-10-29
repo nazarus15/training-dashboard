@@ -22,7 +22,7 @@ START, END = today - timedelta(days=30), today + timedelta(days=90)
 
 
 # ---------- вело: розгортання кроків intervals.icu у зрозумілий план ----------
-SEC_NAMES = {"warmup": "Розминка", "warm up": "Розминка", "main set": "Основна частина", "cooldown": "Заминка", "cool down": "Заминка"}
+SEC_NAMES = {"tempo": "Темп", "warmup": "Розминка", "warm up": "Розминка", "main set": "Основна частина", "cooldown": "Заминка", "cool down": "Заминка"}
 
 
 def _dur(tok: str) -> int:
@@ -57,7 +57,7 @@ def expand_bike(desc: str, ftp=None) -> str:
                 watts = f"{w(a)}–{w(b)} Вт ({a}–{b}%)" if ftp else f"{a}–{b}% FTP"
             else:
                 watts = f"{w(a)} Вт ({a}%)" if ftp else f"{a}% FTP"
-            out.append(f"  • {_fmt_dur(dur)} · {watts}")
+            out.append(f"- {_fmt_dur(dur)} · {watts}")
             continue
         head = re.match(r"^(.*?)(?:\s+(\d+)\s*[xх×])?\s*$", ln)
         name = head.group(1).strip()
