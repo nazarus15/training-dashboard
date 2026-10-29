@@ -278,7 +278,45 @@ window.WK = (() => {
     if (s && !(c?.updatedAt && (!s.updatedAt || c.updatedAt > s.updatedAt))) lsSet("td_settings_cache", s); else s = c || s || {};
     let priv = {};
     try { priv = (s.private && window.AUTH ? await AUTH.decrypt(s.private) : {}) || {}; } catch { }
+    if (priv.gcalUrl && priv.gcalSecret) lsSet("td_gcal", { url: priv.gcalUrl, secret: priv.gcalSecret });
     return { ftpFloor: s.ftpFloor || 231, overview: s.overview, records: s.records, updatedAt: s.updatedAt, ...priv };
+  }
+
+
+  // ---------- приватна синхронізація з Google Calendar (Apps Script) ----------
+  let GC = lsGet("td_gcal", null);
+  const gcalCache = s => { GC = s && s.gcalUrl && s.gcalSecret ? { url: s.gcalUrl, secret: s.gcalSecret } : null; lsSet("td_gcal", GC); };
+  async function gcalCfg() { if (GC) return GC; try { gcalCache(await loadSettings()); } catch { } return GC; }
+  async function gcalPush(overrides) {
+    const c = await gcalCfg(); if (!c || !overrides.length) return false;
+    try { await fetch(c.url, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ secret: c.secret, source: "journal", overrides }) }); return true; }
+    catch { const q = lsGet("td_gcal_queue", []); lsSet("td_gcal_queue", [...q, ...overrides].slice(-200)); return false; }
+  }
+  async function gcalFlush() { const q = lsGet("td_gcal_queue", []); if (q.length) { lsSet("td_gcal_queue", []); await gcalPush(q); } }
+  // подія для силового з журналу: старт/фініш, підсумок підходів
+  function strengthOverride(s, L) {
+    const hm = iso => new Date(iso).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Kyiv" });
+    if (!L || L.deleted) return { uid: s.id, deleted: true };
+    const base = { uid: s.id, date: s.date, color: "6" };
+    const title = `Силове · ${s.title}`;
+    const sets = (s.exercises || []).map(ex => { const d = (L.sets?.[ex.key] || []).filter(x => x.done); return d.length ? `• ${ex.name}: ${d.map(x => (x.w && +x.w ? x.w + "кг×" : "") + x.r + (ex.type === "time" ? "с" : "")).join(", ")}` : ""; }).filter(Boolean);
+    const link = `https://nazarus15.github.io/training-dashboard/strength.html?s=${encodeURIComponent(s.id)}`;
+    if (L.status === "skipped") return { ...base, title: `✕ ${title} (пропущено)`, desc: link };
+    if (L.startedAt) {
+      const st = new Date(L.startedAt), en = L.finishedAt ? new Date(L.finishedAt) : new Date(st.getTime() + (s.mins || 60) * 6e4);
+      const head = L.finishedAt ? `Виконано: ${hm(L.startedAt)}–${hm(L.finishedAt)} (${Math.round((en - st) / 6e4)} хв, оцінка ${s.mins || "—"} хв)` : `Почато о ${hm(L.startedAt)}, орієнтовно до ${hm(en.toISOString())} (оцінка ${s.mins || "—"} хв)`;
+      const desc = [head, L.rpe ? `RPE ${L.rpe}` : "", L.note ? `Нотатки: ${L.note}` : "", sets.length ? "\n" + sets.join("\n") : "", "", link].filter(x => x !== "").join("\n");
+      return { ...base, title: `${L.finishedAt ? "✓" : "▶"} ${title}${L.finishedAt ? "" : " (триває)"}`, desc, start: st.toISOString(), end: en.toISOString() };
+    }
+    if (L.status === "done") return { ...base, title: `✓ ${title}`, desc: [sets.join("\n"), link].filter(Boolean).join("\n\n") };
+    return { uid: s.id, clear: true };
+  }
+  async function gcalSyncJournal() {
+    if (!(await gcalCfg())) return false;
+    const [P, J] = await Promise.all([loadPlanned(), ghGet("logs.json", BRANCH).then(x => window.AUTH ? AUTH.decrypt(x.data) : x.data).catch(() => null)]);
+    const logs = J?.logs || {};
+    const ov = P.workouts.filter(w => w.sport === "strength" && logs[w.id]).map(w => strengthOverride(session(w), logs[w.id]));
+    await gcalPush(ov); return ov.length;
   }
 
   // ---------- календар: план + intervals ----------
@@ -342,5 +380,5 @@ window.WK = (() => {
     if (!token()) return false;
     try { const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/update.yml/dispatches`, { method: "POST", headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main" }) }); return r.ok; } catch { return false; }
   }
-  return { triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
+  return { gcalCache, gcalPush, gcalFlush, gcalSyncJournal, strengthOverride, triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();

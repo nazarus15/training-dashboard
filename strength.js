@@ -203,8 +203,13 @@ function renderSession() {
   const timing = L.finishedAt && L.startedAt ? `<div class="timing done">${hmT(L.startedAt)}–${hmT(L.finishedAt)} · ${Math.round((new Date(L.finishedAt) - new Date(L.startedAt)) / 6e4)} хв (оцінка ${WK.fmtMin(s.mins)})</div>`
     : L.startedAt ? `<div class="timing run">Почато о ${hmT(L.startedAt)} · орієнтовно до ${hmT(new Date(new Date(L.startedAt).getTime() + s.mins * 6e4).toISOString())}</div>`
     : L.status ? "" : `<div class="timing"><button type="button" class="btn" data-start="1">▶ Почати тренування</button><span class="muted">Оціночний час: ${WK.fmtMin(s.mins)}. Старт і фініш збережуться в журналі.</span></div>`;
-  let html = `<div class="s-head"><div class="eyebrow">${DOW[dObj(s.date).getDay()]}, ${fmtDay(s.date)} · оцінка ${WK.fmtMin(s.mins)}</div>
-    <div class="row"><h3 style="font-size:28px">${esc(s.title)}</h3>${statusPill(s, L)}</div>${s.goal ? `<p>${esc(s.goal)}</p>` : ""}${WK.barsHtml(WK.strengthEffects(s))}${timing}<a class="muted" style="font-size:13px" href="planner.html?edit=${encodeURIComponent(s.id)}">Змінити в Планері</a></div>`;
+  const loc = iso => { if (!iso) return ""; const d = new Date(iso); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16); };
+  const tEdit = (L.startedAt || L.status === "done") ? `<details class="tedit"${editOpen === s.id ? " open" : ""}><summary>Змінити час</summary><form data-tform="${esc(s.id)}" class="tform">
+    <label class="f2">Початок<input type="datetime-local" name="st" value="${loc(L.startedAt) || (s.date + "T18:00")}" required></label>
+    <label class="f2">Кінець<input type="datetime-local" name="en" value="${loc(L.finishedAt)}"></label>
+    <button class="btn" type="submit">Зберегти час</button><span class="muted" style="font-size:12px">Без кінця тренування вважається незавершеним. Час піде в журнал і в Google Calendar.</span></form></details>` : "";
+  let html = `<div class="s-head"><div class="eyebrow">${DOW[dObj(s.date).getDay()]}, ${fmtDay(s.date)} · оцінка ${WK.fmtMin(s.mins)}${s.manual ? " · додано вручну" : ""}</div>
+    <div class="row"><h3 style="font-size:28px">${esc(s.title)}</h3>${statusPill(s, L)}</div>${s.goal ? `<p>${esc(s.goal)}</p>` : ""}${WK.barsHtml(WK.strengthEffects(s))}${timing}${tEdit}<a class="muted" style="font-size:13px" href="planner.html?edit=${encodeURIComponent(s.id)}">Змінити в Планері</a></div>`;
   if (s.warmup?.length) html += `<div class="block warm"><div class="eyebrow">Розминка · ${esc(s.warmupTime || "8–10 хв")}</div><ul>${s.warmup.map(w => `<li>${esc(w)}</li>`).join("")}</ul></div>`;
   for (const g of Object.keys(groups)) {
     const exs = groups[g];
@@ -229,7 +234,7 @@ function renderSession() {
   html += `<div class="block foot">
     <div><div class="eyebrow" style="margin-bottom:6px">Як пішло (RPE сесії, 1–10)</div><div class="rpe">${[5, 6, 7, 8, 9, 10].map(v => `<button type="button" data-rpe="${v}" aria-pressed="${L.rpe === v}">${v}</button>`).join("")}</div></div>
     <div><label for="note-${esc(s.id)}">Нотатки: самопочуття, техніка, що змінити</label><textarea id="note-${esc(s.id)}" data-note="${esc(s.id)}">${esc(L.note)}</textarea></div>
-    <div class="actions"><button type="button" class="btn" data-finish="done">${L.status === "done" ? "Виконано ✓" : "Завершити тренування"}</button><button type="button" class="btn ghost" data-finish="skipped">${L.status === "skipped" ? "Пропущено" : "Пропустити"}</button>${L.status ? `<button type="button" class="btn ghost" data-finish="">Скинути статус</button>` : ""}</div></div>`;
+    <div class="actions"><button type="button" class="btn" data-finish="done">${L.status === "done" ? "Виконано ✓" : "Завершити тренування"}</button><button type="button" class="btn ghost" data-finish="skipped">${L.status === "skipped" ? "Пропущено" : "Пропустити"}</button>${L.status ? `<button type="button" class="btn ghost" data-finish="">Скинути статус</button>` : ""}<button type="button" class="btn danger" data-del="${esc(s.id)}">${delArm === s.id ? "Точно видалити?" : "Видалити тренування"}</button></div></div>`;
   const focus = document.activeElement?.id;
   $("session").innerHTML = html;
   if (focus && $(focus)) $(focus).focus();
@@ -281,7 +286,28 @@ function startSession(sid, quiet) {
   L.startedAt = new Date().toISOString(); changed(sid); if (!quiet) queuePush(0); markPlan(sid);
 }
 function markPlan(sid) {
-  // Час старту/фінішу зберігається лише в зашифрованому журналі. Синхронізацію з календарем додамо після вибору способу.
+  // подія силового в приватному Google Calendar (якщо підключено в Налаштуваннях)
+  const s = sessions[sid]; if (!s) return;
+  WK.gcalPush([WK.strengthOverride(s, logs[sid])]);
+}
+let editOpen = null, delArm = null;
+const fromLocal = v => v ? new Date(v).toISOString() : null;
+document.addEventListener("submit", e => {
+  const f = e.target.closest("[data-tform]"); if (!f) return;
+  e.preventDefault();
+  const sid = f.dataset.tform, L = logFor(sessions[sid]);
+  const st = fromLocal(f.st.value), en = fromLocal(f.en.value);
+  if (en && st && en <= st) { alertMsg(f, "Кінець має бути пізніше за початок."); return; }
+  L.startedAt = st; if (en) { L.finishedAt = en; L.status = "done"; } else { delete L.finishedAt; if (L.status === "done") L.status = null; }
+  editOpen = null; changed(sid); queuePush(0); markPlan(sid); render();
+});
+function alertMsg(f, m) { let s = f.querySelector(".err"); if (!s) { s = document.createElement("span"); s.className = "err"; f.appendChild(s); } s.textContent = m; }
+async function deleteSession(sid) {
+  const s = sessions[sid];
+  logs[sid] = { deleted: true, sets: {} }; changed(sid); queuePush(0);
+  WK.gcalPush([{ uid: sid, deleted: true }]);
+  try { await WK.savePlanned(d => { d.workouts = d.workouts.filter(w => w.id !== sid); }, `Журнал: видалено ${s?.date || ""} ${s?.title || ""}`); } catch { }
+  delete sessions[sid]; delArm = null; selected = pickDefault(); render();
 }
 // ---------- interactions ----------
 let inputTimer = null;
@@ -302,6 +328,9 @@ document.addEventListener("click", e => {
   const rpe = e.target.closest("[data-rpe]");
   if (rpe) { const L = logs[selected]; const v = +rpe.dataset.rpe; L.rpe = L.rpe === v ? null : v; changed(selected); renderSession(); return; }
   if (e.target.closest("[data-start]")) { startSession(selected); render(); return; }
+  const del = e.target.closest("[data-del]");
+  if (del) { if (delArm !== del.dataset.del) { delArm = del.dataset.del; renderSession(); setTimeout(() => { if (delArm) { delArm = null; renderSession(); } }, 5000); } else deleteSession(del.dataset.del); return; }
+  if (e.target.closest(".tedit summary")) { editOpen = editOpen === selected ? null : selected; }
   const fin = e.target.closest("[data-finish]");
   if (fin) {
     const L = logs[selected]; L.status = fin.dataset.finish || null;
@@ -323,6 +352,61 @@ function tick() {
 $("tPlus").onclick = () => { tEnd += 30000; tick(); };
 $("tStop").onclick = () => { clearInterval(tInt); $("timer").hidden = true; };
 
+
+// ---------- ручне додавання силового ----------
+function hmLocal(d) { return d.toTimeString().slice(0, 5); }
+function openManual(pre) {
+  const f = $("manualForm"); $("manualWrap").open = true;
+  f.d.value = pre?.date || todayISO; f.st.value = pre?.st || ""; f.en.value = pre?.en || ""; f.title.value = pre?.title || "";
+  $("manualWrap").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+document.addEventListener("submit", async e => {
+  if (e.target.id !== "manualForm") return;
+  e.preventDefault();
+  const f = e.target, msgEl = $("manualMsg");
+  const st = new Date(`${f.d.value}T${f.st.value}`), en = new Date(`${f.d.value}T${f.en.value}`);
+  if (!(en > st)) { msgEl.textContent = "Кінець має бути пізніше за початок."; return; }
+  const id = `m-${f.d.value}-${Math.random().toString(36).slice(2, 6)}`;
+  const w = { id, date: f.d.value, sport: "strength", title: f.title.value.trim() || "Силове", text: f.text.value.trim(), manual: true };
+  msgEl.textContent = "Зберігаю…";
+  try { planned = await WK.savePlanned(d => { d.workouts.push(w); }, `Журнал: додано вручну ${w.date} ${w.title}`); }
+  catch (err) { msgEl.textContent = WK.ghErrText(err); return; }
+  sessions[id] = { ...WK.session(w), manual: true };
+  logs[id] = { ...emptyLog(sessions[id]), status: "done", startedAt: st.toISOString(), finishedAt: en.toISOString(), note: f.note.value.trim(), manual: true };
+  changed(id); queuePush(0); markPlan(id);
+  f.reset(); $("manualWrap").open = false; msgEl.textContent = "";
+  selected = id; render(); loadGarminStrength();
+  $("sessionWrap").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+document.addEventListener("toggle", e => { if (e.target.id === "manualWrap" && e.target.open && !$("manualForm").d.value) $("manualForm").d.value = todayISO; }, true);
+// силові, записані браслетом за 14 днів, для яких немає тренування в журналі — пропонуємо додати
+let GS = [];
+async function loadGarminStrength() {
+  try {
+    const A = await AUTH.load("activities"); if (!A) return;
+    const from = WK.addDays(todayISO, -14);
+    GS = A.rows.map(r => Object.fromEntries(A.cols.map((c, i) => [c, r[i]]))).filter(a => a.date.slice(0, 10) >= from && (a.type === "WeightTraining" || a.type === "Strength" || /strength|силов/i.test(a.name || "")) && (a.moving || 0) >= 600);
+    const has = new Set(Object.values(sessions).filter(s => logs[s.id]?.status === "done" || logs[s.id]?.startedAt).map(s => s.date));
+    const miss = GS.filter(a => !has.has(a.date.slice(0, 10)));
+    $("garminNoPlan").innerHTML = miss.length ? `<div class="gnp"><b>Записано браслетом, але немає в журналі</b>${miss.map((a, i) => {
+      const st = new Date(a.date + ":00"), en = new Date(st.getTime() + a.moving * 1000);
+      const plan = Object.values(sessions).find(s => s.date === a.date.slice(0, 10) && !logs[s.id]?.status);
+      return `<div class="row"><span>${fmtDay(a.date.slice(0, 10))} · ${hmLocal(st)}–${hmLocal(en)} · ${Math.round(a.moving / 60)} хв</span>${plan ? `<button type="button" class="btn ghost" data-gsp="${esc(plan.id)}" data-gi="${i}">Це «${esc(plan.title)}» — відмітити</button>` : ""}<button type="button" class="btn ghost" data-gs="${i}">Додати окремо</button></div>`;
+    }).join("")}</div>` : "";
+    GS = miss;
+  } catch { }
+}
+document.addEventListener("click", e => {
+  const p = e.target.closest("[data-gsp]");
+  if (p) {
+    const a = GS[+p.dataset.gi], sid = p.dataset.gsp, L = logFor(sessions[sid]), st = new Date(a.date + ":00");
+    L.startedAt = st.toISOString(); L.finishedAt = new Date(st.getTime() + a.moving * 1000).toISOString(); L.status = "done";
+    changed(sid); queuePush(0); markPlan(sid); selected = sid; render(); loadGarminStrength(); return;
+  }
+  const b = e.target.closest("[data-gs]"); if (!b) return;
+  const a = GS[+b.dataset.gs], st = new Date(a.date + ":00"), en = new Date(st.getTime() + a.moving * 1000);
+  openManual({ date: a.date.slice(0, 10), st: hmLocal(st), en: hmLocal(en), title: "Силове" });
+});
 // ---------- boot ----------
 function pickDefault() {
   const list = Object.values(sessions).sort((a, b) => a.date < b.date ? -1 : 1);
@@ -333,7 +417,7 @@ function pickDefault() {
   renderSync();
   [planned, events] = await Promise.all([WK.loadPlanned(), fetch(`data/events.json?t=${Date.now()}`).then(r => r.ok ? r.json() : null).catch(() => null)]);
   plan = true;
-  for (const w of planned.workouts) if (w.sport === "strength") sessions[w.id] = WK.session(w);
+  for (const w of planned.workouts) if (w.sport === "strength") sessions[w.id] = { ...WK.session(w), manual: !!w.manual };
   if (!Object.keys(sessions).length) { $("status").innerHTML = `Силових у плані немає. <a href="planner.html">Запланувати в Планері</a>.`; }
   const cached = lsGet(LS.cache, null);
   mergeRemote(cached || { logs: {} });
@@ -341,7 +425,10 @@ function pickDefault() {
   selected = want && sessions[want] ? want : pickDefault(); render();
   const remote = await loadRemote();
   if (remote) { lsSet(LS.cache, remote); mergeRemote(remote); }
+  for (const [id, L] of Object.entries(logs)) if (L?.deleted) delete sessions[id];
   if (!selected || !sessions[selected]) selected = want && sessions[want] ? want : pickDefault();
+  WK.gcalFlush();
+  loadGarminStrength();
   const a = document.activeElement;
   if (!(a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA"))) render();
   if (Object.keys(pending).length) queuePush(0);

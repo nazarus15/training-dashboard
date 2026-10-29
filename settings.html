@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1793121751">
+<link rel="stylesheet" href="ui.css?v=1793283638">
 <style>
 .card{display:flex;flex-direction:column;gap:12px}
 .card h2{font-size:20px}
@@ -47,6 +47,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
 .tbl tr:last-child td{border-bottom:none}
 .tbl th{font-family:var(--f-data);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .note{font-size:12px;color:var(--muted);margin:0}
+.gl{margin:0;padding-left:18px;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
 .histd{display:flex;gap:3px;flex-wrap:wrap} .histd i{width:8px;height:16px;border-radius:2px;display:block}
 .ovg{border-top:1px solid var(--line);padding:10px 0}
 .ovg:first-child{border-top:none}
@@ -55,7 +56,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
 .ovg label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
 .ovg input{width:18px;height:18px;flex:none}
 </style>
-<script src="auth.js?v=1793121751"></script>
+<script src="auth.js?v=1793283638"></script>
 </head>
 <body>
 <div class="wrap">
@@ -89,15 +90,20 @@ h3.sub{font-size:17px;margin:4px 0 0}
 
   <section class="card" id="gcalCard">
     <h2>Google Calendar</h2>
-    <p>Заплановані тренування (вело з intervals.icu, силові й БЖЖ з Планера) автоматично потрапляють у календар-підписку. Він оновлюється разом із даними сайту, а Google перечитує його сам — зазвичай раз на кілька годин.</p>
-    <div class="acts"><input id="icsUrl" readonly value="https://nazarus15.github.io/training-dashboard/data/calendar.ics" aria-label="Адреса календаря" style="flex:1;min-width:220px;font-family:var(--f-data);font-size:13px"><button class="btn" type="button" id="icsCopy">Скопіювати</button></div>
-    <details class="howto"><summary>Як підключити (1 хв)</summary><ol>
-      <li>Скопіюй адресу вище.</li>
-      <li>На комп'ютері відкрий <a href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl" target="_blank" rel="noopener">Google Calendar → Додати календар → За URL</a>.</li>
-      <li>Встав адресу → «Додати календар». З'явиться календар «Тренування · Форма» — йому можна змінити колір.</li>
-      <li>На iPhone він з'явиться сам, якщо Google-акаунт підключений у «Календарі». Або напряму: <a href="webcal://nazarus15.github.io/training-dashboard/data/calendar.ics">підписатися в Календарі iPhone</a>.</li></ol>
-      <p style="margin-top:8px">Події: вело і силові — на весь день (у них немає часу), БЖЖ і тренування з Планера з часом — у свій час. В описі — повний текст тренування. Календар лише для читання: змінюй план у Планері чи intervals.icu.</p></details>
-    <span class="msg" id="icsMsg" role="status"></span>
+    <p>Приватна синхронізація: тренування йдуть прямо у твій календар «Тренування · Форма» через твій власний скрипт Google (Apps Script). Публічно нічого не з'являється.</p>
+    <ul class="gl">
+      <li><b>План</b> вело, силових і БЖЖ — на весь день або у свій час; вело розгорнуте у вати.</li>
+      <li><b>Виконане</b> з Garmin — фактичний час, пульс, навантаження, позначка ✓ (з кожним оновленням даних).</li>
+      <li><b>Силові з журналу</b> — старт, фініш, підходи; оновлюється за хвилину після «Почати» чи «Завершити».</li>
+    </ul>
+    <p id="gcalState"></p>
+    <form id="gcalForm" autocomplete="off" class="grid2">
+      <label class="f">Адреса скрипта (Web app URL)<input id="gcalUrl" placeholder="https://script.google.com/macros/s/…/exec"></label>
+      <label class="f">Секрет<input id="gcalSecret" type="password" placeholder="з журналу виконання setup()"></label>
+      <div class="acts" style="grid-column:1/-1"><button class="btn" type="submit" id="gcalSave">Зберегти</button><button class="btn ghost" type="button" id="gcalSync">Надіслати силові зараз</button><span class="msg" id="gcalMsg" role="status"></span></div>
+    </form>
+    <details class="howto"><summary>Публічний календар-підписка (лише план)</summary>
+      <p style="margin-top:8px">Старий варіант без виконаних тренувань: <span class="num">https://nazarus15.github.io/training-dashboard/data/calendar.ics</span>. Якщо підключив приватний календар — цю підписку в Google Calendar краще видалити, щоб події не дублювались.</p></details>
   </section>
 
   <form class="card" id="pwForm" autocomplete="off">
@@ -157,8 +163,8 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <div class="acts"><button class="btn" type="submit" id="metBtn">Зберегти</button><span class="msg" id="metMsg" role="status"></span></div>
   </form>
 </div>
-<script src="workout.js?v=1793121751"></script>
-<script src="export.js?v=1793121751"></script>
+<script src="workout.js?v=1793283638"></script>
+<script src="export.js?v=1793283638"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -332,7 +338,30 @@ $("recsForm").onsubmit = async e => {
   finally { $("recsBtn").disabled = false; }
 };
 
-$("icsCopy").onclick = async () => { try { await navigator.clipboard.writeText($("icsUrl").value); msg("icsMsg", "Адресу скопійовано.", "ok"); } catch { $("icsUrl").select(); msg("icsMsg", "Виділив адресу — скопіюй вручну."); } };
+// ---------- Google Calendar (приватно) ----------
+let SETP = {};
+function renderGcal(s) {
+  const on = s.gcalUrl && s.gcalSecret;
+  $("gcalState").innerHTML = on ? `<span class="pill done">Підключено</span> Сайт надсилає силові з журналу. План і Garmin — з автооновлення (потрібні секрети GCAL_URL і GCAL_SECRET у GitHub).` : `<span class="pill today">Не підключено</span>`;
+  $("gcalUrl").value = s.gcalUrl || ""; $("gcalSecret").value = s.gcalSecret ? "••••••••" : "";
+}
+$("gcalForm").onsubmit = async e => {
+  e.preventDefault();
+  const url = $("gcalUrl").value.trim(), sec = $("gcalSecret").value.trim();
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(url)) { msg("gcalMsg", "Адреса має виглядати як https://script.google.com/macros/s/…/exec", "err"); return; }
+  const next = { ...SETP, gcalUrl: url, gcalSecret: sec === "••••••••" ? SETP.gcalSecret : sec };
+  if (!next.gcalSecret) { msg("gcalMsg", "Встав секрет.", "err"); return; }
+  $("gcalSave").disabled = true; msg("gcalMsg", "Зберігаю…");
+  try {
+    const priv = await AUTH.encrypt(privOf(next));
+    await WK.ghPut("settings.json", "journal", cur => ({ ...(cur || {}), private: priv, updatedAt: new Date().toISOString() }), "Google Calendar");
+    SETP = next; WK.gcalCache(next); renderGcal(next); msg("gcalMsg", "Збережено (зашифровано). Надсилаю силові з журналу…", "ok");
+    const n = await WK.gcalSyncJournal(); msg("gcalMsg", `Збережено. Надіслано силових: ${n}. Перевір календар «Тренування · Форма».`, "ok");
+  } catch (err) { msg("gcalMsg", errText(err), "err"); }
+  finally { $("gcalSave").disabled = false; }
+};
+$("gcalSync").onclick = async () => { msg("gcalMsg", "Надсилаю…"); const n = await WK.gcalSyncJournal(); msg("gcalMsg", n === false ? "Спершу збережи адресу і секрет." : `Надіслано силових: ${n}.`, n === false ? "err" : "ok"); };
+const privOf = s => ({ aiContext: s.aiContext || "", gcalUrl: s.gcalUrl || "", gcalSecret: s.gcalSecret || "" });
 $("logout").onclick = async () => { await AUTH.logout(); location.reload(); };
 
 let PD = null;
@@ -340,7 +369,8 @@ $("metForm").onsubmit = async e => {
   e.preventDefault(); $("metBtn").disabled = true; msg("metMsg", "Зберігаю…");
   try {
     const ftpFloor = +$("ftpFloor").value || 231;
-    const priv = await AUTH.encrypt({ aiContext: $("aiCtx").value.trim() });
+    SETP.aiContext = $("aiCtx").value.trim();
+    const priv = await AUTH.encrypt(privOf(SETP));
     await WK.ghPut("settings.json", "journal", cur => ({ ...(cur || {}), ftpFloor, private: priv, updatedAt: new Date().toISOString() }), "Налаштування");
     const days = [...document.querySelectorAll("#bjjDays input:checked")].map(i => +i.value);
     const time = $("bjjTime").value, mins = +$("bjjMins").value || 90;
@@ -359,6 +389,7 @@ $("metForm").onsubmit = async e => {
   renderGh(); verifyGh(); renderRec(); renderHealth();
   try { if (sessionStorage.getItem("forma-recovered")) { $("recBanner").hidden = false; $("pwForm").scrollIntoView(); } } catch { }
   const [S, P] = await Promise.all([WK.loadSettings(), WK.loadPlanned()]); PD = P;
+  SETP = { aiContext: S.aiContext, gcalUrl: S.gcalUrl, gcalSecret: S.gcalSecret }; renderGcal(SETP);
   renderOv(S); renderRecs(S);
   $("ftpFloor").value = S.ftpFloor; $("aiCtx").value = S.aiContext || WKX.DEFAULT_CONTEXT;
   const r = PD.recurring.find(x => x.sport === "bjj") || { days: [], mins: 90 };

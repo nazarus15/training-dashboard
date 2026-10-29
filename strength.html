@@ -122,6 +122,19 @@ button.day:hover{background:var(--soft)}
 .kind{font-family:var(--f-data);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--k)}
 .day.is-today .d b{color:var(--warn)}
 
+/* ручне додавання і редагування часу */
+.manual,.tedit{border:1px dashed var(--line);border-radius:6px;padding:8px 12px;background:var(--panel)}
+.tedit{background:transparent;padding:6px 10px}
+.manual summary,.tedit summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px}
+.manual form,.tform{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.tform{flex-direction:row;flex-wrap:wrap;align-items:flex-end}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.f2{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-family:var(--f-data);text-transform:uppercase;letter-spacing:.04em}
+.f2 input,.f2 textarea{font:inherit;font-size:16px;text-transform:none;letter-spacing:0;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
+.btn.danger{background:transparent;color:var(--bad);border-color:var(--line)}
+.gnp{display:flex;flex-direction:column;gap:6px;border:1px solid var(--warn);border-radius:6px;padding:10px 12px;background:color-mix(in srgb,var(--warn) 7%,var(--panel));font-size:14px}
+.gnp .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.err{color:var(--bad);font-size:13px}
 /* старт / фініш */
 .timing{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:14px}
 .timing.run{color:var(--warn);font-weight:600}
@@ -160,8 +173,8 @@ button.day:hover{background:var(--soft)}
 .round.is-done .rset .field input{opacity:.7}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="workout.css?v=1793121751">
-<script src="auth.js?v=1793121751"></script>
+<link rel="stylesheet" href="workout.css?v=1793283638">
+<script src="auth.js?v=1793283638"></script>
 </head>
 <body>
 <div class="wrap">
@@ -181,6 +194,20 @@ button.day:hover{background:var(--soft)}
 
   <section id="scheduleWrap" hidden style="display:flex;flex-direction:column;gap:12px">
     <h2>Силові на 2 тижні</h2>
+    <div id="garminNoPlan"></div>
+    <details class="manual" id="manualWrap"><summary>+ Додати силове вручну</summary>
+      <form id="manualForm" autocomplete="off">
+        <p class="muted" style="margin:0;font-size:13px">Для тренування без плану: записане браслетом, чи взагалі без запису. Вправи й ваги — за бажанням.</p>
+        <div class="mgrid">
+          <label class="f2">Дата<input type="date" name="d" required></label>
+          <label class="f2">Початок<input type="time" name="st" required></label>
+          <label class="f2">Кінець<input type="time" name="en" required></label>
+          <label class="f2">Назва<input name="title" placeholder="Силове"></label>
+        </div>
+        <label class="f2">Вправи (необов'язково, формат як у Планері)<textarea name="text" rows="5" placeholder="- Жим лежачи 4x6 @штанга&#10;- Підтягування 4x5 @вага тіла"></textarea></label>
+        <label class="f2">Нотатки<input name="note" placeholder="Як пройшло"></label>
+        <div class="actions"><button class="btn" type="submit">Додати</button><span class="muted" id="manualMsg" style="font-size:13px"></span></div>
+      </form></details>
     <div id="schedule" style="display:flex;flex-direction:column;gap:16px"></div>
     <p class="muted" style="margin:0;font-size:13px">Силові з <a href="planner.html">Планера</a>. Тут записуєш підходи, а саме тренування засікай на Garmin як звичайно.</p>
   </section>
@@ -192,7 +219,7 @@ button.day:hover{background:var(--soft)}
   <div style="display:flex;gap:8px"><button type="button" id="tPlus">+30 с</button><button type="button" id="tStop">Закрити</button></div>
 </div>
 
-<script src="workout.js?v=1793121751"></script>
-<script src="strength.js?v=1793121751"></script>
+<script src="workout.js?v=1793283638"></script>
+<script src="strength.js?v=1793283638"></script>
 </body>
 </html>

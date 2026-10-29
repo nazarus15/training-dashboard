@@ -48,6 +48,8 @@ jobs:
           INTERVALS_ATHLETE_ID: ${{ secrets.INTERVALS_ATHLETE_ID }}
           GARMIN_PERSONAL_API_KEY: ${{ secrets.GARMIN_PERSONAL_API_KEY }}
           SLOT: ${{ steps.gate.outputs.slot }}
+          GCAL_URL: ${{ secrets.GCAL_URL }}
+          GCAL_SECRET: ${{ secrets.GCAL_SECRET }}
         run: python scripts/fetch.py
 
       - name: Календар для Google Calendar (data/calendar.ics)

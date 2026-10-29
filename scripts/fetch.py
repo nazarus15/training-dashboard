@@ -569,6 +569,27 @@ def garmin() -> None:
         gs["error"] = f"{fail} із {ok_count + fail} запитів не вдалися, решта даних оновлена"
 
 
+def gcal_sync():
+    """Приватна синхронізація з Google Calendar через веб-застосунок Apps Script у Google-акаунті власника.
+    План + фактичне виконання (час, пульс, навантаження) йдуть лише туди, публічно не зберігаються."""
+    url, secret = (os.environ.get("GCAL_URL") or "").strip(), (os.environ.get("GCAL_SECRET") or "").strip()
+    if not url or not secret:
+        return {"ok": None, "info": "не налаштовано"}
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from plan_events import build_events, START, END
+        ftp = ((_MEM.get("power.json") or read("power.json") or {}).get("zones") or {}).get("ftp")
+        evs = build_events(_MEM.get("activities.json"), ftp)
+        r = requests.post(url, data=json.dumps({"secret": secret, "source": "plan", "from": START.isoformat(), "to": END.isoformat(), "events": evs}),
+                          headers={"Content-Type": "text/plain"}, timeout=120)
+        j = r.json() if r.ok else {}
+        if not j.get("ok"):
+            return {"ok": False, "error": j.get("error") or f"HTTP {r.status_code}"}
+        return {"ok": True, "events": len(evs), "changed": j.get("changed")}
+    except Exception as e:
+        return {"ok": False, "error": short_err(e)}
+
+
 def main() -> int:
     DATA.mkdir(exist_ok=True)
     for name, fn in [("intervals", intervals), ("garmin", garmin)]:
@@ -590,6 +611,7 @@ def main() -> int:
     hist.append({"at": status["generatedAt"], "intervals": status["intervals"]["ok"], "garmin": status["garmin"]["ok"],
                  "sleepToday": sleep_today, "slot": status["slot"]})
     status["history"] = hist
+    status["gcal"] = gcal_sync()
     write("status.json", status)
     print(json.dumps(status, ensure_ascii=False, indent=2))
     # падаємо тільки якщо intervals.icu повністю недоступний
