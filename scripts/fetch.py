@@ -258,9 +258,9 @@ def intervals() -> None:
     except Exception as e:
         parts["power"] = short_err(e); ok_all = False
 
-    # заплановані тренування (календар intervals.icu): тиждень назад і 3 тижні вперед
+    # заплановані тренування (календар intervals.icu): 30 днів назад (план минулих заїздів) і 3 тижні вперед
     try:
-        evs = get("/events", oldest=(today - timedelta(days=7)).isoformat(), newest=(today + timedelta(days=21)).isoformat())
+        evs = get("/events", oldest=(today - timedelta(days=30)).isoformat(), newest=(today + timedelta(days=21)).isoformat())
         out = [{"date": (e.get("start_date_local") or "")[:10], "name": e.get("name"), "category": e.get("category"),
                 "type": e.get("type"), "mins": round((e.get("moving_time") or 0) / 60) or None,
                 "load": e.get("icu_training_load"), "if": round(e["icu_intensity"]) if e.get("icu_intensity") else None,
