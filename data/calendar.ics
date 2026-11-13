@@ -9,7 +9,7 @@ REFRESH-INTERVAL;VALUE=DURATION:PT6H
 X-PUBLISHED-TTL:PT6H
 BEGIN:VEVENT
 UID:icu-144831510@forma-nazara
-DTSTAMP:20261113T150121Z
+DTSTAMP:20261113T170904Z
 DTSTART;VALUE=DATE:20261015
 DTEND;VALUE=DATE:20261016
 TRANSP:TRANSPARENT
@@ -24,7 +24,7 @@ DESCRIPTION:План: 75 хв · навантаження 39\n\nEasy Endu
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-145637659@forma-nazara
-DTSTAMP:20261113T150121Z
+DTSTAMP:20261113T170904Z
 DTSTART;VALUE=DATE:20261018
 DTEND;VALUE=DATE:20261019
 TRANSP:TRANSPARENT
@@ -40,7 +40,7 @@ DESCRIPTION:План: 90 хв · навантаження 66\n\nEndurance
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863082@forma-nazara
-DTSTAMP:20261113T150121Z
+DTSTAMP:20261113T170904Z
 DTSTART;VALUE=DATE:20261027
 DTEND;VALUE=DATE:20261028
 TRANSP:TRANSPARENT
@@ -62,7 +62,7 @@ DESCRIPTION:План: 72 хв · навантаження 71\n\nКлюч
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863152@forma-nazara
-DTSTAMP:20261113T150121Z
+DTSTAMP:20261113T170904Z
 DTSTART;VALUE=DATE:20261031
 DTEND;VALUE=DATE:20261101
 TRANSP:TRANSPARENT
@@ -84,7 +84,7 @@ DESCRIPTION:План: 120 хв · навантаження 94\n\nАеро
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863096@forma-nazara
-DTSTAMP:20261113T150121Z
+DTSTAMP:20261113T170904Z
 DTSTART;VALUE=DATE:20261101
 DTEND;VALUE=DATE:20261102
 TRANSP:TRANSPARENT
@@ -99,7 +99,7 @@ DESCRIPTION:План: 75 хв · навантаження 47\n\nЛегк
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-10-24@forma-nazara
-DTSTAMP:20261113T150121Z
+DTSTAMP:20261113T170904Z
 DTSTART;VALUE=DATE:20261024
 DTEND;VALUE=DATE:20261025
 TRANSP:TRANSPARENT
@@ -134,7 +134,7 @@ DESCRIPTION:Оціночний час: 50 хв\n\nМета: Задня л
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-10-29@forma-nazara
-DTSTAMP:20261113T150121Z
+DTSTAMP:20261113T170904Z
 DTSTART;VALUE=DATE:20261029
 DTEND;VALUE=DATE:20261030
 TRANSP:TRANSPARENT
@@ -166,5 +166,44 @@ DESCRIPTION:Оціночний час: 65 хв\n\nМета: Верх ті
  для БЖЖ: тримай повну хватку\, плечі акт
  ивні.\n- Hollow body 30с\n\nhttps://nazarus15.github.io/training-da
  shboard/strength.html?s=s-2026-10-29
+END:VEVENT
+BEGIN:VEVENT
+UID:s-2026-11-13@forma-nazara
+DTSTAMP:20261113T170904Z
+DTSTART;VALUE=DATE:20261113
+DTEND;VALUE=DATE:20261114
+TRANSP:TRANSPARENT
+SUMMARY:Силове · Сила · легке повернення
+DESCRIPTION:Оціночний час: 60 хв\n\nМета: Легке п
+ овернення після двох тижнів без силови
+ х. Усе на ~75–80% від 29.10\, запас 3 повтори —
+  жодного підходу до відмови. Без затрим
+ ки дихання й натужування\, без положень 
+ головою вниз\, без ваги над обличчям. Шт
+ анга по черзі: жим лежачи → тяга в нахил
+ і → жим стоячи\, млинці лише знімаєш. По
+ в'язка на лоб від поту\, рушник поруч. Ви
+ дих на зусиллі.\n\nРозминка 8 хв\n- Скапуля
+ рні підтягування — 2x8\n- Віджимання від 
+ лавки — 2x10\n- Гоблет-присід легко — 2x8\n- 
+ Жим лежачи з грифом — 1x10\n\nA відп 2хв\n- Жи
+ м лежачи 3x6 @штанга RIR 3 // ~80% робочої ваги 
+ з 29.10. Видих на підйомі\, дихання не затр
+ имуй.\n- Підтягування зворотним хватом 3x
+ 5 @+8кг RIR 3 // Половина звичного обтяження 
+ (було +16 кг).\n\nB відп 90с\n- Тяга штанги в на
+ хилі 3x8 @штанга RIR 3 // Корпус під 45°\, голо
+ ва нейтрально — не опускай її нижче.\n- Ж
+ им штанги стоячи 3x6 @35кг RIR 3 // Було 40 кг. П
+ рес напружений\, але без затримки дихан
+ ня.\n\nC відп 60с\n- Гоблет-присід 3x10 @20кг RIR 3
+  // Легко\, тільки щоб повернути рух нога
+ м.\n- Тяга гирі в нахилі однією рукою 3x10/б
+ ік @20кг RIR 3 // Опора рукою й коліном на ла
+ вку\, погляд у підлогу без нахилу голови
+ .\n\nКоло 2x відп 1хв\n- Вис на турніку 30с // Х
+ ват для БЖЖ\, плечі активні.\n- Hollow body 20с\n\
+ nhttps://nazarus15.github.io/training-dashboard/strength.html?s=s-2026-1
+ 1-13
 END:VEVENT
 END:VCALENDAR
