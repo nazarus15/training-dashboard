@@ -101,3 +101,7 @@ a.ci:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .src{font-family:var(--f-body);font-size:11px;font-weight:600;letter-spacing:.03em;padding:2px 8px;border-radius:999px;border:1px solid currentColor;line-height:1.5;white-space:nowrap}
 .src[data-src="i"]{color:var(--accent)}
 .src[data-src="g"]{color:var(--accent-3)}
+
+/* два календарі навантаження поруч */
+.heat2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:16px 32px;align-items:start}
+.heat-h{margin-bottom:6px}

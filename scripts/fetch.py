@@ -230,7 +230,9 @@ def intervals() -> None:
                 power["curveAll"] = [[s_, ma[s_][0], ma[s_][1]] for s_ in [5, 15, 30, 60, 120, 300, 600, 1200, 1800, 3600, 5400, 7200] if s_ in ma and ma[s_][0]]
         except Exception as e:
             parts["powerAll"] = short_err(e)
-            ranks = c.get("ranks") or {}
+        # перцентилі intervals.icu (з кривої 42 днів): вікова група, інакше «усі чоловіки»
+        ranks = (c or {}).get("ranks") or {}
+        if ranks:
             age = power.get("age")
             group = None
             if age is not None:
