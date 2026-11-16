@@ -156,6 +156,11 @@ button.day:hover{background:var(--soft)}
 /* rest timer */
 .timer{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--panel);display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));z-index:20}
 .timer .num{font-size:24px;font-weight:600}
+.timer{flex-wrap:wrap;row-gap:8px}
+.tpre{flex-basis:100%;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.tpre::-webkit-scrollbar{display:none}
+.timer .tpre button{flex:1 0 auto;padding:5px 8px;font-size:13px;opacity:.85;font-variant-numeric:tabular-nums}
+.timer .tpre button[aria-pressed="true"]{background:var(--panel);color:var(--ink);opacity:1}
 .timer button{font:inherit;padding:6px 12px;border-radius:6px;border:1px solid var(--panel);background:transparent;color:var(--panel);cursor:pointer}
 .timer.over .num{color:var(--warn)}
 .timer[data-kind="work"]{background:var(--accent)}
@@ -181,17 +186,19 @@ button.day:hover{background:var(--soft)}
 .round.is-done .rset .field input{opacity:.7}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="workout.css?v=1794839951">
-<script src="auth.js?v=1794839951"></script>
+<link rel="stylesheet" href="workout.css?v=1794840600">
+<script src="auth.js?v=1794840600"></script>
 </head>
 <body>
+<header class="site"><a class="brand" href="./" aria-label="Форма Назара — Огляд"><img src="favicon.svg" alt="" width="22" height="22">Форма Назара</a>
+  <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html" aria-current="page">Силовий журнал</a><a href="records.html">Рекорди</a><a href="settings.html">Налаштування</a></nav>
+</header>
 <div class="wrap">
   <header class="top">
     <div>
       <div class="eyebrow">Домашній зал · штанга, лавка, турнік, гирі</div>
       <h1>Силовий журнал</h1>
     </div>
-    <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html" aria-current="page">Силовий журнал</a><a href="records.html">Рекорди</a><a href="settings.html">Налаштування</a></nav>
   </header>
 
   <div id="status" class="notice">Завантажую план і записи…</div>
@@ -223,10 +230,11 @@ button.day:hover{background:var(--soft)}
 
 <div class="timer" id="timer" hidden role="timer" aria-live="off">
   <div><div class="eyebrow" id="tLbl" style="color:inherit;opacity:.7">Відпочинок</div><span class="num" id="tLeft">0:00</span></div>
-  <div style="display:flex;gap:8px"><button type="button" id="tPlus">+30 с</button><button type="button" id="tStop">Закрити</button></div>
+  <div style="display:flex;gap:8px"><button type="button" id="tMinus">−15 с</button><button type="button" id="tPlus">+15 с</button><button type="button" id="tStop" aria-label="Закрити таймер">✕</button></div>
+  <div class="tpre" id="tPre" role="group" aria-label="Задати довжину таймера"></div>
 </div>
 
-<script src="workout.js?v=1794839951"></script>
-<script src="strength.js?v=1794839951"></script>
+<script src="workout.js?v=1794840600"></script>
+<script src="strength.js?v=1794840600"></script>
 </body>
 </html>

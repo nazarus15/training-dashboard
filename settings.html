@@ -15,7 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1794839951">
+<link rel="stylesheet" href="ui.css?v=1794840600">
+<link rel="stylesheet" href="workout.css?v=1794840600">
 <style>
 .card{display:flex;flex-direction:column;gap:12px}
 .card h2{font-size:20px}
@@ -56,16 +57,18 @@ h3.sub{font-size:17px;margin:4px 0 0}
 .ovg label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
 .ovg input{width:18px;height:18px;flex:none}
 </style>
-<script src="auth.js?v=1794839951"></script>
+<script src="auth.js?v=1794840600"></script>
 </head>
 <body>
+<header class="site"><a class="brand" href="./" aria-label="Форма Назара — Огляд"><img src="favicon.svg" alt="" width="22" height="22">Форма Назара</a>
+  <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="records.html">Рекорди</a><a href="settings.html" aria-current="page">Налаштування</a></nav>
+</header>
 <div class="wrap">
   <header class="top">
     <div>
       <div class="eyebrow">Форма Назара</div>
       <h1>Налаштування</h1>
     </div>
-    <nav class="tabs" aria-label="Розділи сайту"><a href="./">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="records.html">Рекорди</a><a href="settings.html" aria-current="page">Налаштування</a></nav>
   </header>
 
   <section class="card" id="healthCard">
@@ -163,8 +166,8 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <div class="acts"><button class="btn" type="submit" id="metBtn">Зберегти</button><span class="msg" id="metMsg" role="status"></span></div>
   </form>
 </div>
-<script src="workout.js?v=1794839951"></script>
-<script src="export.js?v=1794839951"></script>
+<script src="workout.js?v=1794840600"></script>
+<script src="export.js?v=1794840600"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);

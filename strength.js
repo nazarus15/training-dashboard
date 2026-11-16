@@ -374,7 +374,7 @@ function startWork(sid, key, i, rest, ss) {
   if (ex.perSide) ph.push({ kind: "work", label: `${ex.name} · перший бік`, secs: sec }, { kind: "prep", label: "Зміна боку", secs: 5 }, { kind: "work", label: `${ex.name} · другий бік`, secs: sec });
   else ph.push({ kind: "work", label: ex.name, secs: sec });
   runTimer(ph, () => {
-    if (!st.r) st.r = String(sec);
+    const real = ph.find(p => p.kind === "work").secs; if (!st.r || real !== sec) st.r = String(real);
     st.done = true; changed(sid); renderSession(); renderSchedule(); renderHistory();
     // у суперсеті відпочинок — коли відмічений увесь раунд
     const roundDone = !ss || s.exercises.filter(e => e.group === ex.group && i < e.sets).every(e => logs[sid].sets[e.key][i]?.done);
@@ -386,7 +386,7 @@ function tick() {
   if (!T) return;
   const ph = T.phases[T.i], left = Math.ceil((T.end - Date.now()) / 1000);
   $("timer").dataset.kind = ph.kind; $("tLbl").textContent = ph.label;
-  $("tPlus").textContent = ph.kind === "rest" ? "+30 с" : "+10 с";
+  renderPresets();
   if (left > 0) {
     $("tLeft").textContent = Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0");
     if (ph.kind !== "rest" && left <= 3 && T.last !== left) { T.last = left; beep(660, 90); }
@@ -399,7 +399,24 @@ function tick() {
   }
   const done = T.onDone; clearInterval(tInt); T = null; beep(1175, 300, 2); done?.();
 }
-$("tPlus").onclick = () => { if (!T) return; T.end += (T.phases[T.i].kind === "rest" ? 30 : 10) * 1000; $("timer").classList.remove("over"); tick(); };
+// швидка зміна довжини: ±15 с або готові значення — для поточного відліку (відпочинку чи роботи)
+const PRESETS = { rest: [30, 45, 60, 90, 120, 180], work: [20, 30, 45, 60, 90], prep: [3, 5, 10] };
+const fmtP = x => x < 60 ? `${x} с` : `${Math.floor(x / 60)}:${String(x % 60).padStart(2, "0")}`;
+function adjust(ms) { if (!T) return; T.end = Math.max(Date.now() + 1000, T.end + ms); $("timer").classList.remove("over"); tick(); }
+function renderPresets() {
+  const k = T?.phases[T.i]?.kind || "rest", cur = T ? T.phases[T.i].secs : 0;
+  if ($("tPre").dataset.k === k + cur) return; $("tPre").dataset.k = k + cur;
+  $("tPre").innerHTML = (PRESETS[k] || PRESETS.rest).map(x => `<button type="button" data-preset="${x}" aria-pressed="${x === cur}">${fmtP(x)}</button>`).join("");
+}
+$("tPre").onclick = e => {
+  const b = e.target.closest("[data-preset]"); if (!b || !T) return;
+  const x = +b.dataset.preset, ph = T.phases[T.i];
+  // для вправи на час нова довжина діє і на другий бік
+  if (ph.kind === "work") T.phases.forEach(p => { if (p.kind === "work") p.secs = x; }); else ph.secs = x;
+  T.end = Date.now() + x * 1000; T.last = null; $("timer").classList.remove("over"); tick();
+};
+$("tPlus").onclick = () => adjust(15000);
+$("tMinus").onclick = () => adjust(-15000);
 $("tStop").onclick = () => { clearInterval(tInt); T = null; $("timer").hidden = true; $("timer").classList.remove("over"); };
 
 

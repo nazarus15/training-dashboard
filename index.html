@@ -159,18 +159,20 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 footer p{margin:0;max-width:90ch}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
-<link rel="stylesheet" href="workout.css?v=1794839951">
-<script src="auth.js?v=1794839951"></script>
+<link rel="stylesheet" href="workout.css?v=1794840600">
+<script src="auth.js?v=1794840600"></script>
 </head>
 <body>
 
 
+<header class="site"><a class="brand" href="./" aria-label="Форма Назара — Огляд"><img src="favicon.svg" alt="" width="22" height="22">Форма Назара</a>
+  <nav class="tabs" aria-label="Розділи сайту"><a href="./" aria-current="page">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="records.html">Рекорди</a><a href="settings.html">Налаштування</a></nav>
+</header>
 <div class="wrap">
   <header class="top">
     <div>
       <div class="eyebrow">Тренувальний стан · БЖЖ + велосипед + сила</div>
-      <h1>Форма Назара</h1>
-      <nav class="tabs" aria-label="Розділи сайту"><a href="./" aria-current="page">Огляд</a><a href="calendar.html">Календар</a><a href="planner.html">Планер</a><a href="strength.html">Силовий журнал</a><a href="records.html">Рекорди</a><a href="settings.html">Налаштування</a></nav>
+      <h1>Огляд</h1>
     </div>
     <div class="meta"><span id="updated">Завантаження даних…</span><br>Дані: intervals.icu, Garmin Connect</div>
   </header>
@@ -225,8 +227,8 @@ footer p{margin:0;max-width:90ch}
         <h3>Календар навантаження</h3>
         <p class="note">Ті самі дні в обох платформах. Насиченість клітинки — відносно важкого дня саме цієї платформи, бо шкали різні.</p>
         <div class="heat2">
-          <div><div class="eyebrow heat-h"><span class="src" data-src="i">intervals.icu</span></div><div class="tbl-wrap" style="border:none;background:transparent"><div id="heat"></div></div></div>
-          <div><div class="eyebrow heat-h"><span class="src" data-src="g">Garmin</span></div><div class="tbl-wrap" style="border:none;background:transparent"><div id="heatG"></div></div></div>
+          <div class="heat-pane" style="--hc:var(--accent)"><div class="hp-h"><span class="dot"></span><b>intervals.icu</b><small id="heatSum"></small></div><div class="heat-scroll"><div id="heat"></div></div></div>
+          <div class="heat-pane" style="--hc:var(--accent-3)"><div class="hp-h"><span class="dot"></span><b>Garmin</b><small id="heatGSum"></small></div><div class="heat-scroll"><div id="heatG"></div></div></div>
         </div>
       </div>
       <div data-blk="c:intervals-проти-garmin" data-name="intervals.icu проти Garmin" class="card full">
@@ -335,7 +337,7 @@ footer p{margin:0;max-width:90ch}
   </footer>
 </div>
 
-<script src="workout.js?v=1794839951"></script>
-<script src="app.js?v=1794839951"></script>
+<script src="workout.js?v=1794840600"></script>
+<script src="app.js?v=1794840600"></script>
 </body>
 </html>
