@@ -158,6 +158,12 @@ button.day:hover{background:var(--soft)}
 .timer .num{font-size:24px;font-weight:600}
 .timer button{font:inherit;padding:6px 12px;border-radius:6px;border:1px solid var(--panel);background:transparent;color:var(--panel);cursor:pointer}
 .timer.over .num{color:var(--warn)}
+.timer[data-kind="work"]{background:var(--accent)}
+.timer[data-kind="prep"]{background:color-mix(in srgb,var(--accent) 55%,var(--ink))}
+.timer[data-kind="work"] .num{font-size:30px}
+.play{font:inherit;font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;white-space:nowrap;font-variant-numeric:tabular-nums}
+.play:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.set.is-done .play,.round.is-done .play{opacity:.5}
 .timer .go{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-display);font-size:28px;font-weight:700;letter-spacing:.02em;color:var(--warn);animation:goGlow 1s ease-in-out infinite alternate}
 @keyframes goGlow{from{opacity:.8;text-shadow:none}to{opacity:1;text-shadow:0 0 12px var(--warn)}}
 /* суперсет: вправи зверху, раунди з однією галочкою на пару */
@@ -175,8 +181,8 @@ button.day:hover{background:var(--soft)}
 .round.is-done .rset .field input{opacity:.7}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="workout.css?v=1793294195">
-<script src="auth.js?v=1793294195"></script>
+<link rel="stylesheet" href="workout.css?v=1794839327">
+<script src="auth.js?v=1794839327"></script>
 </head>
 <body>
 <div class="wrap">
@@ -216,11 +222,11 @@ button.day:hover{background:var(--soft)}
 </div>
 
 <div class="timer" id="timer" hidden role="timer" aria-live="off">
-  <div><div class="eyebrow" style="color:inherit;opacity:.7">Відпочинок</div><span class="num" id="tLeft">0:00</span></div>
+  <div><div class="eyebrow" id="tLbl" style="color:inherit;opacity:.7">Відпочинок</div><span class="num" id="tLeft">0:00</span></div>
   <div style="display:flex;gap:8px"><button type="button" id="tPlus">+30 с</button><button type="button" id="tStop">Закрити</button></div>
 </div>
 
-<script src="workout.js?v=1793294195"></script>
-<script src="strength.js?v=1793294195"></script>
+<script src="workout.js?v=1794839327"></script>
+<script src="strength.js?v=1794839327"></script>
 </body>
 </html>

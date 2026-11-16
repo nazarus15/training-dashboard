@@ -159,8 +159,8 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 footer p{margin:0;max-width:90ch}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
-<link rel="stylesheet" href="workout.css?v=1793294195">
-<script src="auth.js?v=1793294195"></script>
+<link rel="stylesheet" href="workout.css?v=1794839327">
+<script src="auth.js?v=1794839327"></script>
 </head>
 <body>
 
@@ -188,41 +188,41 @@ footer p{margin:0;max-width:90ch}
     <div class="sec-head"><h2>Навантаження і форма</h2><p>Модель Банистера (intervals.icu): фітнес = 42-денне середнє навантаження, втома = 7-денне, форма = різниця. Garmin рахує своє навантаження окремо за пульсом браслета.</p></div>
     <div class="grid">
       <div data-blk="c:фітнес-втома-форма" data-name="Фітнес, втома, форма" class="card full">
-        <h3>Фітнес, втома, форма</h3>
+        <h3 class="h-src">Фітнес, втома, форма<span class="src" data-src="i" title="Навантаження рахує intervals.icu (за потужністю або пульсом)">intervals.icu</span></h3>
         <div class="legend"><span><i style="background:var(--accent)"></i>Фітнес (CTL)</span><span><i style="background:var(--accent-3)"></i>Втома (ATL)</span><span><i style="background:var(--accent-2)"></i>Форма (TSB)</span><span><i style="background:var(--z1)"></i>Навантаження за день</span></div>
         <div class="chart tall"><canvas id="cPmc" aria-label="Графік фітнесу, втоми і форми"></canvas></div>
         <p class="note">Зони форми: вище +5 свіжий, від −10 до +5 сіра зона, від −30 до −10 оптимальна для росту, нижче −30 ризик перевтоми.</p>
       </div>
       <div data-blk="c:тижневе-навантаження-за-видами" data-name="Тижневе навантаження за видами" class="card">
-        <h3>Тижневе навантаження за видами</h3>
+        <h3 class="h-src">Тижневе навантаження за видами<span class="src" data-src="i" title="Навантаження рахує intervals.icu (за потужністю або пульсом)">intervals.icu</span></h3>
         <div class="legend" id="lgWeek"></div>
         <div class="chart"><canvas id="cWeek" aria-label="Тижневе навантаження"></canvas></div>
       </div>
       <div data-blk="c:гостре-і-хронічне-навантаження" data-name="Гостре і хронічне навантаження" class="card">
-        <h3>Гостре і хронічне навантаження</h3>
+        <h3 class="h-src">Гостре і хронічне навантаження<span class="src" data-src="g" title="Навантаження рахує Garmin (за пульсом браслета)">Garmin</span></h3>
         <p class="note">За навантаженням Garmin з кожного тренування: гостре — сума за 7 днів, хронічне — середнє на тиждень за 4 тижні. Коридор 0,8–1,5 від хронічного — зона безпечного росту.</p>
         <div class="legend"><span><i style="background:var(--accent-2)"></i>Гостре (7 дн.)</span><span><i style="background:var(--accent)"></i>Хронічне</span><span><i style="background:color-mix(in srgb,var(--good) 30%,transparent)"></i>Оптимальний коридор</span></div>
         <div class="chart"><canvas id="cAcute" aria-label="Гостре і хронічне навантаження Garmin"></canvas></div>
       </div>
       <div data-blk="c:баланс-навантаження-за-4-тижні" data-name="Баланс навантаження за 4 тижні" class="card">
-        <h3>Баланс навантаження за 4 тижні</h3>
+        <h3 class="h-src">Баланс навантаження за 4 тижні<span class="src" data-src="g" title="Навантаження рахує Garmin (за пульсом браслета)">Garmin</span></h3>
         <p class="note">Навантаження Garmin за 28 днів, розкладене за ефектом кожного тренування. Смуга — орієнтир за логікою Garmin, маркер — твій факт.</p>
         <div id="balance" style="display:flex;flex-direction:column;gap:14px"></div>
       </div>
       <div data-blk="c:монотонність-і-strain-метод-фостера" data-name="Монотонність і strain (метод Фостера)" class="card">
-        <h3>Монотонність і strain (метод Фостера)</h3>
+        <h3 class="h-src">Монотонність і strain (метод Фостера)<span class="src" data-src="i" title="Навантаження рахує intervals.icu (за потужністю або пульсом)">intervals.icu</span></h3>
         <p class="note">Монотонність = середнє / стандартне відхилення денного навантаження за 7 днів. Вище 2,0 тиждень надто одноманітний, ризик перевтоми росте. Strain = тижневе навантаження × монотонність.</p>
         <div class="chart short"><canvas id="cMono" aria-label="Монотонність тренувань"></canvas></div>
       </div>
       <div data-blk="c:ціна-тренувань-за-даними-браслета" data-name="Ціна тренувань за даними браслета" class="card full">
-        <h3>Ціна тренувань за даними браслета</h3>
+        <h3 class="h-src">Ціна тренувань за даними браслета<span class="src" data-src="g" title="Навантаження рахує Garmin (за пульсом браслета)">Garmin</span></h3>
         <p class="note">Те, що Garmin рахує для кожного тренування, але майже не показує: власне навантаження, аеробний і анаеробний Training Effect, скільки Body Battery забрало тренування, і оцінка втрати рідини з потом.</p>
         <dl class="kv" id="costKv"></dl>
         <div class="tbl-wrap cost-wrap"><table id="costTbl"></table></div>
         <div class="cost-list" id="costList"></div>
       </div>
       <div data-blk="c:календар-навантаження" data-name="Календар навантаження" class="card full">
-        <h3>Календар навантаження</h3>
+        <h3 class="h-src">Календар навантаження<span class="src" data-src="i" title="Навантаження рахує intervals.icu (за потужністю або пульсом)">intervals.icu</span></h3>
         <div class="tbl-wrap" style="border:none;background:transparent"><div id="heat"></div></div>
       </div>
     </div>
@@ -326,7 +326,7 @@ footer p{margin:0;max-width:90ch}
   </footer>
 </div>
 
-<script src="workout.js?v=1793294195"></script>
-<script src="app.js?v=1793294195"></script>
+<script src="workout.js?v=1794839327"></script>
+<script src="app.js?v=1794839327"></script>
 </body>
 </html>

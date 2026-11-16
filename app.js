@@ -74,6 +74,9 @@ function run(W, A, P, G) {
   const mondayOf = d => { const dt = new Date(d + "T12:00:00"); const wd = (dt.getDay() + 6) % 7; dt.setDate(dt.getDate() - wd); return dt.toISOString().slice(0, 10); };
   const weeks = {};
   acts.forEach(a => { const w = mondayOf(a.day); if (w < mondayOf(since70)) return; weeks[w] ??= { bike: 0, bjj: 0, str: 0, other: 0, rest: 0, secs: 0 }; weeks[w][a.sport] += a.load || 0; weeks[w].secs += a.moving || 0; });
+  // усі тижні підряд від початку вікна до поточного, навіть без тренувань (пропуски видно нулем)
+  const blankW = () => ({ bike: 0, bjj: 0, str: 0, other: 0, rest: 0, secs: 0 });
+  for (let w = mondayOf(since70), end = mondayOf(today.date); w <= end; w = shift(w, 7)) weeks[w] ??= blankW();
   const weekKeys = Object.keys(weeks).sort();
 
   const days = wr.map(r => r.date);
@@ -262,7 +265,7 @@ function run(W, A, P, G) {
   function zbar(z) { const tot = z.reduce((a, b) => a + (b || 0), 0) || 1; const cs = ["--z1", "--z2", "--z3", "--z4", "--z6"]; return `<span class="zbar" title="${z.slice(0, 5).map((s, i) => `Z${i + 1}: ${Math.round((s || 0) / 60)} хв`).join(" · ")}">${z.slice(0, 5).map((s, i) => `<i style="width:${(s || 0) / tot * 100}%;background:var(${cs[i]})"></i>`).join("")}</span>`; }
   const cols = [
     ["Дата", "date", a => a.date.replace("T", " "), "l"], ["Вид", "sport", a => SPORTS[a.sport][0], "l"], ["Назва", "name", a => esc(a.name), "l name"],
-    ["Час", "moving", a => fmtDur(a.moving)], ["Км", "distKm", a => a.distKm ?? "—"], ["Навант.", "load", a => a.load ?? "—"],
+    ["Час", "moving", a => fmtDur(a.moving)], ["Км", "distKm", a => a.distKm ?? "—"], ["Навант. intervals", "load", a => a.load ?? "—"],
     ["Інтенс.", "intensity", a => a.intensity != null ? a.intensity + "%" : "—"], ["Пульс", "avgHr", a => a.avgHr ?? "—"], ["Макс", "maxHr", a => a.maxHr ?? "—"],
     ["TRIMP", "trimp", a => a.trimp ?? "—"], ["Зони пульсу", "z", a => a.hrZones ? zbar(a.hrZones) : "—"],
     ["Вт", "avgW", a => a.avgW ?? "—"], ["NP", "np", a => a.np ?? "—"], ["EF", "ef", a => a.ef ?? "—"], ["Decoupl.", "decoupling", a => a.decoupling != null ? a.decoupling + "%" : "—"],

@@ -351,6 +351,14 @@ window.WK = (() => {
   // ---------- календар: план + intervals ----------
   const SPORT = { bike: ["Вело", "#3c8dd0"], strength: ["Силове", "#e0761b"], bjj: ["БЖЖ", "#7a4cc2"], run: ["Біг", "#2ea36b"], other: ["Інше", "#8a96a3"] };
   const evSport = t => /ride|cycl/i.test(t || "") ? "bike" : /run/i.test(t || "") ? "run" : "other";
+  // фактично виконане силове: лише відмічені підходи. Невідмічені вправи не зараховуються (ефекти, список вправ, рекорди).
+  // null — у журналі ще жодної відмітки, тоді показуємо план.
+  function doneSession(s, L) {
+    if (!s?.exercises?.length || !L || L.deleted) return null;
+    const ex = s.exercises.map(e => ({ ...e, sets: (L.sets?.[e.key] || []).filter(x => x.done).length })).filter(e => e.sets > 0);
+    if (!ex.length && !L.startedAt && L.status !== "done") return null;
+    return { ...s, exercises: ex, planned: s.exercises.length };
+  }
   function session(w) { const p = parse(w.text); return { ...p, id: w.id, date: w.date, title: w.title || p.title || "Силове", mins: w.mins || p.mins }; }
   function items(planned, events, from, to) {
     const out = [];
@@ -409,5 +417,5 @@ window.WK = (() => {
     if (!token()) return false;
     try { const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/update.yml/dispatches`, { method: "POST", headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main" }) }); return r.ok; } catch { return false; }
   }
-  return { bikeSteps, bikeStepsHtml, gcalCache, gcalPush, gcalFlush, gcalSyncJournal, strengthOverride, triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
+  return { bikeSteps, bikeStepsHtml, gcalCache, gcalPush, gcalFlush, gcalSyncJournal, strengthOverride, triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, doneSession, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();

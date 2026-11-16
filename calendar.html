@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1793294195">
-<link rel="stylesheet" href="workout.css?v=1793294195">
+<link rel="stylesheet" href="ui.css?v=1794839327">
+<link rel="stylesheet" href="workout.css?v=1794839327">
 <style>
 /* Layout: місяць як стовпчик тижнів; кожен день — рядок із запланованими й виконаними тренуваннями. */
 .wrap{max-width:1100px}
@@ -49,10 +49,12 @@
 .pweek.other h3{opacity:.7}
 .pday ol.bsteps li.bsec{font-weight:600;color:var(--ink);margin-top:4px}
 .pday ol.bsteps small{color:var(--muted);font-size:11px}
+.pday li.skipped{opacity:.55;text-decoration:line-through}
+.pday li.skipped .num{text-decoration:none}
 .pday .addprog{font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;width:fit-content}
 .pday .t small.fxsrc{font-size:11px;font-family:var(--f-data)}
 </style>
-<script src="auth.js?v=1793294195"></script>
+<script src="auth.js?v=1794839327"></script>
 </head>
 <body>
 <div class="wrap">
@@ -74,7 +76,7 @@
   <div class="plan-weeks" id="cal"><div class="notice">Завантажую…</div></div>
   <div id="leg"></div>
 </div>
-<script src="workout.js?v=1793294195"></script>
+<script src="workout.js?v=1794839327"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id), esc = WK.esc;
@@ -95,7 +97,7 @@ const sportOf = a => {
 };
 let PD, EV, JL, ACTS = [], cur, FTP = null;
 
-function actLine(a) { return `Факт: ${fmtDur(a.moving)}${a.np ? ` · NP ${a.np} Вт` : a.avgW ? ` · ${a.avgW} Вт` : ""}${a.load ? ` · навант. ${a.load}` : ""}${a.avgHr ? ` · пульс ${a.avgHr}` : ""}`; }
+function actLine(a) { return `Факт: ${fmtDur(a.moving)}${a.np ? ` · NP ${a.np} Вт` : a.avgW ? ` · ${a.avgW} Вт` : ""}${a.load ? ` · навант. intervals ${a.load}` : ""}${a.avgHr ? ` · пульс ${a.avgHr}` : ""}`; }
 function dayHead(s) { const d = dd(s); return `<span class="d">${DOW[d.getDay()]}<b>${d.getDate()}.${String(d.getMonth() + 1).padStart(2, "0")}</b></span>`; }
 
 function render() {
@@ -122,12 +124,14 @@ function render() {
     else if (d === t) pill = `<span class="pill today">Сьогодні</span>`;
     else pill = `<span class="pill plan">План</span>`;
     const afx = it.sport === "bike" && actual[0] ? WK.actEffects(actual[0]) : null;
-    const fx = afx || it.fx;
+    // силове з відмітками в журналі: ефект і вправи — лише з відмічених підходів
+    const ds = it.sport === "strength" && it.sess ? WK.doneSession(it.sess, jl) : null;
+    const fx = afx || (ds ? WK.strengthEffects(ds) : it.fx);
     const main = fx?.main ? WK.FX[fx.main] : null;
-    const detail = [WK.fmtMin(it.mins), it.time, it.load ? `навант. ${it.load}` : ""].filter(Boolean).join(" · ");
+    const detail = [WK.fmtMin(it.mins), it.time, it.load ? `навант. intervals ${it.load}` : ""].filter(Boolean).join(" · ");
     const s = it.sess;
     const noProg = it.sport === "strength" && s && !s.exercises?.length ? `<a class="addprog" href="strength.html?s=${encodeURIComponent(it.id)}">+ Додати програму</a>` : "";
-    const exList = it.sport === "bike" && it.ev?.desc ? WK.bikeStepsHtml(it.ev.desc, FTP) : noProg ? noProg : s?.exercises?.length ? `<details><summary>Вправи (${s.exercises.length})</summary><ol>${s.exercises.map(e => `<li><b>${esc(e.name)}</b><span class="num">${e.sets}×${esc(e.reps)}${e.type === "time" ? " с" : ""}${e.perSide ? "/бік" : ""}</span></li>`).join("")}</ol></details>` : "";
+    const exList = it.sport === "bike" && it.ev?.desc ? WK.bikeStepsHtml(it.ev.desc, FTP) : noProg ? noProg : ds ? `<details><summary>Виконано вправ: ${ds.exercises.length} з ${ds.planned}</summary><ol>${s.exercises.map(e => { const d = ds.exercises.find(x => x.key === e.key); return `<li class="${d ? "" : "skipped"}"><b>${esc(e.name)}</b><span class="num">${d ? `${d.sets} з ${e.sets}` : "не відмічено"}</span></li>`; }).join("")}</ol></details>` : s?.exercises?.length ? `<details><summary>Вправи (${s.exercises.length})</summary><ol>${s.exercises.map(e => `<li><b>${esc(e.name)}</b><span class="num">${e.sets}×${esc(e.reps)}${e.type === "time" ? " с" : ""}${e.perSide ? "/бік" : ""}</span></li>`).join("")}</ol></details>` : "";
     const title = it.sport === "strength" ? `<a href="strength.html?s=${encodeURIComponent(it.id)}">${esc(it.title)}</a>` : it.src === "planner" ? `<a href="planner.html?edit=${encodeURIComponent(it.id)}">${esc(it.title)}</a>` : esc(it.title);
     return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}</span>${pill}</span>${it.sport === "bjj" ? "" : `<strong>${title}</strong>`}${detail ? `<small>${esc(detail)}</small>` : ""}${actual[0] ? `<small class="act">${actLine(actual[0])}</small>` : ""}${WK.barsHtml(fx)}${afx ? `<small class="fxsrc">Ефект за фактом${afx.by === "hr" ? " (за пульсом)" : ""}</small>` : ""}${exList}`;
   };

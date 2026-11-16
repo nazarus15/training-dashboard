@@ -185,7 +185,7 @@ function renderSchedule() {
   };
   // старіші за цей тиждень — згорнуті, найновіші зверху, по тижнях
   const old = Object.values(sessions).filter(s => s.date < from).sort((a, b) => a.date < b.date ? 1 : -1);
-  const fx = s => WK.strengthEffects(s)?.main;
+  const fx = s => WK.strengthEffects(WK.doneSession(s, logs[s.id]) || s)?.main;
   const oldWeeks = old.reduce((o, s) => { const k = WK.monday(s.date); (o[k] ??= []).push(s); return o; }, {});
   const fmtW = k => { const a = dObj(k), b = dObj(WK.addDays(k, 6)); return `${a.getDate()} ${MON[a.getMonth()]} – ${b.getDate()} ${MON[b.getMonth()]}`; };
   const openOld = old.some(s => s.id === selected);
@@ -209,7 +209,7 @@ function renderSession() {
     <label class="f2">Кінець<input type="datetime-local" name="en" value="${loc(L.finishedAt)}"></label>
     <button class="btn" type="submit">Зберегти час</button><span class="muted" style="font-size:12px">Без кінця тренування вважається незавершеним. Час піде в журнал і в Google Calendar.</span></form></details>` : "";
   let html = `<div class="s-head"><div class="eyebrow">${DOW[dObj(s.date).getDay()]}, ${fmtDay(s.date)} · оцінка ${WK.fmtMin(s.mins)}${s.manual ? " · додано вручну" : ""}</div>
-    <div class="row"><h3 style="font-size:28px">${esc(s.title)}</h3>${statusPill(s, L)}</div>${s.goal ? `<p>${esc(s.goal)}</p>` : ""}${WK.barsHtml(WK.strengthEffects(s))}${timing}${tEdit}<a class="muted" style="font-size:13px" href="planner.html?edit=${encodeURIComponent(s.id)}">Змінити в Планері</a></div>`;
+    <div class="row"><h3 style="font-size:28px">${esc(s.title)}</h3>${statusPill(s, L)}</div>${s.goal ? `<p>${esc(s.goal)}</p>` : ""}${(() => { const ds = WK.doneSession(s, logs[s.id]); return WK.barsHtml(WK.strengthEffects(ds || s)) + (ds ? `<div class="muted" style="font-size:12px">Ефект за відміченими підходами: ${ds.exercises.length} з ${ds.planned} вправ</div>` : ""); })()}${timing}${tEdit}<a class="muted" style="font-size:13px" href="planner.html?edit=${encodeURIComponent(s.id)}">Змінити в Планері</a></div>`;
   if (!(s.exercises || []).length) html += `<div class="block"><div class="eyebrow">Програми ще немає</div><form data-progform="${esc(s.id)}" class="progform">
     <p class="muted" style="margin:0;font-size:13px">Додай вправи — з'являться підходи, щоб записати ваги й повтори. Формат як у Планері: одна вправа на рядок.</p>
     <textarea name="prog" rows="6" placeholder="- Жим лежачи 4x6 @штанга відп 2хв&#10;- Підтягування 4x5 @вага тіла&#10;- Жим штанги стоячи 3x8 @40кг"></textarea>
@@ -228,7 +228,7 @@ function renderSession() {
         <div class="ex-meta">${ex.cue ? `<span>${esc(ex.cue)}</span>` : ""}${prev ? `<span>Минулого разу (${fmtDay(prev.date)}): <span class="num">${esc(describe(prev, ex.type))}</span></span>` : `<span>${esc(ex.firstTime || { bw: "Перший раз: стільки повторів, скільки чисто, із запасом 1–2.", time: "Перший раз: тримай стільки, скільки виходить рівно, без провисання.", kb: "Перший раз: гиря, з якою лишається запас 2 повтори." }[ex.type] || "Перший раз: підбери вагу, з якою лишається запас повторів.")}</span>`}${hint ? `<span class="prog">${esc(hint)}</span>` : ""}</div>
         <div class="sets">${L.sets[ex.key].map((st, i) => `<div class="set${st.done ? " is-done" : ""}">
           <span class="n">${i + 1}</span>
-          ${ex.type === "time" ? `<span class="muted" style="font-size:13px">${ex.perSide ? "кожен бік" : ""}</span>` : `<label class="field"><input id="w-${esc(id)}-${i}" inputmode="decimal" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="w" value="${esc(st.w)}" placeholder="${ex.type === "bw" ? "0" : "—"}" aria-label="${esc(ex.name)}, підхід ${i + 1}, вага"><span>${unit}</span></label>`}
+          ${ex.type === "time" ? playBtn(s, ex, i, ex.rest || 0, `підхід ${i + 1}`) : `<label class="field"><input id="w-${esc(id)}-${i}" inputmode="decimal" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="w" value="${esc(st.w)}" placeholder="${ex.type === "bw" ? "0" : "—"}" aria-label="${esc(ex.name)}, підхід ${i + 1}, вага"><span>${unit}</span></label>`}
           <span class="x">${ex.type === "time" ? "" : "×"}</span>
           <label class="field"><input id="r-${esc(id)}-${i}" inputmode="numeric" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="r" value="${esc(st.r)}" aria-label="${esc(ex.name)}, підхід ${i + 1}, ${ex.type === "time" ? "секунди" : "повтори"}"><span>${ru}</span></label>
           <button type="button" class="check" aria-pressed="${st.done}" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-rest="${ex.rest || 0}" aria-label="Підхід ${i + 1} виконано">✓</button></div>`).join("")}</div></div>`;
@@ -278,7 +278,7 @@ function supersetHtml(s, L, g, exs) {
     const inRound = exs.filter(e => i < e.sets), done = inRound.every(e => L.sets[e.key][i]?.done);
     h += `<div class="round${done ? " is-done" : ""}"><span class="n">${i + 1}</span><div class="rrows">${inRound.map(ex => {
       const st = L.sets[ex.key][i], id = `${s.id}-${ex.key}`, unit = UNIT[ex.type] ?? "кг", ru = REPS_UNIT[ex.type] || "повт";
-      return `<div class="rset"><span class="tag">${esc(ex.label)}</span>${ex.type === "time" ? `<span class="muted" style="font-size:13px">${ex.perSide ? "кожен бік" : ""}</span>` : `<label class="field"><input id="w-${esc(id)}-${i}" inputmode="decimal" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="w" value="${esc(st.w)}" placeholder="${ex.type === "bw" ? "0" : "—"}" aria-label="${esc(ex.name)}, раунд ${i + 1}, вага"><span>${unit}</span></label>`}<span class="x">${ex.type === "time" ? "" : "×"}</span><label class="field"><input id="r-${esc(id)}-${i}" inputmode="numeric" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="r" value="${esc(st.r)}" aria-label="${esc(ex.name)}, раунд ${i + 1}, ${ex.type === "time" ? "секунди" : "повтори"}"><span>${ru}</span></label></div>`;
+      return `<div class="rset"><span class="tag">${esc(ex.label)}</span>${ex.type === "time" ? playBtn(s, ex, i, rest, `раунд ${i + 1}`, true) : `<label class="field"><input id="w-${esc(id)}-${i}" inputmode="decimal" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="w" value="${esc(st.w)}" placeholder="${ex.type === "bw" ? "0" : "—"}" aria-label="${esc(ex.name)}, раунд ${i + 1}, вага"><span>${unit}</span></label>`}<span class="x">${ex.type === "time" ? "" : "×"}</span><label class="field"><input id="r-${esc(id)}-${i}" inputmode="numeric" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="r" value="${esc(st.r)}" aria-label="${esc(ex.name)}, раунд ${i + 1}, ${ex.type === "time" ? "секунди" : "повтори"}"><span>${ru}</span></label></div>`;
     }).join("")}</div><button type="button" class="check round-check" aria-pressed="${done}" data-s="${esc(s.id)}" data-keys="${esc(inRound.map(e => e.key).join(","))}" data-i="${i}" data-rest="${rest}" aria-label="Раунд ${i + 1} суперсету виконано">✓</button></div>`;
   }
   return h + `</div></div>`;
@@ -323,6 +323,8 @@ document.addEventListener("input", e => {
 document.addEventListener("click", e => {
   const day = e.target.closest("button.day");
   if (day) { selected = day.dataset.s; render(); $("sessionWrap").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); return; }
+  const play = e.target.closest("[data-work]");
+  if (play) { const d = play.dataset; if (!logs[d.s].startedAt) startSession(d.s, true); startWork(d.s, d.k, +d.i, +d.rest || 0, d.ss === "1"); return; }
   const rc = e.target.closest(".round-check");
   if (rc && !logs[rc.dataset.s].startedAt) startSession(rc.dataset.s, true);
   if (rc) { const sets = rc.dataset.keys.split(",").map(k => logs[rc.dataset.s].sets[k][+rc.dataset.i]); const v = !sets.every(x => x.done); sets.forEach(x => x.done = v); changed(rc.dataset.s); renderSession(); renderSchedule(); renderHistory(); if (v && +rc.dataset.rest) startTimer(+rc.dataset.rest); return; }
@@ -344,17 +346,61 @@ document.addEventListener("click", e => {
   }
 });
 
-// ---------- rest timer ----------
-let tEnd = 0, tInt = null;
-function startTimer(sec) { tEnd = Date.now() + sec * 1000; $("timer").hidden = false; tick(); clearInterval(tInt); tInt = setInterval(tick, 250); }
-function tick() {
-  const left = Math.round((tEnd - Date.now()) / 1000), go = left <= 0;
-  if (go) { if (!$("timer").classList.contains("over")) { $("tLeft").innerHTML = `<span class="go"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>Працюєм!!!</span>`; try { navigator.vibrate?.([200, 100, 200]); } catch { } } }
-  else $("tLeft").textContent = Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0");
-  $("timer").classList.toggle("over", go);
+// ---------- таймер: відпочинок між підходами і робота у вправах на час ----------
+// Фази йдуть одна за одною: «Готуйсь» 5 с → робота → (зміна боку → робота) → відпочинок.
+let T = null, tInt = null, actx = null;
+const secsOf = v => { const m = String(v ?? "").match(/\d+/g); return m ? +m[m.length - 1] : 0; };
+function playBtn(s, ex, i, rest, what, ss) {
+  const st = logs[s.id]?.sets?.[ex.key]?.[i] || {}, sec = secsOf(st.r) || secsOf(ex.reps);
+  return `<button type="button" class="play" data-work="1" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-rest="${rest}" data-ss="${ss ? 1 : 0}" aria-label="Запустити таймер: ${esc(ex.name)}, ${what}, ${sec} с${ex.perSide ? " на кожен бік" : ""}">▶ ${sec} с${ex.perSide ? " ×2" : ""}</button>`;
 }
-$("tPlus").onclick = () => { tEnd += 30000; tick(); };
-$("tStop").onclick = () => { clearInterval(tInt); $("timer").hidden = true; };
+function beep(f = 880, ms = 160, n = 1) {
+  try {
+    actx ??= new (window.AudioContext || window.webkitAudioContext)(); actx.resume?.();
+    for (let k = 0; k < n; k++) { const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime + k * (ms + 90) / 1000; o.frequency.value = f; g.gain.setValueAtTime(.25, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + ms / 1000); o.connect(g).connect(actx.destination); o.start(t0); o.stop(t0 + ms / 1000 + .02); }
+  } catch { }
+  try { navigator.vibrate?.(n > 1 ? [200, 100, 200] : 120); } catch { }
+}
+function runTimer(phases, onDone) {
+  T = { phases, i: 0, end: Date.now() + phases[0].secs * 1000, onDone, last: null };
+  $("timer").hidden = false; $("timer").classList.remove("over"); clearInterval(tInt); tick(); tInt = setInterval(tick, 200);
+}
+function startTimer(sec) { runTimer([{ kind: "rest", label: "Відпочинок", secs: sec }]); }
+function startWork(sid, key, i, rest, ss) {
+  const s = sessions[sid], ex = s.exercises.find(e => e.key === key), st = logs[sid].sets[key][i];
+  const sec = secsOf(st.r) || secsOf(ex.reps); if (!sec) return;
+  beep(660, 60); // «розбудити» звук на iOS — першим дотиком користувача
+  const ph = [{ kind: "prep", label: `Готуйсь · ${ex.name}`, secs: 5 }];
+  if (ex.perSide) ph.push({ kind: "work", label: `${ex.name} · перший бік`, secs: sec }, { kind: "prep", label: "Зміна боку", secs: 5 }, { kind: "work", label: `${ex.name} · другий бік`, secs: sec });
+  else ph.push({ kind: "work", label: ex.name, secs: sec });
+  runTimer(ph, () => {
+    if (!st.r) st.r = String(sec);
+    st.done = true; changed(sid); renderSession(); renderSchedule(); renderHistory();
+    // у суперсеті відпочинок — коли відмічений увесь раунд
+    const roundDone = !ss || s.exercises.filter(e => e.group === ex.group && i < e.sets).every(e => logs[sid].sets[e.key][i]?.done);
+    if (rest && roundDone) startTimer(rest);
+    else { $("tLbl").textContent = "Готово"; $("tLeft").textContent = "✓"; setTimeout(() => { if (!T) $("timer").hidden = true; }, 2500); }
+  });
+}
+function tick() {
+  if (!T) return;
+  const ph = T.phases[T.i], left = Math.ceil((T.end - Date.now()) / 1000);
+  $("timer").dataset.kind = ph.kind; $("tLbl").textContent = ph.label;
+  $("tPlus").textContent = ph.kind === "rest" ? "+30 с" : "+10 с";
+  if (left > 0) {
+    $("tLeft").textContent = Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0");
+    if (ph.kind !== "rest" && left <= 3 && T.last !== left) { T.last = left; beep(660, 90); }
+    return;
+  }
+  if (T.i < T.phases.length - 1) { T.i++; T.last = null; T.end = Date.now() + T.phases[T.i].secs * 1000; beep(T.phases[T.i].kind === "work" ? 1175 : 880, 220); tick(); return; }
+  if (ph.kind === "rest") {
+    if (!$("timer").classList.contains("over")) { $("tLeft").innerHTML = `<span class="go"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>Працюєм!!!</span>`; beep(880, 200, 2); }
+    $("timer").classList.add("over"); return;
+  }
+  const done = T.onDone; clearInterval(tInt); T = null; beep(1175, 300, 2); done?.();
+}
+$("tPlus").onclick = () => { if (!T) return; T.end += (T.phases[T.i].kind === "rest" ? 30 : 10) * 1000; $("timer").classList.remove("over"); tick(); };
+$("tStop").onclick = () => { clearInterval(tInt); T = null; $("timer").hidden = true; $("timer").classList.remove("over"); };
 
 
 // ---------- ручне додавання силового ----------

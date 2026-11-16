@@ -95,3 +95,9 @@ a.ci:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .pday ol li{display:flex;justify-content:space-between;gap:10px}
 .pday ol b{color:var(--ink);font-weight:500}
 .pday ol .num{white-space:nowrap}
+
+/* джерело навантаження на графіках і таблицях */
+.h-src{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px}
+.src{font-family:var(--f-body);font-size:11px;font-weight:600;letter-spacing:.03em;padding:2px 8px;border-radius:999px;border:1px solid currentColor;line-height:1.5;white-space:nowrap}
+.src[data-src="i"]{color:var(--accent)}
+.src[data-src="g"]{color:var(--accent-3)}

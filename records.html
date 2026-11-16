@@ -15,8 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1793294195">
-<link rel="stylesheet" href="workout.css?v=1793294195">
+<link rel="stylesheet" href="ui.css?v=1794839327">
+<link rel="stylesheet" href="workout.css?v=1794839327">
 <style>
 /* Layout: три розділи (БЖЖ, вело, силове), у кожному сітка карток-рекордів; для силового — таблиця прогресу вправ. */
 .wrap{max-width:1100px}
@@ -53,7 +53,7 @@ h3.cat{font-size:17px;margin:6px 0 -4px}
   .st td[data-l]::before{content:attr(data-l);display:block;font-family:var(--f-data);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
 }
 </style>
-<script src="auth.js?v=1793294195"></script>
+<script src="auth.js?v=1794839327"></script>
 </head>
 <body>
 <div class="wrap">
@@ -67,7 +67,7 @@ h3.cat{font-size:17px;margin:6px 0 -4px}
   <p class="intro">Рахується автоматично з тренувань intervals.icu (2 роки), кривої потужності за весь час і силового журналу. «Новий» — рекорд за останні 14 днів. Що показувати, обирається в Налаштуваннях.</p>
   <div id="out"><div class="notice">Рахую…</div></div>
 </div>
-<script src="workout.js?v=1793294195"></script>
+<script src="workout.js?v=1794839327"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id), esc = WK.esc;
@@ -101,7 +101,7 @@ function bjjCards(A) {
   const L = best(b, a => a.moving), LD = best(b, a => a.load), HR = best(b, a => a.maxHr), K = best(b, a => a.kcal);
   const hard = a => Array.isArray(a.hrZones) ? (a.hrZones[3] || 0) + (a.hrZones[4] || 0) : null, H = best(b, hard);
   c.push(card("bjj_longest", "Найдовше тренування", L && hm(L.moving), "год", L && fd(L.date), L?.date));
-  c.push(card("bjj_load", "Найбільше навантаження за тренування", LD && LD.load, "", LD && `${fd(LD.date)} · ${hm(LD.moving)}`, LD?.date));
+  c.push(card("bjj_load", "Найбільше навантаження за тренування", LD && LD.load, "", LD && `${fd(LD.date)} · ${hm(LD.moving)} <span class="src" data-src="i">intervals.icu</span>`, LD?.date));
   c.push(card("bjj_hard", "Найбільше часу в зонах 4–5", H && hard(H) ? Math.round(hard(H) / 60) : null, "хв", H && fd(H.date), H?.date));
   c.push(card("bjj_maxhr", "Найвищий пульс", HR && HR.maxHr, "уд/хв", HR && fd(HR.date), HR?.date));
   c.push(card("bjj_kcal", "Найбільше калорій", K && K.kcal, "ккал", K && fd(K.date), K?.date));
@@ -128,7 +128,7 @@ function bikeCards(A, P) {
   const LG = best(r, a => a.moving), D = best(r, a => a.distKm), LD = best(r, a => a.load), KJ = best(r, a => a.kj), EL = best(r, a => a.elev);
   c.push(card("bike_longest", "Найдовший заїзд", LG && hm(LG.moving), "год", LG && `${fd(LG.date)}${LG.distKm ? ` · ${nf(LG.distKm, 1)} км` : ""}`, LG?.date));
   c.push(card("bike_dist", "Найбільша відстань", D?.distKm ? nf(D.distKm, 1) : null, "км", D && fd(D.date), D?.date));
-  c.push(card("bike_load", "Найбільше навантаження за заїзд", LD?.load ?? null, "", LD && fd(LD.date), LD?.date));
+  c.push(card("bike_load", "Найбільше навантаження за заїзд", LD?.load ?? null, "", LD && `${fd(LD.date)} <span class="src" data-src="i">intervals.icu</span>`, LD?.date));
   c.push(card("bike_kj", "Найбільше роботи", KJ?.kj ?? null, "кДж", KJ && fd(KJ.date), KJ?.date));
   c.push(card("bike_elev", "Найбільший набір висоти", EL?.elev ?? null, "м", EL && fd(EL.date), EL?.date));
   const wk = Object.entries(groupBy(r, a => WK.monday(a.day))).map(([k, v]) => [k, v.reduce((s, a) => s + a.moving, 0), v]).sort((x, y) => y[1] - x[1])[0];
