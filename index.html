@@ -159,8 +159,8 @@ footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);paddin
 footer p{margin:0;max-width:90ch}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
-<link rel="stylesheet" href="workout.css?v=1794839327">
-<script src="auth.js?v=1794839327"></script>
+<link rel="stylesheet" href="workout.css?v=1794839552">
+<script src="auth.js?v=1794839552"></script>
 </head>
 <body>
 
@@ -224,6 +224,15 @@ footer p{margin:0;max-width:90ch}
       <div data-blk="c:календар-навантаження" data-name="Календар навантаження" class="card full">
         <h3 class="h-src">Календар навантаження<span class="src" data-src="i" title="Навантаження рахує intervals.icu (за потужністю або пульсом)">intervals.icu</span></h3>
         <div class="tbl-wrap" style="border:none;background:transparent"><div id="heat"></div></div>
+      </div>
+      <div data-blk="c:календар-навантаження-garmin" data-name="Календар навантаження Garmin" class="card full">
+        <h3 class="h-src">Календар навантаження Garmin<span class="src" data-src="g" title="Навантаження рахує Garmin (за пульсом браслета)">Garmin</span></h3>
+        <div class="tbl-wrap" style="border:none;background:transparent"><div id="heatG"></div></div>
+      </div>
+      <div data-blk="c:intervals-проти-garmin" data-name="intervals.icu проти Garmin" class="card full">
+        <h3 class="h-src">Навантаження: intervals.icu проти Garmin<span class="src" data-src="i">intervals.icu</span><span class="src" data-src="g">Garmin</span></h3>
+        <p class="note">Ті самі тренування (збіг дня і виду спорту) за 10 тижнів: скільки навантаження дає кожна платформа.</p>
+        <div id="cmpLoad"></div>
       </div>
     </div>
   </section>
@@ -326,7 +335,7 @@ footer p{margin:0;max-width:90ch}
   </footer>
 </div>
 
-<script src="workout.js?v=1794839327"></script>
-<script src="app.js?v=1794839327"></script>
+<script src="workout.js?v=1794839552"></script>
+<script src="app.js?v=1794839552"></script>
 </body>
 </html>

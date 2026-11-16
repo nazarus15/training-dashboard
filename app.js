@@ -251,14 +251,35 @@ function run(W, A, P, G) {
     $("balance").innerHTML = lbRow("Анаеробне", lb.anaerobic, 5, 25, "--z6") + lbRow("Аеробне інтенсивне", lb.high, 30, 60, "--z5") + lbRow("Аеробне легке", lb.low, 25, 55, "--z2");
   } else $("balance").innerHTML = `<p class="note">Немає даних Garmin.</p>`;
 
-  // ---------- heatmap ----------
-  (function () {
+  // ---------- heatmap: intervals.icu і Garmin, однаковий вигляд ----------
+  const gSport = t => /martial/.test(t || "") ? "bjj" : /cycl|bik|ride/.test(t || "") ? "bike" : /strength/.test(t || "") ? "str" : "other";
+  const gActs = (G.activities || []).filter(a => a.start).map(a => ({ day: a.start.slice(0, 10), sport: gSport(a.type), load: a.load || 0, secs: a.durS || 0 }));
+  const gLoadByDay = {}; gActs.forEach(a => { if (a.load) gLoadByDay[a.day] = Math.round(((gLoadByDay[a.day] || 0) + a.load) * 10) / 10; });
+  function heatmap(el, loadMap, list, col) {
     const wkMap = {}; wr.filter(r => r.date >= mondayOf(since70)).forEach(r => { (wkMap[mondayOf(r.date)] ??= []).push(r.date); });
-    const sportsByDay = {}; acts.forEach(a => { (sportsByDay[a.day] ??= new Set()).add(a.sport); });
-    const cell = d => { const l = loadByDay[d] || 0; const s = sportsByDay[d] ? [...sportsByDay[d]].map(x => SPORTS[x][0]).join(", ") : "відпочинок"; const op = l ? 0.18 + 0.82 * Math.min(1, l / 120) : 0; return `<td title="${d}: ${s}, навантаження ${l}" style="padding:2px"><div style="width:100%;min-width:26px;height:26px;border-radius:3px;background:${l ? `color-mix(in srgb,var(--accent) ${Math.round(op * 100)}%,var(--panel))` : "var(--bg)"};border:1px solid var(--line);font-size:10px;display:flex;align-items:center;justify-content:center;color:${op > .55 ? "var(--panel)" : "var(--muted)"}">${l || (sportsByDay[d] ? "·" : "")}</div></td>`; };
+    const sportsByDay = {}; list.forEach(a => { (sportsByDay[a.day] ??= new Set()).add(a.sport); });
+    // насиченість — відносно «важкого дня» саме цієї платформи (90-й перцентиль), бо шкали різні
+    const vals = Object.values(loadMap).filter(Boolean).sort((x, y) => x - y), top = Math.max(30, vals[Math.floor(vals.length * .9)] || 120);
+    const cell = d => { const l = Math.round(loadMap[d] || 0); const s = sportsByDay[d] ? [...sportsByDay[d]].map(x => SPORTS[x][0]).join(", ") : "відпочинок"; const op = l ? 0.18 + 0.82 * Math.min(1, l / top) : 0; return `<td title="${d}: ${s}, навантаження ${l}" style="padding:2px"><div style="width:100%;min-width:26px;height:26px;border-radius:3px;background:${l ? `color-mix(in srgb,var(${col}) ${Math.round(op * 100)}%,var(--panel))` : "var(--bg)"};border:1px solid var(--line);font-size:10px;display:flex;align-items:center;justify-content:center;color:${op > .55 ? "var(--panel)" : "var(--muted)"}">${l || (sportsByDay[d] ? "·" : "")}</div></td>`; };
     let html = `<table style="width:auto;font-size:11px"><thead><tr><th class="l" style="position:static;cursor:default">Тиждень</th>${["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].map(x => `<th style="position:static;cursor:default;text-align:center">${x}</th>`).join("")}<th style="position:static;cursor:default">Σ</th></tr></thead><tbody>`;
-    Object.keys(wkMap).sort().forEach(m => { const ds = wkMap[m]; const wd = (new Date(ds[0] + "T12:00:00").getDay() + 6) % 7; const sum = ds.reduce((x, d) => x + (loadByDay[d] || 0), 0); html += `<tr><td class="l" style="border:none">${dShort(m)}</td>${"<td></td>".repeat(wd)}${ds.map(cell).join("")}<td style="border:none" class="num">${sum}</td></tr>`; });
-    $("heat").innerHTML = html + "</tbody></table>";
+    Object.keys(wkMap).sort().forEach(m => { const ds = wkMap[m]; const wd = (new Date(ds[0] + "T12:00:00").getDay() + 6) % 7; const sum = Math.round(ds.reduce((x, d) => x + (loadMap[d] || 0), 0)); html += `<tr><td class="l" style="border:none">${dShort(m)}</td>${"<td></td>".repeat(wd)}${ds.map(cell).join("")}<td style="border:none" class="num">${sum}</td></tr>`; });
+    $(el).innerHTML = html + "</tbody></table>";
+  }
+  heatmap("heat", loadByDay, acts, "--accent");
+  if (gActs.length) heatmap("heatG", gLoadByDay, gActs, "--accent-3"); else $("heatG").innerHTML = `<p class="note">Немає даних Garmin.</p>`;
+
+  // ---------- intervals.icu проти Garmin: ті самі тренування (день + вид) за 70 днів ----------
+  (function () {
+    if (!gActs.length) { $("cmpLoad").innerHTML = `<p class="note">Немає даних Garmin для порівняння.</p>`; return; }
+    const iA = acts.filter(a => a.day >= since70 && a.load), gA = gActs.filter(a => a.day >= since70 && a.load);
+    const usedG = new Set(), pairs = [];
+    for (const a of iA) { const g = gA.find(x => !usedG.has(x) && x.day === a.day && x.sport === a.sport); if (g) { usedG.add(g); pairs.push([a, g]); } }
+    const rows = ["bjj", "bike", "str", "other"].map(sp => { const ps = pairs.filter(p => p[0].sport === sp); if (!ps.length) return null; const si = ps.reduce((t, p) => t + p[0].load, 0), sg = ps.reduce((t, p) => t + p[1].load, 0); return { sp, n: ps.length, ai: si / ps.length, ag: sg / ps.length, k: sg / si }; }).filter(Boolean);
+    const ti = iA.reduce((t, a) => t + a.load, 0), tg = gA.reduce((t, a) => t + a.load, 0);
+    const onlyI = iA.length - pairs.length, onlyG = gA.length - usedG.size;
+    const n1 = v => fx(v, 1).replace(".", ",");
+    $("cmpLoad").innerHTML = `<div class="tbl-wrap"><table><thead><tr><th class="l">Вид</th><th title="Спільних тренувань">Пар</th><th title="Середнє навантаження intervals.icu">intervals</th><th title="Середнє навантаження Garmin">Garmin</th><th title="Garmin / intervals.icu">×</th></tr></thead><tbody>${rows.map(r => `<tr><td class="l">${SPORTS[r.sp][0]}</td><td>${r.n}</td><td>${fx(r.ai)}</td><td>${fx(r.ag)}</td><td><b>×${n1(r.k)}</b></td></tr>`).join("")}<tr><td class="l"><b>Разом</b></td><td>${iA.length} / ${gA.length}</td><td>Σ ${Math.round(ti)}</td><td>Σ ${Math.round(tg)}</td><td><b>×${n1(tg / (ti || 1))}</b></td></tr></tbody></table></div>
+      <p class="note">Як рахують: <b>intervals.icu</b> — навантаження за потужністю (як TSS: 1 год на FTP = 100), а без потужності — за пульсом відносно порогового (LTHR). <b>Garmin</b> — за EPOC, тобто «кисневим боргом» з пульсу і HRV браслета; велосипедна потужність не враховується. Тому шкали різні: порівнюй тренди всередині однієї платформи, а не числа між ними. Коефіцієнт показує, у скільки разів Garmin оцінює те саме тренування вище (більше 1) чи нижче (менше 1).${onlyI || onlyG ? ` Без пари: ${onlyI} лише в intervals.icu, ${onlyG} лише в Garmin (наприклад, заїзди без браслета).` : ""}</p>`;
   })();
 
   // ---------- activity table ----------
