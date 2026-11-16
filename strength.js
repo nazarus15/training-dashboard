@@ -228,9 +228,9 @@ function renderSession() {
         <div class="ex-meta">${ex.cue ? `<span>${esc(ex.cue)}</span>` : ""}${prev ? `<span>Минулого разу (${fmtDay(prev.date)}): <span class="num">${esc(describe(prev, ex.type))}</span></span>` : `<span>${esc(ex.firstTime || { bw: "Перший раз: стільки повторів, скільки чисто, із запасом 1–2.", time: "Перший раз: тримай стільки, скільки виходить рівно, без провисання.", kb: "Перший раз: гиря, з якою лишається запас 2 повтори." }[ex.type] || "Перший раз: підбери вагу, з якою лишається запас повторів.")}</span>`}${hint ? `<span class="prog">${esc(hint)}</span>` : ""}</div>
         <div class="sets">${L.sets[ex.key].map((st, i) => `<div class="set${st.done ? " is-done" : ""}">
           <span class="n">${i + 1}</span>
-          ${ex.type === "time" ? playBtn(s, ex, i, ex.rest || 0, `підхід ${i + 1}`) : `<label class="field"><input id="w-${esc(id)}-${i}" inputmode="decimal" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="w" value="${esc(st.w)}" placeholder="${ex.type === "bw" ? "0" : "—"}" aria-label="${esc(ex.name)}, підхід ${i + 1}, вага"><span>${unit}</span></label>`}
-          <span class="x">${ex.type === "time" ? "" : "×"}</span>
-          <label class="field"><input id="r-${esc(id)}-${i}" inputmode="numeric" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="r" value="${esc(st.r)}" aria-label="${esc(ex.name)}, підхід ${i + 1}, ${ex.type === "time" ? "секунди" : "повтори"}"><span>${ru}</span></label>
+          ${ex.type === "time" ? timeCtl(s, ex, i, ex.rest || 0, `підхід ${i + 1}`) : `<label class="field"><input id="w-${esc(id)}-${i}" inputmode="decimal" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="w" value="${esc(st.w)}" placeholder="${ex.type === "bw" ? "0" : "—"}" aria-label="${esc(ex.name)}, підхід ${i + 1}, вага"><span>${unit}</span></label>
+          <span class="x">×</span>
+          <label class="field"><input id="r-${esc(id)}-${i}" inputmode="numeric" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="r" value="${esc(st.r)}" aria-label="${esc(ex.name)}, підхід ${i + 1}, повтори"><span>${ru}</span></label>`}
           <button type="button" class="check" aria-pressed="${st.done}" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-rest="${ex.rest || 0}" aria-label="Підхід ${i + 1} виконано">✓</button></div>`).join("")}</div></div>`;
     }
     html += `</div>`;
@@ -278,7 +278,7 @@ function supersetHtml(s, L, g, exs) {
     const inRound = exs.filter(e => i < e.sets), done = inRound.every(e => L.sets[e.key][i]?.done);
     h += `<div class="round${done ? " is-done" : ""}"><span class="n">${i + 1}</span><div class="rrows">${inRound.map(ex => {
       const st = L.sets[ex.key][i], id = `${s.id}-${ex.key}`, unit = UNIT[ex.type] ?? "кг", ru = REPS_UNIT[ex.type] || "повт";
-      return `<div class="rset"><span class="tag">${esc(ex.label)}</span>${ex.type === "time" ? playBtn(s, ex, i, rest, `раунд ${i + 1}`, true) : `<label class="field"><input id="w-${esc(id)}-${i}" inputmode="decimal" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="w" value="${esc(st.w)}" placeholder="${ex.type === "bw" ? "0" : "—"}" aria-label="${esc(ex.name)}, раунд ${i + 1}, вага"><span>${unit}</span></label>`}<span class="x">${ex.type === "time" ? "" : "×"}</span><label class="field"><input id="r-${esc(id)}-${i}" inputmode="numeric" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="r" value="${esc(st.r)}" aria-label="${esc(ex.name)}, раунд ${i + 1}, ${ex.type === "time" ? "секунди" : "повтори"}"><span>${ru}</span></label></div>`;
+      return `<div class="rset"><span class="tag">${esc(ex.label)}</span>${ex.type === "time" ? timeCtl(s, ex, i, rest, `раунд ${i + 1}`, true) : `<label class="field"><input id="w-${esc(id)}-${i}" inputmode="decimal" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="w" value="${esc(st.w)}" placeholder="${ex.type === "bw" ? "0" : "—"}" aria-label="${esc(ex.name)}, раунд ${i + 1}, вага"><span>${unit}</span></label><span class="x">×</span><label class="field"><input id="r-${esc(id)}-${i}" inputmode="numeric" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="r" value="${esc(st.r)}" aria-label="${esc(ex.name)}, раунд ${i + 1}, повтори"><span>${ru}</span></label>`}</div>`;
     }).join("")}</div><button type="button" class="check round-check" aria-pressed="${done}" data-s="${esc(s.id)}" data-keys="${esc(inRound.map(e => e.key).join(","))}" data-i="${i}" data-rest="${rest}" aria-label="Раунд ${i + 1} суперсету виконано">✓</button></div>`;
   }
   return h + `</div></div>`;
@@ -350,9 +350,10 @@ document.addEventListener("click", e => {
 // Фази йдуть одна за одною: «Готуйсь» 5 с → робота → (зміна боку → робота) → відпочинок.
 let T = null, tInt = null, actx = null;
 const secsOf = v => { const m = String(v ?? "").match(/\d+/g); return m ? +m[m.length - 1] : 0; };
-function playBtn(s, ex, i, rest, what, ss) {
-  const st = logs[s.id]?.sets?.[ex.key]?.[i] || {}, sec = secsOf(st.r) || secsOf(ex.reps);
-  return `<button type="button" class="play" data-work="1" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-rest="${rest}" data-ss="${ss ? 1 : 0}" aria-label="Запустити таймер: ${esc(ex.name)}, ${what}, ${sec} с${ex.perSide ? " на кожен бік" : ""}">▶ ${sec} с${ex.perSide ? " ×2" : ""}</button>`;
+// вправа на час: кнопка запуску і поле секунд в одному місці — введене число і є довжиною таймера
+function timeCtl(s, ex, i, rest, what, ss) {
+  const st = logs[s.id]?.sets?.[ex.key]?.[i] || {}, id = `${s.id}-${ex.key}`, plan = secsOf(ex.reps);
+  return `<div class="tctl${ex.perSide ? " ps" : ""}"><button type="button" class="play" data-work="1" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-rest="${rest}" data-ss="${ss ? 1 : 0}" aria-label="Запустити таймер: ${esc(ex.name)}, ${what}">▶</button><label class="field"><input id="r-${esc(id)}-${i}" inputmode="numeric" data-s="${esc(s.id)}" data-k="${esc(ex.key)}" data-i="${i}" data-f="r" value="${esc(st.r)}" placeholder="${plan || ""}" aria-label="${esc(ex.name)}, ${what}, секунди${ex.perSide ? " на кожен бік" : ""}"><span>с${ex.perSide ? " ×2 боки" : ""}</span></label></div>`;
 }
 function beep(f = 880, ms = 160, n = 1) {
   try {

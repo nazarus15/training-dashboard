@@ -169,6 +169,11 @@ button.day:hover{background:var(--soft)}
 .play{font:inherit;font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;white-space:nowrap;font-variant-numeric:tabular-nums}
 .play:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
 .set.is-done .play,.round.is-done .play{opacity:.5}
+.tctl{grid-column:2 / 5;display:grid;grid-template-columns:52px minmax(0,1fr);gap:6px;align-items:center}
+.rset .tctl{grid-column:2 / 5}
+.tctl .play{height:100%;min-height:40px;font-size:16px;padding:0;background:var(--accent);color:var(--panel);border-color:var(--accent)}
+.tctl .play:hover{background:color-mix(in srgb,var(--accent) 85%,var(--ink))}
+.tctl.ps .field input{padding-right:84px}
 .timer .go{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-display);font-size:28px;font-weight:700;letter-spacing:.02em;color:var(--warn);animation:goGlow 1s ease-in-out infinite alternate}
 @keyframes goGlow{from{opacity:.8;text-shadow:none}to{opacity:1;text-shadow:0 0 12px var(--warn)}}
 /* суперсет: вправи зверху, раунди з однією галочкою на пару */
@@ -186,8 +191,8 @@ button.day:hover{background:var(--soft)}
 .round.is-done .rset .field input{opacity:.7}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
-<link rel="stylesheet" href="workout.css?v=1794840600">
-<script src="auth.js?v=1794840600"></script>
+<link rel="stylesheet" href="workout.css?v=1794840994">
+<script src="auth.js?v=1794840994"></script>
 </head>
 <body>
 <header class="site"><a class="brand" href="./" aria-label="Форма Назара — Огляд"><img src="favicon.svg" alt="" width="22" height="22">Форма Назара</a>
@@ -234,7 +239,7 @@ button.day:hover{background:var(--soft)}
   <div class="tpre" id="tPre" role="group" aria-label="Задати довжину таймера"></div>
 </div>
 
-<script src="workout.js?v=1794840600"></script>
-<script src="strength.js?v=1794840600"></script>
+<script src="workout.js?v=1794840994"></script>
+<script src="strength.js?v=1794840994"></script>
 </body>
 </html>
