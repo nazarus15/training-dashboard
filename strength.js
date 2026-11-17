@@ -289,6 +289,16 @@ function startSession(sid, quiet) {
   const L = logFor(sessions[sid]); if (L.startedAt) return;
   L.startedAt = new Date().toISOString(); changed(sid); if (!quiet) queuePush(0); markPlan(sid);
 }
+// автостарт (перша відмітка або ▶ таймера) — лише для тренування, запланованого на сьогодні.
+// Інші дні: відмітки й таймер працюють, але час початку не ставиться (для цього є «Почати» або «Змінити час»).
+function autoStart(sid) { const s = sessions[sid]; if (s && s.date === WK.today() && !logs[sid]?.startedAt) startSession(sid, true); }
+// «порожній» старт: почато понад 3 год тому, жодного відміченого підходу, не завершено — скасовуємо, щоб не висіло «триває»
+const isEmptyStale = L => L && L.startedAt && !L.finishedAt && L.status !== "done" && Date.now() - new Date(L.startedAt) > 3 * 3600e3 && !Object.values(L.sets || {}).some(a => a.some(x => x.done));
+function cleanStale() {
+  const fix = Object.keys(logs).filter(id => sessions[id] && isEmptyStale(logs[id]));
+  fix.forEach(id => { delete logs[id].startedAt; changed(id); });
+  if (fix.length) { queuePush(0); WK.gcalPush(fix.map(id => WK.strengthOverride(sessions[id], logs[id]))); }
+}
 function markPlan(sid) {
   // подія силового в приватному Google Calendar (якщо підключено в Налаштуваннях)
   const s = sessions[sid]; if (!s) return;
@@ -324,12 +334,12 @@ document.addEventListener("click", e => {
   const day = e.target.closest("button.day");
   if (day) { selected = day.dataset.s; render(); $("sessionWrap").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); return; }
   const play = e.target.closest("[data-work]");
-  if (play) { const d = play.dataset; if (!logs[d.s].startedAt) startSession(d.s, true); startWork(d.s, d.k, +d.i, +d.rest || 0, d.ss === "1"); return; }
+  if (play) { const d = play.dataset; autoStart(d.s); startWork(d.s, d.k, +d.i, +d.rest || 0, d.ss === "1"); return; }
   const rc = e.target.closest(".round-check");
-  if (rc && !logs[rc.dataset.s].startedAt) startSession(rc.dataset.s, true);
+  if (rc) autoStart(rc.dataset.s);
   if (rc) { const sets = rc.dataset.keys.split(",").map(k => logs[rc.dataset.s].sets[k][+rc.dataset.i]); const v = !sets.every(x => x.done); sets.forEach(x => x.done = v); changed(rc.dataset.s); renderSession(); renderSchedule(); renderHistory(); if (v && +rc.dataset.rest) startTimer(+rc.dataset.rest); return; }
   const chk = e.target.closest(".check");
-  if (chk && !logs[chk.dataset.s].startedAt) startSession(chk.dataset.s, true);
+  if (chk) autoStart(chk.dataset.s);
   if (chk) { const st = logs[chk.dataset.s].sets[chk.dataset.k][+chk.dataset.i]; st.done = !st.done; changed(chk.dataset.s); renderSession(); renderSchedule(); renderHistory(); if (st.done && +chk.dataset.rest) startTimer(+chk.dataset.rest); return; }
   const rpe = e.target.closest("[data-rpe]");
   if (rpe) { const L = logs[selected]; const v = +rpe.dataset.rpe; L.rpe = L.rpe === v ? null : v; changed(selected); renderSession(); return; }
@@ -491,6 +501,7 @@ function pickDefault() {
   if (remote) { lsSet(LS.cache, remote); mergeRemote(remote); }
   for (const [id, L] of Object.entries(logs)) if (L?.deleted) delete sessions[id];
   if (!selected || !sessions[selected]) selected = want && sessions[want] ? want : pickDefault();
+  if (remote) cleanStale();
   WK.gcalFlush();
   openFromUrl();
   const a = document.activeElement;

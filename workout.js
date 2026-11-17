@@ -302,11 +302,17 @@ window.WK = (() => {
     const sets = (s.exercises || []).map(ex => { const d = (L.sets?.[ex.key] || []).filter(x => x.done); return d.length ? `• ${ex.name}: ${d.map(x => (x.w && +x.w ? x.w + "кг×" : "") + x.r + (ex.type === "time" ? "с" : "")).join(", ")}` : ""; }).filter(Boolean);
     const link = `https://nazarus15.github.io/training-dashboard/strength.html?s=${encodeURIComponent(s.id)}`;
     if (L.status === "skipped") return { ...base, title: `✕ ${title} (пропущено)`, desc: link };
+    const anyDone = Object.values(L.sets || {}).some(a => a.some(x => x.done));
+    const age = L.startedAt ? Date.now() - new Date(L.startedAt) : 0;
+    // почато «порожньо» (жодного підходу) понад 3 год тому — це не тренування, повертаємо план
+    if (L.startedAt && !L.finishedAt && L.status !== "done" && !anyDone && age > 3 * 3600e3) return { uid: s.id, clear: true };
     if (L.startedAt) {
+      // не натиснули «Завершити», а минуло понад 12 год — не показуємо «триває» вічно
+      const stale = !L.finishedAt && age > 12 * 3600e3;
       const st = new Date(L.startedAt), en = L.finishedAt ? new Date(L.finishedAt) : new Date(st.getTime() + (s.mins || 60) * 6e4);
       const head = L.finishedAt ? `Виконано: ${hm(L.startedAt)}–${hm(L.finishedAt)} (${Math.round((en - st) / 6e4)} хв, оцінка ${s.mins || "—"} хв)` : `Почато о ${hm(L.startedAt)}, орієнтовно до ${hm(en.toISOString())} (оцінка ${s.mins || "—"} хв)`;
       const desc = [head, L.rpe ? `RPE ${L.rpe}` : "", L.note ? `Нотатки: ${L.note}` : "", sets.length ? "\n" + sets.join("\n") : "", "", link].filter(x => x !== "").join("\n");
-      return { ...base, title: `${L.finishedAt ? "✓" : "▶"} ${title}${L.finishedAt ? "" : " (триває)"}`, desc, start: st.toISOString(), end: en.toISOString() };
+      return { ...base, title: L.finishedAt ? `✓ ${title}` : stale ? `✓ ${title} (без позначки завершення)` : `▶ ${title} (триває)`, desc, start: st.toISOString(), end: en.toISOString() };
     }
     if (L.status === "done") return { ...base, title: `✓ ${title}`, desc: [sets.join("\n"), link].filter(Boolean).join("\n\n") };
     return { uid: s.id, clear: true };
