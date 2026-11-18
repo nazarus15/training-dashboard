@@ -8,24 +8,8 @@ X-WR-TIMEZONE:Europe/Kyiv
 REFRESH-INTERVAL;VALUE=DURATION:PT6H
 X-PUBLISHED-TTL:PT6H
 BEGIN:VEVENT
-UID:icu-145637659@forma-nazara
-DTSTAMP:20261117T091516Z
-DTSTART;VALUE=DATE:20261018
-DTEND;VALUE=DATE:20261019
-TRANSP:TRANSPARENT
-SUMMARY:Вело · Endurance + Tempo — 90 min
-DESCRIPTION:План: 90 хв · навантаження 66\n\nEndurance
-  + Tempo — 90 min\nFTP: 231 W\nTempo intervals should feel controlled 
- and sustainable\, RPE 5–6/10. No sprinting. Finish feeling that you co
- uld do a little more.\nCadence: 85–95 rpm.\n\n- 10 хв · 50% FTP\n- 
- 10 хв · 60% FTP\n- 12 хв · 78% FTP\n- 5 хв · 50% FTP\n- 12 хв
-  · 78% FTP\n- 5 хв · 50% FTP\n- 12 хв · 78% FTP\n- 14 хв · 58%
-  FTP\n- 10 хв · 45% FTP\n\nhttps://nazarus15.github.io/training-dashb
- oard/calendar.html
-END:VEVENT
-BEGIN:VEVENT
 UID:icu-146863082@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261027
 DTEND;VALUE=DATE:20261028
 TRANSP:TRANSPARENT
@@ -47,7 +31,7 @@ DESCRIPTION:План: 72 хв · навантаження 71\n\nКлюч
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863152@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261031
 DTEND;VALUE=DATE:20261101
 TRANSP:TRANSPARENT
@@ -69,7 +53,7 @@ DESCRIPTION:План: 120 хв · навантаження 94\n\nАеро
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863096@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261101
 DTEND;VALUE=DATE:20261102
 TRANSP:TRANSPARENT
@@ -84,7 +68,7 @@ DESCRIPTION:План: 75 хв · навантаження 47\n\nЛегк
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667707@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261116
 DTEND;VALUE=DATE:20261117
 TRANSP:TRANSPARENT
@@ -102,7 +86,7 @@ DESCRIPTION:План: 60 хв · навантаження 41\n\nПерш
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667708@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261118
 DTEND;VALUE=DATE:20261119
 TRANSP:TRANSPARENT
@@ -121,7 +105,7 @@ DESCRIPTION:План: 65 хв · навантаження 63\n\nКлюч
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667709@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261121
 DTEND;VALUE=DATE:20261122
 TRANSP:TRANSPARENT
@@ -138,7 +122,7 @@ DESCRIPTION:План: 105 хв · навантаження 85\n\nАеро
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-10-24@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261024
 DTEND;VALUE=DATE:20261025
 TRANSP:TRANSPARENT
@@ -173,7 +157,7 @@ DESCRIPTION:Оціночний час: 50 хв\n\nМета: Задня л
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-10-29@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261029
 DTEND;VALUE=DATE:20261030
 TRANSP:TRANSPARENT
@@ -208,7 +192,7 @@ DESCRIPTION:Оціночний час: 65 хв\n\nМета: Верх ті
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-13@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261113
 DTEND;VALUE=DATE:20261114
 TRANSP:TRANSPARENT
@@ -247,7 +231,7 @@ DESCRIPTION:Оціночний час: 60 хв\n\nМета: Легке п
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-15@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261115
 DTEND;VALUE=DATE:20261116
 TRANSP:TRANSPARENT
@@ -278,38 +262,41 @@ DESCRIPTION:Оціночний час: 70 хв\n\nМета: Верх і
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-17@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261118
 TRANSP:TRANSPARENT
-SUMMARY:Силове · Сила А — верх + легкі ноги
-DESCRIPTION:Оціночний час: 65 хв\n\nМета: Другий 
- тиждень після перерви: верх + легкі ноги
- \, ваги ~85–90% від 29.10\, запас 2–3 повтори. В
- идих на зусиллі\, без затримки дихання\, 
- голова нейтрально. Штанга по черзі: жим 
- лежачи → тяга в нахилі\, млинці лише зні
- маєш. Пов'язка від поту.\n\nРозминка 8 хв\n-
-  Скапулярні підтягування — 2x8\n- Віджима
- ння від лавки — 2x10\n- Гоблет-присід легк
- о — 2x8\n- Жим лежачи з грифом — 1x10\n\nA відп
-  2хв\n- Жим лежачи 4x5 @штанга RIR 2-3 // Трохи в
- ажче\, ніж 13.11. Всі 5 чисто — наступного р
- азу +2\,5 кг.\n- Підтягування зворотним хва
- том 4x5 @+12кг RIR 2 // Між +8 і звичними +16 кг.\n\n
- B відп 90с\n- Тяга штанги в нахилі 4x8 @штанг
- а RIR 2 // Корпус під 45°\, голова нейтрально
- .\n- Гоблет-присід 3x8 @24кг RIR 2-3 // Пауза 1 с в
- низу.\n\nC відп 60с\n- Тяга гирі в нахилі одн
- ією рукою 3x10/бік @24кг RIR 2\n- Віджимання на
-  брусах або від лавки 3x10 RIR 2\n\nКоло 2x від
- п 1хв\n- Вис на турніку 50с // Хват для БЖЖ.\n
- - Dead bug 2x8/бік\n\nhttps://nazarus15.github.io/training-dashboard/
- strength.html?s=s-2026-11-17
+SUMMARY:Силове · Сила А — верх + ноги
+DESCRIPTION:Оціночний час: 75 хв\n\nМета: Другий 
+ тиждень після перерви: верх + ноги\, запа
+ с 2–3 повтори. Видих на зусиллі\, без зат
+ римки дихання\, голова нейтрально. Штан
+ га без перевішування всередині пар: жим
+  лежачи і присід з однією вагою 62\,5 кг\, п
+ отім знімаєш по 6\,25 кг з боку на тягу в н
+ ахилі 50 кг. Пов'язка від поту.\n\nРозминка
+  8 хв\n- Скапулярні підтягування — 2x8\n- Ві
+ джимання від лавки — 2x10\n- Присід з гриф
+ ом — 1x10\n- Жим лежачи з грифом — 1x10\n\nA ві
+ дп 2хв\n- Жим лежачи 4x5 @62\,5кг RIR 2-3 // 13.11 бул
+ о 60×9 — тож 62\,5×5 має йти легко. Якщо легк
+ о всі 4 підходи\, наступного разу 65 кг.\n- 
+ Підтягування зворотним хватом 4x5 @+12кг RI
+ R 2\n\nB відп 2хв\n- Гоблет-присід 3x8 @70кг RIR 2-3
+ \n- Тяга гирі в нахилі однією рукою 3x10/бі
+ к @24кг RIR 2 // Опора рукою й коліном на лав
+ ку.\n\nC відп 90с\n- Тяга штанги в нахилі 4x8 @5
+ 0кг RIR 2 // Єдине перевішування за тренува
+ ння: 62\,5 → 50 кг. Корпус під 45°\, голова не
+ йтрально.\n- Віджимання на брусах або ві
+ д лавки 3x10 RIR 2\n\nКоло 2x відп 1хв\n- Вис на т
+ урніку 50с // Хват для БЖЖ.\n- Dead bug 2x8/бік\n\nh
+ ttps://nazarus15.github.io/training-dashboard/strength.html?s=s-2026-11-
+ 17
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-20@forma-nazara
-DTSTAMP:20261117T091516Z
+DTSTAMP:20261118T021641Z
 DTSTART;VALUE=DATE:20261120
 DTEND;VALUE=DATE:20261121
 TRANSP:TRANSPARENT
