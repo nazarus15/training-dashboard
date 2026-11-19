@@ -4,6 +4,8 @@
  * нічого не публікується. Два джерела:
  *   source "plan"    — автооновлення сайту (GitHub Actions): план і виконані тренування з intervals.icu/Garmin;
  *   source "journal" — сайт (силовий журнал): фактичний старт/фініш силових, ручні тренування, видалення.
+ *   source "export"  — сайт: експорт усіх даних (JSON + CSV) у приватну папку Google Drive «Форма Назара · експорт»,
+ *                      щоб Claude міг узяти свіжі дані для аналізу здоров'я з чату. Файли перезаписуються.
  * Записи журналу накладаються поверх плану (override) з тим самим uid.
  * Перший запуск: функція setup() — створює календар «Тренування · Форма» і секрет (видно в журналі виконання).
  */
@@ -50,13 +52,14 @@ function put_(k, v) { v == null ? P().deleteProperty(k) : P().setProperty(k, JSO
 
 function doGet() {
   const id = P().getProperty('CAL_ID'), c = id ? CalendarApp.getCalendarById(id) : null;
-  return out_({ ok: true, service: 'forma-calendar', calendar: c ? c.getName() : null, hidden: c ? c.isHidden() : null, selected: c ? c.isSelected() : null });
+  return out_({ ok: true, service: 'forma-calendar', calendar: c ? c.getName() : null, hidden: c ? c.isHidden() : null, selected: c ? c.isSelected() : null, exportAt: P().getProperty('EXPORT_AT') });
 }
 
 function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return out_({ ok: false, error: 'json' }); }
   if (!body || body.secret !== P().getProperty('SECRET')) return out_({ ok: false, error: 'auth' });
+  if (body.source === 'export') return out_(saveExport_(body.files || []));
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
@@ -116,3 +119,27 @@ function show() {
   c.setSelected(true);
   Logger.log(c.getName() + ' · ' + c.getId());
 }
+
+// ---------- експорт у Google Drive ----------
+const EXPORT_FOLDER = 'Форма Назара · експорт';
+function exportFolder_() {
+  const p = P(), id = p.getProperty('EXPORT_FOLDER_ID');
+  if (id) { try { const f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) { } }
+  const it = DriveApp.getFoldersByName(EXPORT_FOLDER);
+  const f = it.hasNext() ? it.next() : DriveApp.createFolder(EXPORT_FOLDER);
+  p.setProperty('EXPORT_FOLDER_ID', f.getId());
+  return f;
+}
+function saveExport_(files) {
+  const folder = exportFolder_(), saved = [];
+  files.filter(f => f && /^[\w.-]+$/.test(f.name || '') && typeof f.text === 'string').slice(0, 10).forEach(f => {
+    const it = folder.getFilesByName(f.name);
+    if (it.hasNext()) { const file = it.next(); file.setContent(f.text); while (it.hasNext()) it.next().setTrashed(true); }
+    else folder.createFile(f.name, f.text, f.mime || 'text/plain');
+    saved.push(f.name);
+  });
+  P().setProperty('EXPORT_AT', new Date().toISOString());
+  return { ok: true, saved: saved, folder: folder.getUrl() };
+}
+// запусти один раз у редакторі, щоб Google попросив дозвіл на Drive
+function authorizeDrive() { Logger.log(exportFolder_().getUrl()); }

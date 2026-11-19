@@ -15,14 +15,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
-<link rel="stylesheet" href="ui.css?v=1794922789">
-<link rel="stylesheet" href="workout.css?v=1794922789">
+<link rel="stylesheet" href="ui.css?v=1795079952">
+<link rel="stylesheet" href="workout.css?v=1795079952">
 <style>
 .card{display:flex;flex-direction:column;gap:12px}
 .card h2{font-size:20px}
 .card p{margin:0;font-size:14px;color:var(--muted)}
 label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-family:var(--f-data);letter-spacing:.04em;text-transform:uppercase}
-input,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;text-transform:none;letter-spacing:0}
+input,textarea,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;text-transform:none;letter-spacing:0}
 textarea{min-height:200px;font-size:14px;line-height:1.5;resize:vertical}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
 .days{display:flex;flex-wrap:wrap;gap:6px}
@@ -57,7 +57,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
 .ovg label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
 .ovg input{width:18px;height:18px;flex:none}
 </style>
-<script src="auth.js?v=1794922789"></script>
+<script src="auth.js?v=1795079952"></script>
 </head>
 <body>
 <header class="site"><a class="brand" href="./" aria-label="Форма Назара — Огляд"><img src="favicon.svg" alt="" width="22" height="22">Форма Назара</a>
@@ -107,6 +107,21 @@ h3.sub{font-size:17px;margin:4px 0 0}
     </form>
     <details class="howto"><summary>Публічний календар-підписка (лише план)</summary>
       <p style="margin-top:8px">Старий варіант без виконаних тренувань: <span class="num">https://nazarus15.github.io/training-dashboard/data/calendar.ics</span>. Якщо підключив приватний календар — цю підписку в Google Calendar краще видалити, щоб події не дублювались.</p></details>
+  </section>
+
+  <section class="card" id="expCard">
+    <h2>Експорт даних</h2>
+    <p>Усі дані сайту в одному файлі для аналізу здоров'я: щоденні показники (HRV, пульс спокою, сон, стрес, Body Battery, SpO₂, кроки), навантаження intervals.icu і Garmin, усі тренування, силовий журнал, потужність і план. Усередині є словник полів з одиницями, тож файл можна одразу віддати інструменту аналізу або Claude.</p>
+    <label class="f" style="max-width:260px">Період<select id="expPeriod"><option value="30">30 днів</option><option value="90" selected>90 днів</option><option value="365">рік</option><option value="all">усе, що є</option></select></label>
+    <div class="acts" style="margin-top:12px">
+      <button class="btn" type="button" id="expJson">Завантажити JSON (усе)</button>
+      <button class="btn ghost" type="button" id="expCsv">Завантажити CSV-таблиці</button>
+      <button class="btn ghost" type="button" id="expCopy">Скопіювати для чату</button>
+    </div>
+    <div class="acts" style="margin-top:12px"><button class="btn ghost" type="button" id="expDrive">Зберегти в Google Drive</button><span class="msg" id="expMsg" role="status"></span></div>
+    <p class="muted" id="expDriveState" style="font-size:13px;margin-top:8px"></p>
+    <details class="howto"><summary>Як попросити Claude проаналізувати</summary>
+      <p style="margin-top:8px">Сайт сам зберігає свіжий експорт у твій Google Drive (папка «Форма Назара · експорт») раз на 12 годин, коли ти його відкриваєш, — за весь доступний період. У чаті достатньо написати: <i>«Візьми мій експорт “Форма Назара” з Google Drive і проаналізуй здоров'я за останній місяць»</i>. Файли: <span class="num">forma-export.json</span> (усе), <span class="num">forma-daily.csv</span>, <span class="num">forma-activities.csv</span>, <span class="num">forma-strength.csv</span>. Без Drive — «Скопіювати для чату» і встав у повідомлення, або прикріпи JSON-файл.</p></details>
   </section>
 
   <form class="card" id="pwForm" autocomplete="off">
@@ -166,8 +181,9 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <div class="acts"><button class="btn" type="submit" id="metBtn">Зберегти</button><span class="msg" id="metMsg" role="status"></span></div>
   </form>
 </div>
-<script src="workout.js?v=1794922789"></script>
-<script src="export.js?v=1794922789"></script>
+<script src="workout.js?v=1795079952"></script>
+<script src="datax.js?v=1795079952"></script>
+<script src="export.js?v=1795079952"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
@@ -399,6 +415,20 @@ $("metForm").onsubmit = async e => {
   $("bjjDays").innerHTML = DAYS.map((d, i) => `<label><input type="checkbox" value="${i + 1}"${r.days.includes(i + 1) ? " checked" : ""}>${d}</label>`).join("");
   $("bjjTime").value = r.time || ""; $("bjjMins").value = r.mins || 90;
 })();
+
+// ---------- експорт даних ----------
+async function expBuild() {
+  const v = $("expPeriod").value, from = v === "all" ? null : WK.addDays(WK.today(), -(+v - 1));
+  return DX.build(await DX.collect(), { from });
+}
+const expName = (X, ext) => `forma-${X.period.from || "x"}_${X.period.to || "x"}.${ext}`;
+async function expRun(fn) { msg("expMsg", "Готую…"); try { await fn(await expBuild()); } catch (e) { msg("expMsg", "Не вдалося: " + (e.message || e), "err"); } }
+$("expJson").onclick = () => expRun(X => { DX.download(expName(X, "json"), JSON.stringify(X, null, 1)); msg("expMsg", `Готово: ${X.period.days} днів, ${X.activities.length} тренувань, ${X.strength.length} силових.`, "ok"); });
+$("expCsv").onclick = () => expRun(X => { DX.download(expName(X, "daily.csv"), DX.dailyCsv(X), "text/csv"); setTimeout(() => DX.download(expName(X, "activities.csv"), DX.actsCsv(X), "text/csv"), 400); setTimeout(() => DX.download(expName(X, "strength.csv"), DX.strengthCsv(X), "text/csv"), 800); msg("expMsg", "Готово: 3 таблиці (дні, тренування, силові підходи).", "ok"); });
+$("expCopy").onclick = () => expRun(async X => { const t = DX.chatText(X); await navigator.clipboard.writeText(t); msg("expMsg", `Скопійовано (${Math.round(t.length / 1024)} КБ). Встав у чат з Claude.`, "ok"); });
+$("expDrive").onclick = () => { msg("expMsg", "Готую…"); DX.build && DX.collect().then(src => DX.toDrive(DX.build(src))).then(r => { msg("expMsg", r.ok ? "Надіслано в Google Drive: папка «Форма Назара · експорт»." : r.error, r.ok ? "ok" : "err"); expState(); }).catch(e => msg("expMsg", "Не вдалося: " + (e.message || e), "err")); };
+function expState() { const t = localStorage.getItem("td_drive_export"); $("expDriveState").textContent = t ? `Останнє збереження в Google Drive: ${new Date(t).toLocaleString("uk-UA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}.` : "У Google Drive ще не зберігалось."; }
+expState();
 </script>
 </body>
 </html>

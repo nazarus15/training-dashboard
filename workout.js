@@ -423,5 +423,5 @@ window.WK = (() => {
     if (!token()) return false;
     try { const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/update.yml/dispatches`, { method: "POST", headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main" }) }); return r.ok; } catch { return false; }
   }
-  return { bikeSteps, bikeStepsHtml, gcalCache, gcalPush, gcalFlush, gcalSyncJournal, strengthOverride, triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, doneSession, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
+  return { bikeSteps, bikeStepsHtml, gcalCache, gcalCfg, gcalPush, gcalFlush, gcalSyncJournal, strengthOverride, triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, doneSession, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();
