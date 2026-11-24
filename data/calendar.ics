@@ -9,7 +9,7 @@ REFRESH-INTERVAL;VALUE=DURATION:PT6H
 X-PUBLISHED-TTL:PT6H
 BEGIN:VEVENT
 UID:icu-146863082@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261027
 DTEND;VALUE=DATE:20261028
 TRANSP:TRANSPARENT
@@ -31,7 +31,7 @@ DESCRIPTION:План: 72 хв · навантаження 71\n\nКлюч
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863152@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261031
 DTEND;VALUE=DATE:20261101
 TRANSP:TRANSPARENT
@@ -53,7 +53,7 @@ DESCRIPTION:План: 120 хв · навантаження 94\n\nАеро
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863096@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261101
 DTEND;VALUE=DATE:20261102
 TRANSP:TRANSPARENT
@@ -68,7 +68,7 @@ DESCRIPTION:План: 75 хв · навантаження 47\n\nЛегк
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667707@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261116
 DTEND;VALUE=DATE:20261117
 TRANSP:TRANSPARENT
@@ -86,7 +86,7 @@ DESCRIPTION:План: 60 хв · навантаження 41\n\nПерш
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667708@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261118
 DTEND;VALUE=DATE:20261119
 TRANSP:TRANSPARENT
@@ -105,7 +105,7 @@ DESCRIPTION:План: 65 хв · навантаження 63\n\nКлюч
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667709@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261121
 DTEND;VALUE=DATE:20261122
 TRANSP:TRANSPARENT
@@ -121,43 +121,8 @@ DESCRIPTION:План: 105 хв · навантаження 85\n\nАеро
  calendar.html
 END:VEVENT
 BEGIN:VEVENT
-UID:s-2026-10-24@forma-nazara
-DTSTAMP:20261123T090902Z
-DTSTART;VALUE=DATE:20261024
-DTEND;VALUE=DATE:20261025
-TRANSP:TRANSPARENT
-SUMMARY:Силове · Сила Б
-DESCRIPTION:Оціночний час: 50 хв\n\nМета: Задня л
- анка\, жим над головою\, одна нога\, плечі
-  й кор для БЖЖ. Порядок вправ мінімізує 
- зміну млинців: спершу важка румунська т
- яга\, потім легший жим стоячи.\n\nРозминк
- а 8–10 хв\n- 90/90 + hip airplane — 2x5 на бік\n- Гобле
- т-присід з паузою внизу — 2x8\n- Скапулярн
- і підтягування — 2x8\n- Легкі махи гирею 
- — 1x10\n- Перша вправа: 2–3 розминкові підх
- оди з наростанням ваги\n\nA\n- Румунська т
- яга зі штангою 4x7 @штанга відп 90с RIR 2-3 // Т
- аз назад\, спина рівна\, штанга ковзає по
-  стегнах до середини гомілки.\n- Підтягу
- вання зворотним хватом 4x5-8 @вага тіла ві
- дп 90с RIR 1-2 // Повна амплітуда. Коли 4×8 лег
- ко — гиря між ступнями. // Перший раз: ст
- ільки повторів\, скільки чисто\, з запас
- ом 1–2.\n\nB\n- Жим штанги стоячи 3x6 @штанга 
- відп 90с RIR 2 // Сідниці й прес напружені\, 
- без прогину в попереку.\n- Болгарські ви
- пади з гирями 3x8/бік @гиря відп 90с RIR 2 // З
- адня нога на лавці\, корпус злегка впере
- д.\n\nC\n- Турецький підйом з гирею 2x2/бік @г
- иря відп 60с // Повільно\, очі на гирю. Кор
- исно для плечей у БЖЖ.\n- Бічна планка 2x30
- с/бік відп 60с\n\nhttps://nazarus15.github.io/training-dashboar
- d/strength.html?s=s-2026-10-24
-END:VEVENT
-BEGIN:VEVENT
 UID:s-2026-10-29@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261029
 DTEND;VALUE=DATE:20261030
 TRANSP:TRANSPARENT
@@ -192,7 +157,7 @@ DESCRIPTION:Оціночний час: 65 хв\n\nМета: Верх ті
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-13@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261113
 DTEND;VALUE=DATE:20261114
 TRANSP:TRANSPARENT
@@ -231,7 +196,7 @@ DESCRIPTION:Оціночний час: 60 хв\n\nМета: Легке п
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-15@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261115
 DTEND;VALUE=DATE:20261116
 TRANSP:TRANSPARENT
@@ -262,7 +227,7 @@ DESCRIPTION:Оціночний час: 70 хв\n\nМета: Верх і
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-17@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261118
 TRANSP:TRANSPARENT
@@ -296,7 +261,7 @@ DESCRIPTION:Оціночний час: 75 хв\n\nМета: Другий
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-20@forma-nazara
-DTSTAMP:20261123T090902Z
+DTSTAMP:20261124T044032Z
 DTSTART;VALUE=DATE:20261120
 DTEND;VALUE=DATE:20261121
 TRANSP:TRANSPARENT
