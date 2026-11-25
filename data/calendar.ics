@@ -9,7 +9,7 @@ REFRESH-INTERVAL;VALUE=DURATION:PT6H
 X-PUBLISHED-TTL:PT6H
 BEGIN:VEVENT
 UID:icu-146863082@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261027
 DTEND;VALUE=DATE:20261028
 TRANSP:TRANSPARENT
@@ -31,7 +31,7 @@ DESCRIPTION:План: 72 хв · навантаження 71\n\nКлюч
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863152@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261031
 DTEND;VALUE=DATE:20261101
 TRANSP:TRANSPARENT
@@ -53,7 +53,7 @@ DESCRIPTION:План: 120 хв · навантаження 94\n\nАеро
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863096@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261101
 DTEND;VALUE=DATE:20261102
 TRANSP:TRANSPARENT
@@ -68,7 +68,7 @@ DESCRIPTION:План: 75 хв · навантаження 47\n\nЛегк
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667707@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261116
 DTEND;VALUE=DATE:20261117
 TRANSP:TRANSPARENT
@@ -86,7 +86,7 @@ DESCRIPTION:План: 60 хв · навантаження 41\n\nПерш
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667708@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261118
 DTEND;VALUE=DATE:20261119
 TRANSP:TRANSPARENT
@@ -105,7 +105,7 @@ DESCRIPTION:План: 65 хв · навантаження 63\n\nКлюч
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667709@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261121
 DTEND;VALUE=DATE:20261122
 TRANSP:TRANSPARENT
@@ -122,7 +122,7 @@ DESCRIPTION:План: 105 хв · навантаження 85\n\nАеро
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-10-29@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261029
 DTEND;VALUE=DATE:20261030
 TRANSP:TRANSPARENT
@@ -157,7 +157,7 @@ DESCRIPTION:Оціночний час: 65 хв\n\nМета: Верх ті
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-13@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261113
 DTEND;VALUE=DATE:20261114
 TRANSP:TRANSPARENT
@@ -196,7 +196,7 @@ DESCRIPTION:Оціночний час: 60 хв\n\nМета: Легке п
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-15@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261115
 DTEND;VALUE=DATE:20261116
 TRANSP:TRANSPARENT
@@ -227,7 +227,7 @@ DESCRIPTION:Оціночний час: 70 хв\n\nМета: Верх і
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-17@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261118
 TRANSP:TRANSPARENT
@@ -261,7 +261,7 @@ DESCRIPTION:Оціночний час: 75 хв\n\nМета: Другий
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-20@forma-nazara
-DTSTAMP:20261125T095318Z
+DTSTAMP:20261125T164050Z
 DTSTART;VALUE=DATE:20261120
 DTEND;VALUE=DATE:20261121
 TRANSP:TRANSPARENT
@@ -290,5 +290,128 @@ DESCRIPTION:Оціночний час: 70 хв\n\nМета: Задня л
  сення гирі (фермерська хода) 40с @2x24кг\n- Б
  окова планка 30с/бік\n\nhttps://nazarus15.github.io/train
  ing-dashboard/strength.html?s=s-2026-11-20
+END:VEVENT
+BEGIN:VEVENT
+UID:s-2026-11-25@forma-nazara
+DTSTAMP:20261125T164050Z
+DTSTART;VALUE=DATE:20261125
+DTEND;VALUE=DATE:20261126
+TRANSP:TRANSPARENT
+SUMMARY:Силове · Сила А — жим + присід
+DESCRIPTION:Оціночний час: 75 хв\n\nМета: Третій 
+ тиждень після перерви — повертаємось д
+ о робочих ваг. 17.11 жим пішов 70×7\, присід 7
+ 0×8\, тож сьогодні +5 кг\, запас 2 повтори. В
+ идих на зусиллі\, без затримки дихання. 
+ Штанга: жим лежачи і присід з однією ваг
+ ою 75 кг\, потім знімаєш до 55 кг на тягу в 
+ нахилі. Пов'язка від поту.\n\nРозминка 8 х
+ в\n- Скапулярні підтягування — 2x8\n- Відж
+ имання від лавки — 2x10\n- Присід з грифом 
+ — 1x10\n- Жим лежачи: 40 кг ×8\, 60 кг ×4 — 2 під
+ ходи\n\nA відп 2хв\n- Жим лежачи 4x5 @75кг RIR 2 //
+  17.11: 70×7 у трьох підходах. Якщо всі 4×5 чи
+ сто — наступного разу 4×6.\n- Підтягуванн
+ я зворотним хватом 4x6 @+14кг RIR 2 // 17.11: +10×7.\
+ n\nB відп 2хв\n- Присід зі штангою 4x6 @75кг RIR 
+ 2 // Та сама вага\, що в жимі. 17.11: 70×8.\n- Тяг
+ а гирі в нахилі однією рукою 3x12/бік @24кг 
+ RIR 2 // 24×10 було легко — додаємо повтори.\n
+ \nC відп 90с\n- Тяга штанги в нахилі 4x8 @55кг R
+ IR 2 // 17.11: 50×10. Корпус під 45°\, голова нейт
+ рально.\n- Віджимання на брусах або від л
+ авки 3x10 @+20кг RIR 2\n\nКоло 2x відп 1хв\n- Вис н
+ а турніку 60с // Хват для БЖЖ.\n- Dead bug 2x10/бі
+ к\n\nhttps://nazarus15.github.io/training-dashboard/strength.html?s=s-2
+ 026-11-25
+END:VEVENT
+BEGIN:VEVENT
+UID:s-2026-11-27@forma-nazara
+DTSTAMP:20261125T164050Z
+DTSTART;VALUE=DATE:20261127
+DTEND;VALUE=DATE:20261128
+TRANSP:TRANSPARENT
+SUMMARY:Силове · Сила Б — задня ланка
+DESCRIPTION:Оціночний час: 75 хв\n\nМета: Задня л
+ анка і жим стоячи. 20.11 румунська 87×8 і жи
+ м стоячи 40×8 у всіх підходах — додаємо в
+ агу\, запас 2 повтори. Видих на зусиллі\, 
+ без затримки дихання. Штанга: спершу ру
+ мунська 90 кг\, потім знімаєш до 42\,5 кг на 
+ жим стоячи. Пов'язка від поту.\n\nРозминк
+ а 8 хв\n- 90/90 + hip airplane — 2x5 на бік\n- Скапуля
+ рні підтягування — 2x8\n- Легкі махи гире
+ ю — 1x10\n- Румунська тяга: 50 кг ×8\, 70 кг ×5 
+ — 2 підходи\n\nA відп 2хв30с\n- Румунська тя
+ га зі штангою 4x6 @90кг RIR 2 // 20.11: 87×8. Таз на
+ зад\, спина рівна\, голова в лінію зі спи
+ ною.\n- Підтягування широким хватом 4x6 @+8
+ кг RIR 2 // 20.11 без ваги: 12\, 10\, 8\, 8.\n\nB відп 2х
+ в\n- Жим штанги стоячи 4x6 @42\,5кг RIR 2 // 20.11: 40
+ ×8 у чотирьох підходах.\n- Болгарський пр
+ исід з гирями 3x10/бік @2x24кг RIR 2\n\nC відп 60с\
+ n- Махи гирею 3x15 @30кг RIR 3 // Сила від стего
+ н\, плавний видих.\n- Віджимання 3x12 @+15кг RI
+ R 2\n\nКоло 2x відп 1хв\n- Фермерська хода 45с 
+ @2x24кг\n- Бокова планка 40с/бік\n\nhttps://nazarus15.
+ github.io/training-dashboard/strength.html?s=s-2026-11-27
+END:VEVENT
+BEGIN:VEVENT
+UID:s-2026-11-28@forma-nazara
+DTSTAMP:20261125T164050Z
+DTSTART;VALUE=DATE:20261128
+DTEND;VALUE=DATE:20261129
+TRANSP:TRANSPARENT
+SUMMARY:Силове · Кондиція з гирею + мобільні
+ сть
+DESCRIPTION:Оціночний час: 85 хв\n\nМета: Кондиц
+ ія без станка й БЖЖ: рівна робота з пуль
+ сом 130–150 (розмовний темп)\, щоб тримати 
+ аеробну базу. Легкі ваги\, без відмови і 
+ без затримки дихання. Після кола — 10 хв 
+ мобільності. Пов'язка від поту\, вода по
+ руч.\n\nРозминка 6 хв\n- Обертання в суглоб
+ ах — 1x60с\n- Легкі махи гирею — 2x10\n- Присі
+ д з власною вагою — 1x15\n\nКоло 5x відп 90с\n-
+  Махи гирею 15 @16кг RIR 4\n- Заходи на лавку 10
+ /бік RIR 4 // Повільно\, коліно над стопою.\n-
+  Віджимання 12 RIR 3\n- Тяга гирі в нахилі од
+ нією рукою 10/бік @24кг RIR 3\n- Планка 40с\n\nМо
+ більність 10 хв\n- Голуб (розтяжка сідниц
+ ь) — 1x60с на бік\n- Розтяжка грудних у две
+ рях — 1x45с на бік\n- Кіт-корова — 1x10\n- Вис 
+ на турніку розслаблено — 1x40с\n\nhttps://nazarus
+ 15.github.io/training-dashboard/strength.html?s=s-2026-11-28
+END:VEVENT
+BEGIN:VEVENT
+UID:s-2026-11-29@forma-nazara
+DTSTAMP:20261125T164050Z
+DTSTART;VALUE=DATE:20261129
+DTEND;VALUE=DATE:20261130
+TRANSP:TRANSPARENT
+SUMMARY:Силове · Сила В — верх і кор
+DESCRIPTION:Оціночний час: 70 хв\n\nМета: Верх і 
+ кор без ніг\, помірно — після п'ятничної
+  задньої ланки й суботньої кондиції. Ті
+ льки гирі й турнік. Запас 2–3 повтори\, б
+ ез затримки дихання. Пов'язка від поту.\n
+ \nРозминка 6 хв\n- Скапулярні підтягуванн
+ я — 2x8\n- Віджимання — 1x10\n- Гало з гирею 
+ — 2x5 на бік\n\nA відп 2хв\n- Підтягування не
+ йтральним або прямим хватом 4x6 @+12кг RIR 2 /
+ / 15.11: +10×7–8.\n- Жим гирі стоячи однією рук
+ ою 4x5/бік @24кг RIR 2 // 15.11 був один підхід 24×
+ 6 — тепер усі робочі.\n\nB відп 90с\n- Тяга г
+ ирі в нахилі однією рукою 3x12/бік @30кг RIR 2
+  // Пауза 1 с вгорі.\n- Віджимання з паузою 
+ внизу 3x10 @+15кг RIR 2\n\nC відп 60с\n- Тяга гирі 
+ до підборіддя (широко) 3x12 @30кг RIR 2 // Лікт
+ і до рівня плечей\, не вище.\n- Згинання з 
+ гирею на біцепс 3x8 @16кг RIR 2 // 15.11: 7\, 6\, 6 — 
+ цього разу всі 8.\n\nКоло 2x відп 1хв\n- Вис н
+ а турніку 60с\n- Hollow body 30с\n- Перенесення г
+ ирі в одній руці (suitcase carry) 40с/бік @30кг\n\nht
+ tps://nazarus15.github.io/training-dashboard/strength.html?s=s-2026-11-2
+ 9
 END:VEVENT
 END:VCALENDAR
