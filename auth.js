@@ -183,5 +183,12 @@ nav.tabs a.attn-warn::after,nav.tabs a.attn-bad::after{content:"";display:inline
   });
 
   ready.then(() => health().then(h => markNav(h.issues))).catch(() => { });
+  // свіжий експорт у Google Drive (раз на 12 год) — з будь-якої сторінки, не лише з Огляду
+  ready.then(() => setTimeout(() => {
+    if (!window.WK) return;
+    const go = () => window.DX?.autoDrive?.();
+    if (window.DX) return go();
+    const s = document.createElement("script"); s.src = "datax.js?v=" + Date.now().toString().slice(0, 7); s.onload = go; document.head.append(s);
+  }, 6000)).catch(() => { });
   return { health, markNav, ready, load, decrypt, encrypt, unlock, newKeyring, newRecovery, hasRecovery, logout, keyMismatch };
 })();
