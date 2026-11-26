@@ -9,7 +9,7 @@ REFRESH-INTERVAL;VALUE=DURATION:PT6H
 X-PUBLISHED-TTL:PT6H
 BEGIN:VEVENT
 UID:icu-146863082@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261027
 DTEND;VALUE=DATE:20261028
 TRANSP:TRANSPARENT
@@ -31,7 +31,7 @@ DESCRIPTION:План: 72 хв · навантаження 71\n\nКлюч
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863152@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261031
 DTEND;VALUE=DATE:20261101
 TRANSP:TRANSPARENT
@@ -53,7 +53,7 @@ DESCRIPTION:План: 120 хв · навантаження 94\n\nАеро
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-146863096@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261101
 DTEND;VALUE=DATE:20261102
 TRANSP:TRANSPARENT
@@ -68,7 +68,7 @@ DESCRIPTION:План: 75 хв · навантаження 47\n\nЛегк
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667707@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261116
 DTEND;VALUE=DATE:20261117
 TRANSP:TRANSPARENT
@@ -86,7 +86,7 @@ DESCRIPTION:План: 60 хв · навантаження 41\n\nПерш
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667708@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261118
 DTEND;VALUE=DATE:20261119
 TRANSP:TRANSPARENT
@@ -105,7 +105,7 @@ DESCRIPTION:План: 65 хв · навантаження 63\n\nКлюч
 END:VEVENT
 BEGIN:VEVENT
 UID:icu-155667709@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261121
 DTEND;VALUE=DATE:20261122
 TRANSP:TRANSPARENT
@@ -121,8 +121,83 @@ DESCRIPTION:План: 105 хв · навантаження 85\n\nАеро
  calendar.html
 END:VEVENT
 BEGIN:VEVENT
+UID:icu-160950910@forma-nazara
+DTSTAMP:20261126T144343Z
+DTSTART;VALUE=DATE:20261130
+DTEND;VALUE=DATE:20261201
+TRANSP:TRANSPARENT
+SUMMARY:Вело · Z2 + каденс — 75 хв
+DESCRIPTION:План: 75 хв · навантаження 50\n\nАеро
+ бна база після тижня без станка. Рівна Z2
+ \, пульс до 135 — якщо вище\, знижуй потужн
+ ість\, а не терпи. Каденсові вставки — л
+ егкі\, на оберти\, не на силу. Пий 500 мл за 
+ годину\, вентилятор на повну.\n\nРозминка
+ \n- 10 хв · плавно 50→65% FTP\nОсновна частина\
+ n- 50 хв · 63–68% FTP\nCadence ×4\n- 1 хв · 70% FTP\n- 1 хв 
+ · 60% FTP\nЗаминка\n- 7 хв · 50% FTP\n\nhttps://nazarus15.git
+ hub.io/training-dashboard/calendar.html
+END:VEVENT
+BEGIN:VEVENT
+UID:icu-160950911@forma-nazara
+DTSTAMP:20261126T144343Z
+DTSTART;VALUE=DATE:20261202
+DTEND;VALUE=DATE:20261203
+TRANSP:TRANSPARENT
+SUMMARY:Вело · Sweet Spot 3×12
+DESCRIPTION:План: 71 хв · навантаження 72\n\nКлюч
+ ове тренування тижня: прогресія від 3×10 
+ (18.11) до 3×12. 203–207 Вт\, каденс 88–95. 18.11 пул
+ ьс ріс від 142 до 150 у третьому відрізку —
+  мета сьогодні: третій відрізок не вище 
+ 150. Якщо пульс вище 152 — скороти останні
+ й відрізок до 10 хв\, потужність не знижу
+ й. Не натщесерце: вуглеводи за 1–2 год до
+  старту.\n\nРозминка\n- 10 хв · плавно 50→70% F
+ TP\n- 2 хв · 55% FTP\nОсновна частина ×3\n- 12 хв ·
+  88–90% FTP\n- 5 хв · 55% FTP\nЗаминка\n- 8 хв · плав
+ но 60→45% FTP\n\nhttps://nazarus15.github.io/training-dashboard/cale
+ ndar.html
+END:VEVENT
+BEGIN:VEVENT
+UID:icu-160950913@forma-nazara
+DTSTAMP:20261126T144343Z
+DTSTART;VALUE=DATE:20261205
+DTEND;VALUE=DATE:20261206
+TRANSP:TRANSPARENT
+SUMMARY:Вело · Z2 витривалість — 2 год
+DESCRIPTION:План: 120 хв · навантаження 79\n\nГоло
+ вна мета тижня — витривалість. 21.11 у кін
+ ці заїзду пульс на тих самих 145 Вт виріс 
+ зі 125 до 150 (decoupling 10%). Тому сьогодні без т
+ емпу: рівна Z2 2 години. Пульс до 138\; якщо 
+ після першої години дрейфує вище — опу
+ скай до 60% FTP. Вуглеводи 40–60 г на годину 
+ з 20-ї хвилини\, 600–750 мл рідини на годину 
+ з дрібкою солі. Не їдь натщесерце і не о 
+ 5-й ранку без сніданку.\n\nРозминка\n- 10 хв 
+ · плавно 50→63% FTP\nОсновна частина\n- 100 хв 
+ · 62–67% FTP\nЗаминка\n- 10 хв · плавно 58→48% FTP\
+ n\nhttps://nazarus15.github.io/training-dashboard/calendar.html
+END:VEVENT
+BEGIN:VEVENT
+UID:icu-160950916@forma-nazara
+DTSTAMP:20261126T144343Z
+DTSTART;VALUE=DATE:20261206
+DTEND;VALUE=DATE:20261207
+TRANSP:TRANSPARENT
+SUMMARY:Вело · Відновлювальне — 50 хв
+DESCRIPTION:План: 50 хв · навантаження 28\n\nЛегк
+ о після суботньої довгої. Пульс до 125\, я
+ кщо ноги важкі — 55%. Можна пропустити\, я
+ кщо HRV зранку помітно нижче звичного.\n\n
+ Розминка\n- 5 хв · плавно 50→60% FTP\nОсновна 
+ частина\n- 40 хв · 56–62% FTP\nЗаминка\n- 5 хв · 5
+ 0% FTP\n\nhttps://nazarus15.github.io/training-dashboard/calendar.html
+END:VEVENT
+BEGIN:VEVENT
 UID:s-2026-10-29@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261029
 DTEND;VALUE=DATE:20261030
 TRANSP:TRANSPARENT
@@ -157,7 +232,7 @@ DESCRIPTION:Оціночний час: 65 хв\n\nМета: Верх ті
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-13@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261113
 DTEND;VALUE=DATE:20261114
 TRANSP:TRANSPARENT
@@ -196,7 +271,7 @@ DESCRIPTION:Оціночний час: 60 хв\n\nМета: Легке п
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-15@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261115
 DTEND;VALUE=DATE:20261116
 TRANSP:TRANSPARENT
@@ -227,7 +302,7 @@ DESCRIPTION:Оціночний час: 70 хв\n\nМета: Верх і
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-17@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261117
 DTEND;VALUE=DATE:20261118
 TRANSP:TRANSPARENT
@@ -261,7 +336,7 @@ DESCRIPTION:Оціночний час: 75 хв\n\nМета: Другий
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-20@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261120
 DTEND;VALUE=DATE:20261121
 TRANSP:TRANSPARENT
@@ -293,7 +368,7 @@ DESCRIPTION:Оціночний час: 70 хв\n\nМета: Задня л
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-25@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261125
 DTEND;VALUE=DATE:20261126
 TRANSP:TRANSPARENT
@@ -327,7 +402,7 @@ DESCRIPTION:Оціночний час: 75 хв\n\nМета: Третій
 END:VEVENT
 BEGIN:VEVENT
 UID:s-2026-11-27@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261127
 DTEND;VALUE=DATE:20261128
 TRANSP:TRANSPARENT
@@ -357,35 +432,8 @@ DESCRIPTION:Оціночний час: 75 хв\n\nМета: Задня л
  github.io/training-dashboard/strength.html?s=s-2026-11-27
 END:VEVENT
 BEGIN:VEVENT
-UID:s-2026-11-28@forma-nazara
-DTSTAMP:20261126T093432Z
-DTSTART;VALUE=DATE:20261128
-DTEND;VALUE=DATE:20261129
-TRANSP:TRANSPARENT
-SUMMARY:Силове · Кондиція з гирею + мобільні
- сть
-DESCRIPTION:Оціночний час: 85 хв\n\nМета: Кондиц
- ія без станка й БЖЖ: рівна робота з пуль
- сом 130–150 (розмовний темп)\, щоб тримати 
- аеробну базу. Легкі ваги\, без відмови і 
- без затримки дихання. Після кола — 10 хв 
- мобільності. Пов'язка від поту\, вода по
- руч.\n\nРозминка 6 хв\n- Обертання в суглоб
- ах — 1x60с\n- Легкі махи гирею — 2x10\n- Присі
- д з власною вагою — 1x15\n\nКоло 5x відп 90с\n-
-  Махи гирею 15 @16кг RIR 4\n- Заходи на лавку 10
- /бік RIR 4 // Повільно\, коліно над стопою.\n-
-  Віджимання 12 RIR 3\n- Тяга гирі в нахилі од
- нією рукою 10/бік @24кг RIR 3\n- Планка 40с\n\nМо
- більність 10 хв\n- Голуб (розтяжка сідниц
- ь) — 1x60с на бік\n- Розтяжка грудних у две
- рях — 1x45с на бік\n- Кіт-корова — 1x10\n- Вис 
- на турніку розслаблено — 1x40с\n\nhttps://nazarus
- 15.github.io/training-dashboard/strength.html?s=s-2026-11-28
-END:VEVENT
-BEGIN:VEVENT
 UID:s-2026-11-29@forma-nazara
-DTSTAMP:20261126T093432Z
+DTSTAMP:20261126T144343Z
 DTSTART;VALUE=DATE:20261129
 DTEND;VALUE=DATE:20261130
 TRANSP:TRANSPARENT
@@ -413,5 +461,66 @@ DESCRIPTION:Оціночний час: 70 хв\n\nМета: Верх і
  ирі в одній руці (suitcase carry) 40с/бік @30кг\n\nht
  tps://nazarus15.github.io/training-dashboard/strength.html?s=s-2026-11-2
  9
+END:VEVENT
+BEGIN:VEVENT
+UID:s-2026-12-01@forma-nazara
+DTSTAMP:20261126T144343Z
+DTSTART;VALUE=DATE:20261201
+DTEND;VALUE=DATE:20261202
+TRANSP:TRANSPARENT
+SUMMARY:Силове · Сила А — жим + присід
+DESCRIPTION:Оціночний час: 75 хв\n\nМета: Сила + в
+ ело-тиждень. Жим і присід з однією вагою
+ \, запас 2 повтори\, без затримки дихання.
+  Якщо 25.11 усі 4×5 по 75 кг пройшли чисто — 
+ сьогодні 4×6 на 75 кг\; якщо останній підх
+ ід був на межі — знову 4×5. Після штанги 
+ знімаєш до 55 кг на тягу. Завтра sweet spot — 
+ ноги не добивай.\n\nРозминка 8 хв\n- Скапул
+ ярні підтягування — 2x8\n- Віджимання від
+  лавки — 2x10\n- Присід з грифом — 1x10\n- Жим 
+ лежачи: 40 кг ×8\, 60 кг ×4 — 2 підходи\n\nA від
+ п 2хв\n- Жим лежачи 4x6 @75кг RIR 2\n- Підтягува
+ ння зворотним хватом 4x6 @+14кг RIR 2\n\nB відп 
+ 2хв\n- Присід зі штангою 3x6 @75кг RIR 3 // Три п
+ ідходи\, а не чотири — завтра інтервали 
+ на станку.\n- Тяга гирі в нахилі однією р
+ укою 3x12/бік @24кг RIR 2\n\nC відп 90с\n- Тяга шта
+ нги в нахилі 4x8 @55кг RIR 2\n- Віджимання на б
+ русах або від лавки 3x10 @+20кг RIR 2\n\nКоло 2x 
+ відп 1хв\n- Вис на турніку 60с\n- Dead bug 2x10/бі
+ к\n\nhttps://nazarus15.github.io/training-dashboard/strength.html?s=s-2
+ 026-12-01
+END:VEVENT
+BEGIN:VEVENT
+UID:s-2026-12-03@forma-nazara
+DTSTAMP:20261126T144343Z
+DTSTART;VALUE=DATE:20261203
+DTEND;VALUE=DATE:20261204
+TRANSP:TRANSPARENT
+SUMMARY:Силове · Сила Б — задня ланка (помір
+ но)
+DESCRIPTION:Оціночний час: 75 хв\n\nМета: Задня л
+ анка помірно — у суботу 2 години на стан
+ ку\, тому запас 3 повтори і румунська тро
+ хи легша\, ніж 27.11. Жим стоячи і тяги — на
+  прогрес. Видих на зусиллі\, без затримк
+ и дихання. Штанга: румунська 85 кг\, потім
+  знімаєш до 42\,5 кг на жим стоячи.\n\nРозми
+ нка 8 хв\n- 90/90 + hip airplane — 2x5 на бік\n- Скапу
+ лярні підтягування — 2x8\n- Легкі махи ги
+ рею — 1x10\n- Румунська тяга: 50 кг ×8\, 70 кг ×
+ 5 — 2 підходи\n\nA відп 2хв30с\n- Румунська т
+ яга зі штангою 4x6 @85кг RIR 3 // Легше\, ніж у 
+ п'ятницю\, — бережемо ноги на суботу.\n- П
+ ідтягування широким хватом 4x6 @+8кг RIR 2\n\n
+ B відп 2хв\n- Жим штанги стоячи 4x6 @42\,5кг RIR 
+ 2 // Якщо 27.11 пройшли всі 4×6 — сьогодні 4×7
+ .\n- Болгарський присід з гирями 3x8/бік @2x1
+ 6кг RIR 3\n\nC відп 60с\n- Тяга гирі до підборі
+ ддя (широко) 3x12 @24кг RIR 2\n- Віджимання 3x12 @+
+ 15кг RIR 2\n\nКоло 2x відп 1хв\n- Фермерська хо
+ да 45с @2x24кг\n- Бокова планка 40с/бік\n\nhttps://
+ nazarus15.github.io/training-dashboard/strength.html?s=s-2026-12-03
 END:VEVENT
 END:VCALENDAR
