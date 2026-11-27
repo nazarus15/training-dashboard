@@ -19,7 +19,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{--page-w:1240px}
 /* Layout: «кокпіт» — стрічка стану сьогодні, потім висновки, потім блоки графіків у сітці 2 колонки, внизу журнал активностей */
 :root{
   --bg:#eef1f4; --panel:#ffffff; --ink:#15202b; --muted:#5b6876; --line:#d6dde5;
@@ -43,7 +42,6 @@
   --z1:#6e8294; --z2:#4f9fe0; --z3:#3cbf80; --z4:#e9c43a; --z5:#f0933f; --z6:#ec5d53; --z7:#a37ee6;
   color-scheme:dark}
 *{box-sizing:border-box}
-[hidden]{display:none!important}
 html{color-scheme:light}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
@@ -59,10 +57,7 @@ h3{font-size:19px;font-weight:600;letter-spacing:.02em}
 header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2px solid var(--ink);padding-bottom:14px}
 header.top .meta{font-family:var(--f-data);font-size:12px;color:var(--muted);text-align:right}
 /* status strip */
-/* сітка показників: на широкому екрані всі в один ряд, на середньому — по 4, на телефоні — по 2; неповний останній ряд дотягує JS (fillStrip) */
-.strip{display:grid;grid-template-columns:repeat(var(--n,8),minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-@media (max-width:1100px){.strip{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media (max-width:560px){.strip{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{padding:12px}.tile .v{font-size:32px}}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .tile{background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .tile .v{font-family:var(--f-display);font-size:38px;font-weight:600;line-height:1}
 .tile .v small{font-size:16px;color:var(--muted);font-weight:500;margin-left:3px}

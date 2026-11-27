@@ -29,22 +29,9 @@ function applyLayout(s) {
   document.querySelectorAll("[data-blk]").forEach(el => { el.hidden = hidden.has(el.dataset.blk); });
   document.querySelectorAll("section[data-blk]").forEach(sec => { const cards = sec.querySelectorAll(".card[data-blk]"); if (cards.length && [...cards].every(c => c.hidden)) sec.hidden = true; });
   document.querySelectorAll("#strip .tile[data-tile]").forEach(el => { el.hidden = hidden.has("t:" + el.dataset.tile); });
-  if (typeof fillStrip === "function") fillStrip();
 }
 try { applyLayout(JSON.parse(localStorage.getItem("td_settings_cache") || "null")); } catch { }
 fetch(`https://raw.githubusercontent.com/nazarus15/training-dashboard/journal/settings.json?t=${Date.now()}`, { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(s => { let c = null; try { c = JSON.parse(localStorage.getItem("td_settings_cache") || "null"); } catch { } if (s && (!c?.updatedAt || (s.updatedAt || "") >= c.updatedAt)) { try { localStorage.setItem("td_settings_cache", JSON.stringify(s)); } catch { } applyLayout(s); } }).catch(() => { });
-
-// сітка показників без «дірок»: останній плитка в неповному ряду розтягується до кінця ряду
-function fillStrip() {
-  const st = $("strip"); if (!st) return;
-  const tiles = [...st.querySelectorAll(".tile")].filter(t => !t.hidden);
-  st.style.setProperty("--n", Math.max(1, tiles.length));
-  tiles.forEach(t => t.style.gridColumn = "");
-  const cols = getComputedStyle(st).gridTemplateColumns.split(" ").filter(Boolean).length || 1;
-  const rest = tiles.length % cols;
-  if (rest && tiles.length) tiles.at(-1).style.gridColumn = `span ${cols - rest + 1}`;
-}
-addEventListener("resize", () => fillStrip());
 
 // ---------- перемикач періодів графіків ----------
 // Кожен графік має свій період (чипи в картці); загальний перемикач над графіками ставить один період усім.
@@ -225,7 +212,6 @@ function run(W, A, P, G) {
   ].filter(Boolean);
   $("strip").innerHTML = tiles.map(([k, v, u, [p, c]]) => `<div class="tile" data-tile="${WK.TILES.find(x => x[1] === k)?.[0] || ""}"><span class="eyebrow">${k}</span><span class="v num">${v}<small>${u}</small></span><span class="pill ${c}">${p}</span></div>`).join("");
   try { applyLayout(JSON.parse(localStorage.getItem("td_settings_cache") || "null")); } catch { }
-  fillStrip();
 
   // ---------- insights ----------
   const ctlMin = Math.min(...wr.filter(r => r.date >= since70 && r.ctl != null).map(r => r.ctl)), ctlMax = Math.max(...wr.filter(r => r.date >= since70 && r.ctl != null).map(r => r.ctl));

@@ -18,13 +18,11 @@
 <link rel="stylesheet" href="ui.css?v=1795703634">
 <link rel="stylesheet" href="workout.css?v=1795703634">
 <style>
-:root{--page-w:1100px}
 /* Layout: місяць як стовпчик тижнів; кожен день — рядок із запланованими й виконаними тренуваннями. */
 .wrap{max-width:1100px}
 #calBar{display:none}
 /* комп'ютер: увесь місяць тижнями-колонками на всю ширину, прокрутка по горизонталі */
 @media (min-width:821px){
-  :root{--page-w:none}
   .wrap{max-width:none}
   #cal.plan-weeks{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:10px;scroll-snap-type:x proximity;overscroll-behavior-x:contain}
   #cal .pweek{flex:0 0 clamp(300px,calc((100vw - 32px - 48px) / 4),380px);scroll-snap-align:start}
