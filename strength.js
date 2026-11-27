@@ -168,6 +168,7 @@ function render() {
   if (!plan) return;
   $("status").hidden = true;
   renderSchedule(); renderSession(); renderHistory();
+  dispatchEvent(new Event("strength:render")); // прогрес і об'єм на групи м'язів (strength-progress.js, strength-volume.js)
 }
 function statusPill(s, L) {
   if (L?.status === "done") return `<span class="pill done">Виконано</span>`;
