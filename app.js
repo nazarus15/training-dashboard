@@ -54,7 +54,8 @@ const lsJ = (k, d) => { try { const v = localStorage.getItem(k); return v == nul
 const lsW = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch { } };
 const PER = { cfg: {}, glob: lsJ("td_per_glob", null), own: lsJ("td_per_own", {}), on: {} };
 // ефективний період у днях: свій у картці → загальний → типовий; не довший за наявні дані
-function perDays(id) { const c = PER.cfg[id]; if (!c) return 90; const v = PER.own[id] ?? PER.glob ?? c.def; return Math.min(v, c.max || v); }
+// відкат перемикача періодів: кожен графік — з типовим періодом, як до перемикача
+function perDays(id) { const c = PER.cfg[id]; return c ? c.def : 90; }
 function perChips(id) {
   const c = PER.cfg[id], cur = PER.own[id] ?? PER.glob ?? c.def;
   let firstAbove = true;
@@ -64,7 +65,8 @@ function perChips(id) {
     return `<button type="button" data-per="${id}" data-d="${d}" aria-pressed="${d === cur}"${dis ? ` disabled title="Даних лише за ${Math.round(c.max / 7)} тиж."` : over ? ` title="Усі наявні дані: ${Math.round(c.max / 7)} тиж."` : ""}>${t}</button>`;
   }).join("");
 }
-function perMount() {
+function perMount() { const g = $("perGlobal"); if (g) g.hidden = true; }
+function perMountOff() {
   for (const id of Object.keys(PER.cfg)) {
     const el = $(PER.cfg[id].el || id); const card = el?.closest(".card"); if (!card) continue;
     let box = card.querySelector(`.per[data-for="${id}"]`);
@@ -164,8 +166,8 @@ function run(W, A, P, G) {
   const spanDays = d0 => d0 ? Math.round((new Date(today.date) - new Date(d0)) / 864e5) + 1 : 0;
   const wDays = spanDays(wr[0]?.date), aDays = spanDays(acts[0]?.day), hDays = spanDays(hrvRows[0]?.date), gaDays = spanDays((G.activities || [])[0]?.start?.slice(0, 10));
   PER.cfg = {
-    cPmc: { def: 182, max: wDays }, cWeek: { def: 91, max: aDays }, cAcute: { def: 42, max: G.loadHistory?.length || 0 }, cMono: { def: 91, max: wDays },
-    cHrv: { def: 91, max: hDays }, cSleep: { def: 91, max: wDays }, cBB: { def: 28, max: G.daily?.length || 0 }, cHrz: { def: 42, max: aDays },
+    cPmc: { def: 120, max: wDays }, cWeek: { def: 70, max: aDays }, cAcute: { def: 42, max: G.loadHistory?.length || 0 }, cMono: { def: 70, max: wDays },
+    cHrv: { def: 75, max: hDays }, cSleep: { def: 70, max: wDays }, cBB: { def: 28, max: G.daily?.length || 0 }, cHrz: { def: 42, max: aDays },
     heat: { def: 70, max: wDays, el: "heat" }, cmp: { def: 70, max: gaDays, el: "cmpLoad" }, cost: { def: 28, max: gaDays, el: "costTbl" },
   };
 
