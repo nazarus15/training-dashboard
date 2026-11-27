@@ -10,7 +10,7 @@
   const addD = (s, n) => { const d = new Date(s + "T12:00"); d.setDate(d.getDate() + n); return iso(d); };
   const fd = s => { const d = new Date(s + "T12:00"); return `${d.getDate()} ${MON[d.getMonth()]}`; };
   const n1 = v => (Math.round(v * 2) / 2).toString().replace(".", ",");
-  const PER = [[4, "4 тиж"], [8, "8 тиж"], [10, "10 тиж"], [12, "12 тиж"]];
+  const PER = [[4, "4 тиж"], [8, "8 тиж"], [12, "12 тиж"]];
   // орієнтир на тиждень: менше 6 — підтримка, 6–20 — робочий діапазон, понад 20 — забагато поруч із велосипедом і БЖЖ
   const LOW = 6, HIGH = 20;
   let weeksN = (() => { try { return +localStorage.getItem("td_sv_weeks") || 4; } catch { return 4; } })();
