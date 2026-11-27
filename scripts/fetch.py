@@ -27,7 +27,7 @@ import requests
 TZ = ZoneInfo("Europe/Kyiv")
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-DAYS_BACK = 150
+DAYS_BACK = 400  # wellness (CTL, HRV, сон) — для перемикача періодів «рік» на графіках
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
 
 now_local = datetime.now(TZ)

@@ -46,6 +46,41 @@ function fillStrip() {
 }
 addEventListener("resize", () => fillStrip());
 
+// ---------- перемикач періодів графіків ----------
+// Кожен графік має свій період (чипи в картці); загальний перемикач над графіками ставить один період усім.
+// Вибір зберігається на пристрої. Якщо даних менше за період (Garmin віддає 4–10 тижнів), показується все наявне.
+const PERIODS = [[14, "2 тиж"], [28, "4 тиж"], [42, "6 тиж"], [91, "3 міс"], [182, "6 міс"], [365, "рік"]];
+const lsJ = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } };
+const lsW = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch { } };
+const PER = { cfg: {}, glob: lsJ("td_per_glob", null), own: lsJ("td_per_own", {}), on: {} };
+// ефективний період у днях: свій у картці → загальний → типовий; не довший за наявні дані
+function perDays(id) { const c = PER.cfg[id]; if (!c) return 90; const v = PER.own[id] ?? PER.glob ?? c.def; return Math.min(v, c.max || v); }
+function perChips(id) {
+  const c = PER.cfg[id], cur = PER.own[id] ?? PER.glob ?? c.def;
+  let firstAbove = true;
+  return PERIODS.map(([d, t]) => {
+    // варіанти довші за наявні дані вимкнені, крім першого — він означає «усе, що є»
+    const over = c.max && d > c.max + 3; const dis = over && !firstAbove; if (over) firstAbove = false;
+    return `<button type="button" data-per="${id}" data-d="${d}" aria-pressed="${d === cur}"${dis ? ` disabled title="Даних лише за ${Math.round(c.max / 7)} тиж."` : over ? ` title="Усі наявні дані: ${Math.round(c.max / 7)} тиж."` : ""}>${t}</button>`;
+  }).join("");
+}
+function perMount() {
+  for (const id of Object.keys(PER.cfg)) {
+    const el = $(PER.cfg[id].el || id); const card = el?.closest(".card"); if (!card) continue;
+    let box = card.querySelector(`.per[data-for="${id}"]`);
+    if (!box) { box = document.createElement("div"); box.className = "per"; box.dataset.for = id; box.setAttribute("role", "group"); box.setAttribute("aria-label", "Період"); (card.querySelector("h3") || card.firstElementChild).after(box); }
+    box.innerHTML = perChips(id);
+  }
+  const g = $("perGlobal"); if (g) { const cur = PER.glob; g.querySelector(".per").innerHTML = PERIODS.map(([d, t]) => `<button type="button" data-perg="${d}" aria-pressed="${d === cur}">${t}</button>`).join(""); g.querySelector("[data-perreset]").hidden = !Object.keys(PER.own).length && PER.glob == null; }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-per]");
+  if (b) { const id = b.dataset.per; PER.own[id] = +b.dataset.d; lsW("td_per_own", PER.own); perMount(); PER.on[id]?.(); return; }
+  const g = e.target.closest("[data-perg]");
+  if (g) { PER.glob = +g.dataset.perg; PER.own = {}; lsW("td_per_glob", PER.glob); lsW("td_per_own", null); perMount(); new Set(Object.values(PER.on)).forEach(f => f()); return; }
+  if (e.target.closest("[data-perreset]")) { PER.glob = null; PER.own = {}; lsW("td_per_glob", null); lsW("td_per_own", null); perMount(); new Set(Object.values(PER.on)).forEach(f => f()); }
+});
+
 function run(W, A, P, G) {
   // ---------- data prep ----------
   const wr = W.rows.map(r => Object.fromEntries(W.cols.map((c, i) => [c, r[i]])));
@@ -85,20 +120,22 @@ function run(W, A, P, G) {
   const since42 = shift(today.date, -42), since70 = shift(today.date, -70);
   const loadByDay = {}; acts.forEach(a => { if (a.load) loadByDay[a.day] = (loadByDay[a.day] || 0) + a.load; });
   const mondayOf = d => { const dt = new Date(d + "T12:00:00"); const wd = (dt.getDay() + 6) % 7; dt.setDate(dt.getDate() - wd); return dt.toISOString().slice(0, 10); };
-  const weeks = {};
-  acts.forEach(a => { const w = mondayOf(a.day); if (w < mondayOf(since70)) return; weeks[w] ??= { bike: 0, bjj: 0, str: 0, other: 0, rest: 0, secs: 0 }; weeks[w][a.sport] += a.load || 0; weeks[w].secs += a.moving || 0; });
-  // усі тижні підряд від початку вікна до поточного, навіть без тренувань (пропуски видно нулем)
+  // тижні від since до поточного, навіть без тренувань (пропуски видно нулем)
   const blankW = () => ({ bike: 0, bjj: 0, str: 0, other: 0, rest: 0, secs: 0 });
-  for (let w = mondayOf(since70), end = mondayOf(today.date); w <= end; w = shift(w, 7)) weeks[w] ??= blankW();
-  const weekKeys = Object.keys(weeks).sort();
+  function weeksFrom(since) {
+    const weeks = {};
+    acts.forEach(a => { const w = mondayOf(a.day); if (w < mondayOf(since)) return; weeks[w] ??= blankW(); weeks[w][a.sport] += a.load || 0; weeks[w].secs += a.moving || 0; });
+    for (let w = mondayOf(since), end = mondayOf(today.date); w <= end; w = shift(w, 7)) weeks[w] ??= blankW();
+    return { weeks, weekKeys: Object.keys(weeks).sort() };
+  }
 
   const days = wr.map(r => r.date);
   const mono = [];
-  for (let i = 6; i < days.length; i++) { if (days[i] < since70) continue; const win = days.slice(i - 6, i + 1).map(d => loadByDay[d] || 0); const m = avg(win), s = sd(win); const tot = win.reduce((x, y) => x + y, 0); mono.push({ d: days[i], mono: s ? +(m / s).toFixed(2) : null, strain: s ? Math.round(tot * m / s) : null }); }
+  for (let i = 6; i < days.length; i++) { const win = days.slice(i - 6, i + 1).map(d => loadByDay[d] || 0); const m = avg(win), s = sd(win); const tot = win.reduce((x, y) => x + y, 0); mono.push({ d: days[i], mono: s ? +(m / s).toFixed(2) : null, strain: s ? Math.round(tot * m / s) : null }); }
   const lastMono = mono[mono.length - 1] || {};
 
   const firstHrv = wr.findIndex(r => r.hrv != null);
-  const hrvRows = wr.slice(Math.max(0, firstHrv, wr.length - 75));
+  const hrvRows = firstHrv < 0 ? [] : wr.slice(firstHrv);
   hrvRows.forEach((r, i) => { const v = avg(hrvRows.slice(Math.max(0, i - 6), i + 1).map(x => x.hrv)); r.hrv7 = v != null ? +v.toFixed(1) : null; });
   const last30 = hrvRows.slice(-30);
   const hrv30 = avg(last30.map(r => r.hrv)), hrvSd30 = sd(last30.map(r => r.hrv)), rhr30 = avg(last30.map(r => r.rhr));
@@ -122,6 +159,15 @@ function run(W, A, P, G) {
   const decs = acts.filter(a => a.np && a.decoupling != null && a.moving >= 2700 && steady(a)).slice(-6);
 
 
+
+  // наявні дані (днів) для кожного графіка: intervals.icu — до року, Garmin — 4–10 тижнів
+  const spanDays = d0 => d0 ? Math.round((new Date(today.date) - new Date(d0)) / 864e5) + 1 : 0;
+  const wDays = spanDays(wr[0]?.date), aDays = spanDays(acts[0]?.day), hDays = spanDays(hrvRows[0]?.date), gaDays = spanDays((G.activities || [])[0]?.start?.slice(0, 10));
+  PER.cfg = {
+    cPmc: { def: 182, max: wDays }, cWeek: { def: 91, max: aDays }, cAcute: { def: 42, max: G.loadHistory?.length || 0 }, cMono: { def: 91, max: wDays },
+    cHrv: { def: 91, max: hDays }, cSleep: { def: 91, max: wDays }, cBB: { def: 28, max: G.daily?.length || 0 }, cHrz: { def: 42, max: aDays },
+    heat: { def: 70, max: wDays, el: "heat" }, cmp: { def: 70, max: gaDays, el: "cmpLoad" }, cost: { def: 28, max: gaDays, el: "costTbl" },
+  };
 
   // ---------- readiness (власний розрахунок) ----------
   const R = (() => {
@@ -234,17 +280,19 @@ function run(W, A, P, G) {
     ...strToday.map(a => [`Силове ${a.date.slice(11)}`, `${fmtDur(a.moving)} · пульс ${a.avgHr ?? "—"} · ${a.kcal ?? "—"} ккал`])].map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("") : "";
 
   // ---------- ціна тренувань (Garmin) ----------
-  (function () {
-    const ga = (G.activities || []).filter(a => a.start >= shift(today.date, -28)).slice().reverse();
-    if (!ga.length) { $("costTbl").innerHTML = `<tr><td>Немає даних Garmin.</td></tr>`; return; }
+  function renderCost() {
+    const nd = perDays("cost"), ga = (G.activities || []).filter(a => a.start >= shift(today.date, -nd)).slice().reverse();
+    if (!ga.length) { $("costTbl").innerHTML = `<tr><td>Немає даних Garmin за цей період.</td></tr>`; $("costKv").innerHTML = ""; $("costList").innerHTML = ""; return; }
+    const pn = nd % 7 ? `${nd} дн.` : `${nd / 7} тиж.`;
     const TYPE = t => /martial/.test(t || "") ? "БЖЖ" : /cycl|bik|ride/.test(t || "") ? "Велосипед" : /strength/.test(t || "") ? "Сила" : /walk|hik/.test(t || "") ? "Ходьба" : (t || "Інше");
     const LBL = { RECOVERY: "відновлення", AEROBIC_BASE: "аеробна база", TEMPO: "темп", LACTATE_THRESHOLD: "поріг", VO2MAX: "VO2max", ANAEROBIC_CAPACITY: "анаеробна ємність", SPEED: "швидкість" };
     const groups = {}; ga.forEach(a => (groups[TYPE(a.type)] ??= []).push(a));
-    $("costKv").innerHTML = Object.entries(groups).map(([k, arr]) => `<dt>${k}: ${arr.length} за 4 тижні, у середньому</dt><dd>навант. ${fx(avg(arr.map(a => a.load)))} · TE ${fx(avg(arr.map(a => a.aTE)), 1)} / ${fx(avg(arr.map(a => a.anTE)), 1)} · Body Battery ${fx(avg(arr.map(a => a.bb)))} · піт ${fx(avg(arr.map(a => a.water)))} мл</dd>`).join("");
+    $("costKv").innerHTML = Object.entries(groups).map(([k, arr]) => `<dt>${k}: ${arr.length} за ${pn}, у середньому</dt><dd>навант. ${fx(avg(arr.map(a => a.load)))} · TE ${fx(avg(arr.map(a => a.aTE)), 1)} / ${fx(avg(arr.map(a => a.anTE)), 1)} · Body Battery ${fx(avg(arr.map(a => a.bb)))} · піт ${fx(avg(arr.map(a => a.water)))} мл</dd>`).join("");
     const ds = s => { const [d, tm] = s.split("T"); const [, m, dd] = d.split("-"); return `${+dd}.${m} ${tm}`; };
     $("costList").innerHTML = ga.map(a => `<div class="cost-item"><span><b>${TYPE(a.type)}</b> · ${ds(a.start)} · ${fmtDur(a.durS)}</span><span class="muted">Навант. ${fx(a.load)} · TE ${fx(a.aTE, 1)} / ${fx(a.anTE, 1)} · ${esc(LBL[a.label] || (a.label || "—").toLowerCase())}</span><span class="muted">Body Battery ${a.bb ?? "—"} · піт ${a.water ?? "—"} мл · пульс ${fx(a.avgHr)} / ${fx(a.maxHr)}</span></div>`).join("");
     $("costTbl").innerHTML = `<thead><tr><th class="l">Дата</th><th class="l">Вид</th><th>Час</th><th>Навант. Garmin</th><th>Аероб. TE</th><th>Анаероб. TE</th><th class="l">Ефект</th><th>Body Battery</th><th>Піт, мл</th><th>Інтенс. хв</th><th>Пульс</th></tr></thead><tbody>${ga.map(a => `<tr><td class="l">${a.start.replace("T", " ")}</td><td class="l name">${TYPE(a.type)}</td><td>${fmtDur(a.durS)}</td><td>${fx(a.load)}</td><td>${fx(a.aTE, 1)}</td><td>${fx(a.anTE, 1)}</td><td class="l name">${esc(LBL[a.label] || (a.label || "—").toLowerCase())}</td><td>${a.bb ?? "—"}</td><td>${a.water ?? "—"}</td><td>${(a.modMin ?? 0) + 2 * (a.vigMin ?? 0)}</td><td>${fx(a.avgHr)}/${fx(a.maxHr)}</td></tr>`).join("")}</tbody>`;
-  })();
+  }  renderCost();
+
   const MN = { MS_2P: "Monod–Scherrer", MORTON_3P: "Morton 3P", FFT_CURVES: "FFT (intervals.icu)", ECP: "ECP" };
   $("models").innerHTML = (P.models || []).map(m => `<dt>${esc(MN[m[0]] || m[0])}</dt><dd>${m[1]} Вт${m[2] ? ` · W′ ${(m[2] / 1000).toFixed(1)} кДж` : ""}${m[3] ? ` · Pmax ${m[3]}` : ""}</dd>`).join("") + (ftp ? `<dt>Встановлений FTP</dt><dd>${ftp} Вт${wt ? ` · ${(ftp / wt).toFixed(2)} Вт/кг` : ""}</dd>` : "") + (wt ? `<dt>Вага</dt><dd>${wt} кг</dd>` : "");
   if (ftp && $("lgFtp")) $("lgFtp").lastChild.textContent = `FTP ${ftp} Вт`;
@@ -269,7 +317,8 @@ function run(W, A, P, G) {
   const gActs = (G.activities || []).filter(a => a.start).map(a => ({ day: a.start.slice(0, 10), sport: gSport(a.type), load: a.load || 0, secs: a.durS || 0 }));
   const gLoadByDay = {}; gActs.forEach(a => { if (a.load) gLoadByDay[a.day] = Math.round(((gLoadByDay[a.day] || 0) + a.load) * 10) / 10; });
   function heatmap(el, loadMap, list, col) {
-    const wkMap = {}; wr.filter(r => r.date >= mondayOf(since70)).forEach(r => { (wkMap[mondayOf(r.date)] ??= []).push(r.date); });
+    const since = shift(today.date, -perDays("heat") + 1);
+    const wkMap = {}; wr.filter(r => r.date >= mondayOf(since)).forEach(r => { (wkMap[mondayOf(r.date)] ??= []).push(r.date); });
     const sportsByDay = {}; list.forEach(a => { (sportsByDay[a.day] ??= new Set()).add(a.sport); });
     // насиченість — відносно «важкого дня» саме цієї платформи (90-й перцентиль), бо шкали різні
     const vals = Object.values(loadMap).filter(Boolean).sort((x, y) => x - y), top = Math.max(30, vals[Math.floor(vals.length * .9)] || 120);
@@ -280,13 +329,17 @@ function run(W, A, P, G) {
     $(el).innerHTML = html + "</tbody></table>";
     if ($(el + "Sum")) $(el + "Sum").textContent = `Σ ${Math.round(total)} за ${Object.keys(wkMap).length} тиж.`;
   }
-  heatmap("heat", loadByDay, acts, "--accent");
-  if (gActs.length) heatmap("heatG", gLoadByDay, gActs, "--accent-3"); else $("heatG").innerHTML = `<p class="note">Немає даних Garmin.</p>`;
+  function renderHeat() {
+    heatmap("heat", loadByDay, acts, "--accent");
+    if (gActs.length) heatmap("heatG", gLoadByDay, gActs, "--accent-3"); else $("heatG").innerHTML = `<p class="note">Немає даних Garmin.</p>`;
+  }
+  renderHeat();
 
   // ---------- intervals.icu проти Garmin: ті самі тренування (день + вид) за 70 днів ----------
-  (function () {
+  function renderCmp() {
     if (!gActs.length) { $("cmpLoad").innerHTML = `<p class="note">Немає даних Garmin для порівняння.</p>`; return; }
-    const iA = acts.filter(a => a.day >= since70 && a.load), gA = gActs.filter(a => a.day >= since70 && a.load);
+    const sinceC = shift(today.date, -perDays("cmp"));
+    const iA = acts.filter(a => a.day >= sinceC && a.load), gA = gActs.filter(a => a.day >= sinceC && a.load);
     const usedG = new Set(), pairs = [];
     for (const a of iA) { const g = gA.find(x => !usedG.has(x) && x.day === a.day && x.sport === a.sport); if (g) { usedG.add(g); pairs.push([a, g]); } }
     const rows = ["bjj", "bike", "str", "other"].map(sp => { const ps = pairs.filter(p => p[0].sport === sp); if (!ps.length) return null; const si = ps.reduce((t, p) => t + p[0].load, 0), sg = ps.reduce((t, p) => t + p[1].load, 0); return { sp, n: ps.length, ai: si / ps.length, ag: sg / ps.length, k: sg / si }; }).filter(Boolean);
@@ -295,7 +348,8 @@ function run(W, A, P, G) {
     const n1 = v => fx(v, 1).replace(".", ",");
     $("cmpLoad").innerHTML = `<div class="tbl-wrap"><table><thead><tr><th class="l">Вид</th><th title="Спільних тренувань">Пар</th><th title="Середнє навантаження intervals.icu">intervals</th><th title="Середнє навантаження Garmin">Garmin</th><th title="Garmin / intervals.icu">×</th></tr></thead><tbody>${rows.map(r => `<tr><td class="l">${SPORTS[r.sp][0]}</td><td>${r.n}</td><td>${fx(r.ai)}</td><td>${fx(r.ag)}</td><td><b>×${n1(r.k)}</b></td></tr>`).join("")}<tr><td class="l"><b>Разом</b></td><td>${iA.length} / ${gA.length}</td><td>Σ ${Math.round(ti)}</td><td>Σ ${Math.round(tg)}</td><td><b>×${n1(tg / (ti || 1))}</b></td></tr></tbody></table></div>
       <p class="note">Як рахують: <b>intervals.icu</b> — навантаження за потужністю (як TSS: 1 год на FTP = 100), а без потужності — за пульсом відносно порогового (LTHR). <b>Garmin</b> — за EPOC, тобто «кисневим боргом» з пульсу і HRV браслета; велосипедна потужність не враховується. Тому шкали різні: порівнюй тренди всередині однієї платформи, а не числа між ними. Коефіцієнт показує, у скільки разів Garmin оцінює те саме тренування вище (більше 1) чи нижче (менше 1).${onlyI || onlyG ? ` Без пари: ${onlyI} лише в intervals.icu, ${onlyG} лише в Garmin (наприклад, заїзди без браслета).` : ""}</p>`;
-  })();
+  }
+  renderCmp();
 
   // ---------- activity table ----------
   function zbar(z) { const tot = z.reduce((a, b) => a + (b || 0), 0) || 1; const cs = ["--z1", "--z2", "--z3", "--z4", "--z6"]; return `<span class="zbar" title="${z.slice(0, 5).map((s, i) => `Z${i + 1}: ${Math.round((s || 0) / 60)} хв`).join(" · ")}">${z.slice(0, 5).map((s, i) => `<i style="width:${(s || 0) / tot * 100}%;background:var(${cs[i]})"></i>`).join("")}</span>`; }
@@ -339,7 +393,8 @@ function run(W, A, P, G) {
     const grid = { color: alpha("--line", 0.7) };
     const mk = (id, cfg) => { const el = $(id); if (el && el.tagName === "CANVAS") charts.push(new Chart(el, cfg)); };
 
-    const pm = wr.filter(r => r.date >= shift(today.date, -120));
+    const sinceOf = id => shift(today.date, -perDays(id) + 1);
+    const pm = wr.filter(r => r.date >= sinceOf("cPmc"));
     const maxLoad = Math.max(60, ...pm.map(r => loadByDay[r.date] || 0));
     const yMax = Math.max(60, Math.ceil(Math.max(...pm.map(r => Math.max(r.ctl || 0, r.atl || 0))) / 10) * 10 + 10);
     mk("cPmc", { data: { labels: pm.map(r => dShort(r.date)), datasets: [
@@ -355,32 +410,35 @@ function run(W, A, P, G) {
 
     const order = ["bike", "bjj", "str", "other", "rest"];
     $("lgWeek").innerHTML = order.map(s => `<span><i style="background:var(${SPORTS[s][1]})"></i>${SPORTS[s][0]}</span>`).join("") + `<span><i style="background:var(--ink)"></i>Години</span>`;
+    const { weeks, weekKeys } = weeksFrom(sinceOf("cWeek"));
     mk("cWeek", { data: { labels: weekKeys.map(dShort), datasets: [
       ...order.map(s => ({ type: "bar", label: SPORTS[s][0], data: weekKeys.map(w => weeks[w][s] || 0), backgroundColor: css(SPORTS[s][1]), stack: "l", order: 2 })),
       // лінія годин поверх стовпчиків (менший order — малюється вище), з обвідкою, щоб її було видно на будь-якому кольорі
       { type: "line", label: "Години", data: weekKeys.map(w => +(weeks[w].secs / 3600).toFixed(1)), borderColor: css("--ink"), borderWidth: 3, pointRadius: 4.5, pointBorderWidth: 2, pointBorderColor: css("--panel"), pointBackgroundColor: css("--ink"), yAxisID: "h", order: 0, tension: .25 } ] },
       options: { interaction: { mode: "index", intersect: false }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid, title: { display: true, text: "навантаження" } }, h: { position: "right", grid: { display: false }, min: 0, ticks: { color: css("--ink") }, title: { display: true, text: "год", color: css("--ink") } } } } });
 
-    if (gHas.acute) { const sh = G.loadHistory; mk("cAcute", { type: "line", data: { labels: sh.map(r => dShort(r[0])), datasets: [
+    if (gHas.acute) { const sh = G.loadHistory.slice(-perDays("cAcute")); mk("cAcute", { type: "line", data: { labels: sh.map(r => dShort(r[0])), datasets: [
       { label: "Мін. коридор", data: sh.map(r => Math.round(r[2] * .8)), borderWidth: 0, pointRadius: 0, fill: false },
       { label: "Макс. коридор", data: sh.map(r => Math.round(r[2] * 1.5)), borderWidth: 0, pointRadius: 0, fill: "-1", backgroundColor: alpha("--good", 0.16) },
       { label: "Хронічне", data: sh.map(r => r[2]), borderColor: css("--accent"), borderWidth: 2, pointRadius: 0, tension: .3 },
       { label: "Гостре", data: sh.map(r => r[1]), borderColor: css("--accent-2"), borderWidth: 2.5, pointRadius: 2, tension: .3 } ] },
       options: { interaction: { mode: "index", intersect: false }, plugins: { tooltip: { filter: i => i.datasetIndex > 1, callbacks: { afterBody: it => `ACWR ${sh[it[0].dataIndex][3] ?? "—"}` } } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }, y: { grid, min: 0 } } } }); }
 
-    mk("cMono", { data: { labels: mono.map(m => dShort(m.d)), datasets: [
-      { type: "line", label: "Монотонність", data: mono.map(m => m.mono), borderColor: css("--accent-3"), borderWidth: 2, pointRadius: 0, tension: .25, yAxisID: "y" },
-      { type: "bar", label: "Strain", data: mono.map(m => m.strain), backgroundColor: alpha("--z1", 0.45), yAxisID: "s" } ] },
+    const mo = mono.filter(m => m.d >= sinceOf("cMono"));
+    mk("cMono", { data: { labels: mo.map(m => dShort(m.d)), datasets: [
+      { type: "line", label: "Монотонність", data: mo.map(m => m.mono), borderColor: css("--accent-3"), borderWidth: 2, pointRadius: 0, tension: .25, yAxisID: "y" },
+      { type: "bar", label: "Strain", data: mo.map(m => m.strain), backgroundColor: alpha("--z1", 0.45), yAxisID: "s" } ] },
       options: { interaction: { mode: "index", intersect: false }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }, y: { grid, min: 0, max: 2.5, title: { display: true, text: "монотонність" } }, s: { position: "right", grid: { display: false }, title: { display: true, text: "strain" } } } }, plugins: [bands(() => [["y", 2, 2.5, alpha("--bad", 0.10)]])] });
 
     const hb = G.hrvBaseline;
-    mk("cHrv", { type: "line", data: { labels: hrvRows.map(r => dShort(r.date)), datasets: [
-      { label: "HRV", data: hrvRows.map(r => r.hrv), borderColor: alpha("--accent", 0.6), backgroundColor: css("--accent"), pointRadius: 3, borderWidth: 1, spanGaps: true },
-      { label: "HRV 7 дн.", data: hrvRows.map(r => r.hrv7), borderColor: css("--accent-3"), borderWidth: 2.5, pointRadius: 0, tension: .35, spanGaps: true },
-      { label: "Пульс спокою", data: hrvRows.map(r => r.rhr), borderColor: css("--bad"), borderWidth: 1.5, pointRadius: 2, yAxisID: "r", spanGaps: true, tension: .2 } ] },
+    const hv = hrvRows.filter(r => r.date >= sinceOf("cHrv")), hp = hv.length > 120 ? 0 : hv.length > 60 ? 2 : 3;
+    mk("cHrv", { type: "line", data: { labels: hv.map(r => dShort(r.date)), datasets: [
+      { label: "HRV", data: hv.map(r => r.hrv), borderColor: alpha("--accent", 0.6), backgroundColor: css("--accent"), pointRadius: hp, borderWidth: 1, spanGaps: true },
+      { label: "HRV 7 дн.", data: hv.map(r => r.hrv7), borderColor: css("--accent-3"), borderWidth: 2.5, pointRadius: 0, tension: .35, spanGaps: true },
+      { label: "Пульс спокою", data: hv.map(r => r.rhr), borderColor: css("--bad"), borderWidth: 1.5, pointRadius: hp ? 2 : 0, yAxisID: "r", spanGaps: true, tension: .2 } ] },
       options: { interaction: { mode: "index", intersect: false }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 12 } }, y: { grid, suggestedMin: 30, suggestedMax: 65, title: { display: true, text: "HRV, мс" } }, r: { position: "right", grid: { display: false }, suggestedMin: 36, suggestedMax: 56, title: { display: true, text: "уд/хв" } } } }, plugins: hb ? [bands(() => [["y", hb.balLow, hb.balUp, alpha("--good", 0.12)]])] : [] });
 
-    const sr = wr.filter(r => r.sleepSecs && r.date >= since70);
+    const sr = wr.filter(r => r.sleepSecs && r.date >= sinceOf("cSleep"));
     mk("cSleep", { data: { labels: sr.map(r => dShort(r.date)), datasets: [
       { type: "bar", label: "Сон, год", data: sr.map(r => +(r.sleepSecs / 3600).toFixed(2)), backgroundColor: sr.map(r => r.sleepSecs < 6 * 3600 ? css("--warn") : alpha("--z2", 0.75)), yAxisID: "y" },
       { type: "line", label: "Оцінка", data: sr.map(r => r.sleepScore), borderColor: css("--accent-2"), borderWidth: 1.5, pointRadius: 0, tension: .3, yAxisID: "s" } ] },
@@ -410,7 +468,7 @@ function run(W, A, P, G) {
     }
 
     if (gHas.bb) {
-      const dd = G.daily.map(r => Object.fromEntries(G.dailyCols.map((c, i) => [c, r[i]])));
+      const dd = G.daily.slice(-perDays("cBB")).map(r => Object.fromEntries(G.dailyCols.map((c, i) => [c, r[i]])));
       mk("cBB", { data: { labels: dd.map(x => dShort(x.date)), datasets: [
         { type: "bar", label: "Body Battery", data: dd.map(x => x.bbLow != null && x.bbHigh != null ? [x.bbLow, x.bbHigh] : null), backgroundColor: alpha("--good", 0.45), borderRadius: 3, yAxisID: "y" },
         { type: "line", label: "Середній стрес", data: dd.map(x => x.stress), borderColor: css("--accent-2"), pointRadius: 2, borderWidth: 2, tension: .3, yAxisID: "y" },
@@ -426,12 +484,17 @@ function run(W, A, P, G) {
         options: { plugins: { tooltip: { callbacks: { title: it => fmtS(it[0].raw.x), label: c => `${c.raw.y} Вт${wt ? ` · ${(c.raw.y / wt).toFixed(2)} Вт/кг` : ""}` } } }, scales: { x: { type: "logarithmic", min: 1, max: 5400, grid, ticks: { callback: v => [1, 5, 15, 60, 300, 1200, 3600].includes(v) ? fmtS(v) : "" } }, y: { grid, min: 0, title: { display: true, text: "Вт" } } } } });
     }
 
+    // зони пульсу за обраний період (у висновках — завжди 6 тижнів)
+    const hzP = {}; acts.filter(a => a.day >= sinceOf("cHrz") && a.hrZones).forEach(a => { hzP[a.sport] ??= [0, 0, 0, 0, 0]; a.hrZones.slice(0, 5).forEach((x, i) => hzP[a.sport][i] += x || 0); });
+    const hrz = hzP;
     const hs = Object.keys(hrz); const zc = ["--z1", "--z2", "--z3", "--z4", "--z6"];
     $("lgHrz").innerHTML = zc.map((c, i) => `<span><i style="background:var(${c})"></i>Z${i + 1}</span>`).join("");
     mk("cHrz", { type: "bar", data: { labels: hs.map(s => SPORTS[s][0]), datasets: zc.map((c, i) => ({ label: "Z" + (i + 1), data: hs.map(s => Math.round(hrz[s][i] / 60)), backgroundColor: css(c) })) },
       options: { indexAxis: "y", interaction: { mode: "index", intersect: false }, plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${c.raw} хв` } } }, scales: { x: { stacked: true, grid, title: { display: true, text: "хвилини" } }, y: { stacked: true, grid: { display: false } } } } });
   }
   build();
+  PER.on = { cPmc: build, cWeek: build, cAcute: build, cMono: build, cHrv: build, cSleep: build, cBB: build, cHrz: build, heat: renderHeat, cmp: renderCmp, cost: renderCost };
+  perMount();
   matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", build);
   new MutationObserver(build).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 }
