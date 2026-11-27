@@ -82,6 +82,7 @@
 </div>
 <script src="exercises.js?v=1795703634"></script>
 <script src="workout.js?v=1795703634"></script>
+<script src="calendar-beta.js?v=1795703634"></script>
 <script>
 "use strict";
 const $ = id => document.getElementById(id), esc = WK.esc;
@@ -112,6 +113,8 @@ function render() {
   const from = WK.monday(first), to = WK.addDays(WK.monday(last), 6);
   $("mTitle").textContent = `${MONTHS[m - 1]} ${y}`;
   try { history.replaceState(null, "", "#" + cur); } catch { }
+  // вигляд «Місяць» (бета, calendar-beta.js); без файлу або з «Тижні» — звичний вигляд нижче
+  if (window.CALB) { CALB.mountToggle(render); $("cal").classList.toggle("plan-weeks", !CALB.on()); $("calBar").hidden = CALB.on(); if (CALB.on()) { CALB.render({ first, last, t }); return; } $("cal").classList.remove("cb-on"); $("cal").onclick = null; }
   const its = WK.items(PD, EV, from, to);
   const used = new Set();
   let planned = 0, done = 0, missed = 0, factS = 0;
