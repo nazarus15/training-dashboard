@@ -181,6 +181,12 @@ td .nm{font-family:var(--f-body)}
 .btn-link{border:none;cursor:pointer;font-family:inherit}
 @media (max-width:640px){.jtbl{display:none}.jcards{display:flex}.det .kv{grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}.det .kv dd{text-align:right;margin:0}.det .kv dt{font-size:13px}}
 
+/* прогноз за планом */
+.fc-note{margin:0;font-size:13px;line-height:1.45;padding:8px 10px;border-radius:6px;border-left:3px solid var(--grey);background:color-mix(in srgb,var(--grey) 8%,transparent)}
+.fc-note.fc-good{border-color:var(--good);background:color-mix(in srgb,var(--good) 8%,transparent)}
+.fc-note.fc-warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 9%,transparent)}
+.fc-note.fc-bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 8%,transparent)}
+
 /* перемикач періодів: загальний над графіками і свій у кожній картці */
 .perbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:6px}
 .per{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:100%}
@@ -227,12 +233,13 @@ footer p{margin:0;max-width:90ch}
   <div class="perbar" id="perGlobal"><span class="eyebrow">Період усіх графіків</span><div class="per" role="group" aria-label="Період усіх графіків"></div><button type="button" class="perreset" data-perreset hidden>Типові</button></div>
 
   <section data-blk="s:навантаження-і-форма" data-name="Навантаження і форма">
-    <div class="sec-head"><h2>Навантаження і форма</h2><p>Модель Банистера (intervals.icu): фітнес = 42-денне середнє навантаження, втома = 7-денне, форма = різниця. Garmin рахує своє навантаження окремо за пульсом браслета.</p></div>
+    <div class="sec-head"><h2>Навантаження і форма</h2><p>Модель Банистера (intervals.icu): фітнес = 42-денне середнє навантаження, втома = 7-денне, форма = різниця. Пунктир праворуч — прогноз за планом. Garmin рахує своє навантаження окремо за пульсом браслета.</p></div>
     <div class="grid">
       <div data-blk="c:фітнес-втома-форма" data-name="Фітнес, втома, форма" class="card full">
         <h3 class="h-src">Фітнес, втома, форма<span class="src" data-src="i" title="Навантаження рахує intervals.icu (за потужністю або пульсом)">intervals.icu</span></h3>
         <div class="legend"><span><i style="background:var(--accent)"></i>Фітнес (CTL)</span><span><i style="background:var(--accent-3)"></i>Втома (ATL)</span><span><i style="background:var(--accent-2)"></i>Форма (TSB)</span><span><i style="background:var(--z1)"></i>Навантаження за день</span></div>
         <div class="chart tall"><canvas id="cPmc" aria-label="Графік фітнесу, втоми і форми"></canvas></div>
+        <p class="fc-note" id="fcNote" hidden></p>
         <p class="note">Зони форми: вище +5 свіжий, від −10 до +5 сіра зона, від −30 до −10 оптимальна для росту, нижче −30 ризик перевтоми.</p>
       </div>
       <div data-blk="c:тижневе-навантаження-за-видами" data-name="Тижневе навантаження за видами" class="card">
@@ -379,6 +386,7 @@ footer p{margin:0;max-width:90ch}
 <script src="exercises.js?v=1795703634"></script>
 <script src="workout.js?v=1795703634"></script>
 <script src="app.js?v=1795703634"></script>
+<script src="forecast.js?v=1"></script>
 <script src="datax.js?v=1795703634"></script>
 </body>
 </html>
