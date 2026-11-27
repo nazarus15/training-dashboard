@@ -36,7 +36,7 @@ window.EX = (() => {
     { id: "kb_press", name: "Жим гирі стоячи однією рукою", rx: /жим.{0,8}гир/, cat: "push", m: [["shoulders", "triceps"], ["core"]] },
     { id: "ohp", name: "Жим штанги стоячи", rx: /жим.{0,8}штанг.{0,8}стоя|армійськ|overhead press|\bohp\b/, cat: "push", m: [["shoulders", "triceps"], ["core"]] },
     { id: "dips", name: "Віджимання на брусах або від лавки", rx: /брус|dips|віджиман.{0,6}від лавки/, cat: "push", m: [["chest", "triceps"], ["shoulders"]] },
-    { id: "pushup_pause", name: "Віджимання з паузою внизу", rx: /віджиман.{0,6}з паузою/, cat: "push", m: [["chest", "triceps"], ["shoulders", "core"]] },
+    // «з паузою внизу», «з обтяженням» тощо — той самий рух, одна історія (варіант видно в тексті тренування)
     { id: "pushup", name: "Віджимання", rx: /віджиман|push.?up/, cat: "push", m: [["chest", "triceps"], ["shoulders", "core"]] },
     // тяги
     { id: "scap_pullup", name: "Скапулярні підтягування", rx: /скапул/, cat: "pull", m: [["back"], ["grip"]] },
