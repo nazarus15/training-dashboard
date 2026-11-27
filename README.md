@@ -19,6 +19,16 @@
 
 4. **Actions → Оновлення даних → Run workflow** — перший запуск вручну.
 
+## Точний запуск оновлення (Apps Script)
+
+Розклад GitHub Actions запізнюється на години і часто пропускає запуски, тому головний тригер — Apps Script (той самий веб-застосунок, що синхронізує Google Calendar). О 23:05, 10:05 і 12:05 за Києвом він запускає workflow з `auto=true`, а `scripts/gate.py` вирішує, чи потрібен збір у цьому слоті. Розклад у workflow лишається запасним, а сайт, відкритий після пропущеного слоту, теж сам просить GitHub перевірити слот.
+
+Один раз:
+1. Скопіюй `scripts/apps_script.gs` у проєкт Apps Script і збережи. **Deploy → Manage deployments → Edit (олівець) → Version: New version → Deploy** — адреса веб-застосунку не зміниться.
+2. GitHub → Settings → Developer settings → Fine-grained tokens → новий токен: лише репозиторій `training-dashboard`, **Actions: Read and write**.
+3. Apps Script → Project Settings → Script properties → `GH_TOKEN` = цей токен.
+4. У редакторі вибери функцію `installUpdateTriggers` → Run → дозволь доступ. У журналі виконання має бути `GitHub: 204`.
+
 ## Коли Garmin показує помилку
 
 - «Ключ Garmin недійсний або протермінований» — ключ живе максимум рік. Створи новий там само і заміни секрет `GARMIN_PERSONAL_API_KEY`.

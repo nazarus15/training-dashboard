@@ -52,7 +52,8 @@ function put_(k, v) { v == null ? P().deleteProperty(k) : P().setProperty(k, JSO
 
 function doGet() {
   const id = P().getProperty('CAL_ID'), c = id ? CalendarApp.getCalendarById(id) : null;
-  return out_({ ok: true, service: 'forma-calendar', calendar: c ? c.getName() : null, hidden: c ? c.isHidden() : null, selected: c ? c.isSelected() : null, exportAt: P().getProperty('EXPORT_AT') });
+  return out_({ ok: true, service: 'forma-calendar', calendar: c ? c.getName() : null, hidden: c ? c.isHidden() : null, selected: c ? c.isSelected() : null, exportAt: P().getProperty('EXPORT_AT'),
+    updateTriggers: ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'ghUpdate').length, ghLast: P().getProperty('GH_LAST') });
 }
 
 function doPost(e) {
@@ -118,6 +119,32 @@ function show() {
   c.setHidden(false);
   c.setSelected(true);
   Logger.log(c.getName() + ' · ' + c.getId());
+}
+
+// ---------- надійний запуск оновлення даних ----------
+// Розклад GitHub Actions запізнюється на години і часто пропускає запуски. Тригери Apps Script точні (±15 хв),
+// тому вони запускають workflow «Оновлення даних» з auto=true: gate.py сам вирішує, чи потрібен збір у цьому слоті.
+// Налаштування один раз:
+//   1) Властивості проєкту (Project Settings → Script properties) → GH_TOKEN = fine-grained токен GitHub
+//      (лише репозиторій training-dashboard, Repository permissions → Actions: Read and write).
+//   2) Запусти installUpdateTriggers() у редакторі й дозволь доступ.
+const GH_REPO = 'nazarus15/training-dashboard';
+function ghUpdate() {
+  const tok = P().getProperty('GH_TOKEN');
+  if (!tok) { Logger.log('Немає GH_TOKEN у властивостях проєкту'); return; }
+  const r = UrlFetchApp.fetch('https://api.github.com/repos/' + GH_REPO + '/actions/workflows/update.yml/dispatches', {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' },
+    payload: JSON.stringify({ ref: 'main', inputs: { auto: 'true' } }),
+  });
+  P().setProperty('GH_LAST', new Date().toISOString() + ' · ' + r.getResponseCode());
+  Logger.log('GitHub: ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 200));
+}
+function installUpdateTriggers() {
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'ghUpdate').forEach(t => ScriptApp.deleteTrigger(t));
+  [[23, 5], [10, 5], [12, 5]].forEach(([h, m]) => ScriptApp.newTrigger('ghUpdate').timeBased().atHour(h).nearMinute(m).everyDays(1).inTimezone(TZ).create());
+  ghUpdate();
+  Logger.log('Тригери: 23:05, 10:05, 12:05 за Києвом. Останній запуск: ' + P().getProperty('GH_LAST'));
 }
 
 // ---------- експорт у Google Drive ----------

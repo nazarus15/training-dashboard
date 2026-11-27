@@ -419,9 +419,10 @@ window.WK = (() => {
     ["str_streak", "strength", "Найдовша серія тижнів із силовим"], ["str_total", "strength", "Усього силових"],
   ];
   // запуск оновлення даних (і календаря) через GitHub Actions; потрібне право Actions у токені, без нього — тихо нічого
-  async function triggerUpdate() {
+  // auto=true — «перевір слот»: scripts/gate.py збирає дані, лише якщо в поточному слоті (23:00 / 10:00 / 12:00) збору ще не було
+  async function triggerUpdate(auto = false) {
     if (!token()) return false;
-    try { const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/update.yml/dispatches`, { method: "POST", headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main" }) }); return r.ok; } catch { return false; }
+    try { const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/update.yml/dispatches`, { method: "POST", headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main", ...(auto ? { inputs: { auto: "true" } } : {}) }) }); return r.ok; } catch { return false; }
   }
   return { bikeSteps, bikeStepsHtml, gcalCache, gcalCfg, gcalPush, gcalFlush, gcalSyncJournal, strengthOverride, triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, doneSession, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();

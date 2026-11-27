@@ -6,7 +6,8 @@
   retry   (12:00–22:59) — одна повторна спроба, лише якщо ранкова не принесла дані
                            (не вдалась або браслет ще не синхронізував сон за сьогодні).
 GitHub часто запускає розклад із затримкою, тому тригерів більше, ніж слотів:
-зайві запуски цей скрипт пропускає.
+зайві запуски цей скрипт пропускає. Ручний запуск (workflow_dispatch) іде завжди, крім auto=true
+(Apps Script і сам сайт) — тоді діють ті самі правила слотів, що й для розкладу.
 """
 import json
 import os
@@ -34,7 +35,7 @@ for h in hist:
     except Exception:
         pass
 
-if os.environ.get("EVENT") == "workflow_dispatch":
+if os.environ.get("EVENT") == "workflow_dispatch" and (os.environ.get("AUTO") or "").lower() != "true":
     slot, run = "manual", True
 elif now >= t23 or now < t10:
     slot = "evening"

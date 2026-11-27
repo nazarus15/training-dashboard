@@ -182,7 +182,31 @@ nav.tabs a.attn-warn::after,nav.tabs a.attn-bad::after{content:"";display:inline
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", start) : start();
   });
 
-  ready.then(() => health().then(h => markNav(h.issues))).catch(() => { });
+  ready.then(() => health().then(h => { markNav(h.issues); kickUpdate(h.status); })).catch(() => { });
+
+  // Запасний запуск оновлення: розклад GitHub запізнюється на години. Якщо після останнього слоту (23:00 або 10:00 за Києвом)
+  // минуло понад 20 хв, а успішного збору ще не було, сайт сам просить GitHub перевірити слот (не частіше ніж раз на 30 хв).
+  function kyivNow() {
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Kyiv", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date()).map(x => [x.type, x.value]));
+    return { date: `${p.year}-${p.month}-${p.day}`, h: +p.hour, m: +p.minute };
+  }
+  function kickUpdate(S) {
+    try {
+      if (!S?.history || !window.WK?.token?.() || !navigator.onLine) return;
+      const k = kyivNow(), mins = k.h * 60 + k.m;
+      // початок поточного слоту як рядок «YYYY-MM-DDTHH:MM» за Києвом (так само записані часи в status.json)
+      const prevDay = WK.addDays(k.date, -1);
+      const slotStart = mins >= 23 * 60 ? `${k.date}T23:00` : mins >= 10 * 60 ? `${k.date}T10:00` : `${prevDay}T23:00`;
+      const slotMins = mins >= 23 * 60 ? mins - 23 * 60 : mins >= 10 * 60 ? mins - 600 : mins + 60;
+      if (slotMins < 20) return;
+      const done = S.history.some(h => h.intervals && String(h.at).slice(0, 16) >= slotStart);
+      if (done) return;
+      const last = +(localStorage.getItem("td_kick_at") || 0);
+      if (Date.now() - last < 30 * 6e4) return;
+      localStorage.setItem("td_kick_at", String(Date.now()));
+      WK.triggerUpdate(true);
+    } catch { }
+  }
   // свіжий експорт у Google Drive (раз на 12 год) — з будь-якої сторінки, не лише з Огляду
   ready.then(() => setTimeout(() => {
     if (!window.WK) return;
