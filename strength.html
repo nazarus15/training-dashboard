@@ -73,21 +73,6 @@ nav.tabs a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .prog-tbl{width:100%;border-collapse:collapse;font-size:13px}
 .prog-tbl th{font-family:var(--f-data);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
 .prog-tbl td{padding:5px 6px;border-bottom:1px solid var(--line)}
-.vol-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;align-items:center}
-.vol-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
-.vol-tbl{width:100%;border-collapse:collapse;font-size:13px}
-.vol-tbl th{font-family:var(--f-data);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
-.vol-tbl td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
-.vol-tbl .r{text-align:right}
-.vb{display:inline-block;min-width:34px;text-align:center;border-radius:4px;padding:1px 6px;font-weight:600}
-.vb.lo,.vol-legend i.lo,.vbars i.lo{background:color-mix(in srgb,var(--grey) 30%,transparent)}
-.vb.ok,.vol-legend i.ok,.vbars i.ok{background:color-mix(in srgb,var(--good) 35%,transparent)}
-.vb.hi,.vol-legend i.hi,.vbars i.hi{background:color-mix(in srgb,var(--warn) 45%,transparent)}
-.vbars{position:relative;display:flex;align-items:flex-end;gap:3px;height:34px;min-width:72px}
-@media (max-width:480px){.vol-tbl td,.vol-tbl th{padding:5px 3px}}
-.vbars i{flex:1;border-radius:2px 2px 0 0;min-width:6px}
-.vbars i.now{outline:1.5px solid var(--ink);outline-offset:-1.5px}
-.vbars b{position:absolute;left:0;right:0;border-top:1px dashed var(--line);pointer-events:none}
 .pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-data);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
 .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
 .pill.done{color:var(--good)} .pill.skip{color:var(--grey)} .pill.plan{color:var(--accent)} .pill.today{color:var(--warn)} .pill.off{color:var(--bad)}
@@ -266,14 +251,6 @@ button.day:hover{background:var(--soft)}
     <p class="muted" style="margin:0;font-size:13px">Силові з <a href="planner.html">Планера</a>. Тут записуєш підходи, а саме тренування засікай на Garmin як звичайно.</p>
   </section>
 
-  <section id="volWrap" class="prog-sec" hidden>
-    <h2>Об'єм на групи м'язів</h2>
-    <div class="prog-bar"><div class="per" id="volPer" role="group" aria-label="Період"></div></div>
-    <div id="volBody"></div>
-    <p class="muted" style="margin:0;font-size:12px">Виконані підходи за тиждень: основний м'яз вправи — 1 підхід, допоміжний — 0,5 (м'язи — зі словника вправ). Для гіпертрофії зазвичай радять 10–20 підходів на групу на тиждень; поруч із велосипедом і БЖЖ для сили вистачає 6–10. Середнє — за повні тижні, поточний тиждень виділено.</p>
-    <p class="muted" id="volUnk" style="margin:0;font-size:12px"></p>
-  </section>
-
   <section id="progWrap" class="prog-sec" hidden>
     <h2>Прогрес у вправі</h2>
     <div class="prog-bar"><select id="progEx" aria-label="Вправа"></select><div class="per" id="progPer" role="group" aria-label="Період"></div></div>
@@ -295,6 +272,5 @@ button.day:hover{background:var(--soft)}
 <script src="workout.js?v=1795703634"></script>
 <script src="strength.js?v=1795703634"></script>
 <script src="strength-progress.js?v=1795703634"></script>
-<script src="strength-volume.js?v=1795703634"></script>
 </body>
 </html>
