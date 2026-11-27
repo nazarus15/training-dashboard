@@ -49,7 +49,7 @@ addEventListener("resize", () => fillStrip());
 // ---------- перемикач періодів графіків ----------
 // Кожен графік має свій період (чипи в картці); загальний перемикач над графіками ставить один період усім.
 // Вибір зберігається на пристрої. Якщо даних менше за період (Garmin віддає 4–10 тижнів), показується все наявне.
-const PERIODS = [[14, "2 тиж"], [28, "4 тиж"], [42, "6 тиж"], [91, "3 міс"], [182, "6 міс"], [365, "рік"]];
+const PERIODS = [[14, "2 тиж"], [28, "4 тиж"], [42, "6 тиж"], [70, "10 тиж"], [91, "3 міс"], [182, "6 міс"], [365, "рік"]];
 const lsJ = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } };
 const lsW = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch { } };
 const PER = { cfg: {}, glob: lsJ("td_per_glob", null), own: lsJ("td_per_own", {}), on: {} };

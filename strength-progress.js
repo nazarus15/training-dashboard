@@ -7,7 +7,7 @@
   const MON = ["січ", "лют", "бер", "квіт", "трав", "черв", "лип", "серп", "вер", "жовт", "лист", "груд"];
   const fd = s => { const d = new Date(s + "T12:00"); return `${d.getDate()} ${MON[d.getMonth()]}`; };
   const kg = v => (Math.round(v * 10) / 10).toString().replace(".", ",");
-  const PER = [[28, "4 тиж"], [56, "8 тиж"], [91, "3 міс"], [182, "6 міс"], [365, "рік"], [99999, "усе"]];
+  const PER = [[28, "4 тиж"], [56, "8 тиж"], [70, "10 тиж"], [91, "3 міс"], [182, "6 міс"], [365, "рік"], [99999, "усе"]];
   const ls = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } };
   const lw = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { } };
   const E1_CATS = ["legs", "hinge", "push", "pull", "arms"];
