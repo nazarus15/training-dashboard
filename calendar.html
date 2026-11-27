@@ -82,7 +82,6 @@
 </div>
 <script src="exercises.js?v=1795703634"></script>
 <script src="workout.js?v=1795703634"></script>
-<script src="weeks.js?v=1"></script>
 <script src="calendar-beta.js?v=1795703634"></script>
 <script>
 "use strict";
@@ -115,7 +114,6 @@ function render() {
   $("mTitle").textContent = `${MONTHS[m - 1]} ${y}`;
   try { history.replaceState(null, "", "#" + cur); } catch { }
   // вигляд «Місяць» (бета, calendar-beta.js); без файлу або з «Тижні» — звичний вигляд нижче
-  if (window.WA && !window.__waBound) { window.__waBound = 1; addEventListener("wa:change", () => render()); }
   if (window.CALB) { CALB.mountToggle(render); $("cal").classList.toggle("plan-weeks", !CALB.on()); $("calBar").hidden = CALB.on(); if (CALB.on()) { CALB.render({ first, last, t }); return; } $("cal").classList.remove("cb-on"); $("cal").onclick = null; }
   const its = WK.items(PD, EV, from, to);
   const used = new Set();
@@ -159,7 +157,7 @@ function render() {
     const wp = its.filter(x => x.date >= w && x.date <= days[6]).reduce((s, x) => s + (x.mins || 0), 0);
     const a0 = dd(days[0]), a6 = dd(days[6]);
     const rng = a0.getMonth() === a6.getMonth() ? `${a0.getDate()}–${a6.getDate()} ${MON[a6.getMonth()]}` : `${a0.getDate()} ${MON[a0.getMonth()]} – ${a6.getDate()} ${MON[a6.getMonth()]}`;
-    html += `<div class="pweek${t >= w && t <= days[6] ? " cur" : ""}"><h3>${rng}${window.WA ? " " + WA.pill(w, true) : ""}<small>${[wp ? "план " + WK.fmtMin(wp) : "", wf ? "факт " + fmtDur(wf) : ""].filter(Boolean).join(" · ")}</small></h3>`;
+    html += `<div class="pweek${t >= w && t <= days[6] ? " cur" : ""}"><h3>${rng}<small>${[wp ? "план " + WK.fmtMin(wp) : "", wf ? "факт " + fmtDur(wf) : ""].filter(Boolean).join(" · ")}</small></h3>`;
     for (const d of days) {
       const di = its.filter(x => x.date === d);
       const cls = `pday${d === t ? " today" : ""}${d < t ? " past" : ""}`;

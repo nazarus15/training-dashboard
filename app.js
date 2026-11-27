@@ -19,9 +19,6 @@ AUTH.ready.then(() => Promise.all(["wellness", "activities", "power", "garmin", 
   run(W, A, P || {}, G || {});
 }));
 
-// чергування тижнів (weeks.js): цей тиждень — станок чи зал
-function renderWeekAlt() { const el = $("waNow"); if (el && window.WA) el.innerHTML = WA.type(WK.today()) ? "· " + WA.pill(WK.today()) : ""; }
-renderWeekAlt(); addEventListener("wa:change", renderWeekAlt);
 function renderStatus(S) {
   if (S?.generatedAt) $("updated").textContent = `Оновлено: ${new Date(S.generatedAt).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`;
 }
