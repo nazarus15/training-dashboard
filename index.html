@@ -181,6 +181,11 @@ td .nm{font-family:var(--f-body)}
 .btn-link{border:none;cursor:pointer;font-family:inherit}
 @media (max-width:640px){.jtbl{display:none}.jcards{display:flex}.det .kv{grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}.det .kv dd{text-align:right;margin:0}.det .kv dt{font-size:13px}}
 
+/* перевірка FTP */
+.ftpc{border-left:4px solid var(--grey)}
+.ftpc-good{border-left-color:var(--good)} .ftpc-warn{border-left-color:var(--warn)} .ftpc-bad{border-left-color:var(--bad)}
+.ftpc-h{margin:0;font-size:15px;line-height:1.4}
+
 /* ранні сигнали */
 .hw-banner{padding:10px 14px;border-radius:6px;border:1px solid var(--line);border-left:4px solid var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--panel));font-size:14px;line-height:1.45}
 .hw-banner.hw-bad{border-left-color:var(--bad);background:color-mix(in srgb,var(--bad) 9%,var(--panel))}
@@ -368,6 +373,7 @@ footer p{margin:0;max-width:90ch}
         <dl class="kv" id="models"></dl>
         <p class="note" id="ftpNote"></p>
       </div>
+      <div data-blk="c:перевірка-ftp" data-name="Перевірка FTP" class="card" id="ftpCheck"></div>
       <div data-blk="c:розподіл-часу-за-зонами-пульсу-6-тижнів" data-name="Розподіл часу за зонами пульсу, 6 тижнів" class="card">
         <h3>Розподіл часу за зонами пульсу, 6 тижнів</h3>
         <div class="legend" id="lgHrz"></div>
@@ -403,6 +409,7 @@ footer p{margin:0;max-width:90ch}
 <script src="app.js?v=1795703634"></script>
 <script src="forecast.js?v=1"></script>
 <script src="health-watch.js?v=1"></script>
+<script src="ftp-check.js?v=1"></script>
 <script src="datax.js?v=1795703634"></script>
 </body>
 </html>
