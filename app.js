@@ -251,7 +251,7 @@ function run(W, A, P, G) {
   { const c20 = P.curve?.find(c => c[0] === 1200)?.[1], c60 = P.curve?.find(c => c[0] === 3600)?.[1];
     if (c20 && (!c60 || c60 < c20 * .8) && $("curveNote")) { $("curveNote").hidden = false; $("curveNote").textContent = `Після 20 хв крива падає різко${c60 ? ` (60 хв — ${c60} Вт, ${Math.round(c60 / c20 * 100)}% від 20 хв)` : ""}: довших максимальних зусиль за 42 дні не було, тож перцентилі на 60 і 90 хв занижені.`; } }
   $("ftpNote").textContent = "W′ — запас роботи вище критичної потужності. Якщо моделі сильно розходяться, коротких максимальних зусиль мало; допоможуть окремі спроби 1, 3 і 12 хв.";
-  $("effKv").innerHTML = pRides.length ? pRides.map(a => `<dt>${dShort(a.day)} · ${esc(a.name)}</dt><dd>NP ${a.np} Вт · EF ${a.ef ?? "—"} · ${steady(a) ? `dec ${a.decoupling ?? "—"}%` : `<span class="muted" title="В інтервальному заїзді decoupling не показовий">інтервали</span>`}</dd>`).join("") : "<dt>Немає заїздів з потужністю</dt><dd></dd>";
+  $("effKv").innerHTML = pRides.length ? pRides.map(a => `<dt>${dShort(a.day)} · ${esc(WK.actName(a, "Заїзд"))}</dt><dd>NP ${a.np} Вт · EF ${a.ef ?? "—"} · ${steady(a) ? `dec ${a.decoupling ?? "—"}%` : `<span class="muted" title="В інтервальному заїзді decoupling не показовий">інтервали</span>`}</dd>`).join("") : "<dt>Немає заїздів з потужністю</dt><dd></dd>";
   $("powerIntro").textContent = `Заїздів з потужністю за весь період: ${acts.filter(a => a.np).length}. Решта заїздів записані з пульсом, без потужності.`;
   if (P.rankGroup) $("rankTitle").textContent = `Перцентиль у групі ${P.rankGroup === "Male" ? "«усі чоловіки»" : P.rankGroup.replace("M ", "чоловіки ")} (intervals.icu)`;
   $("ranks").innerHTML = (!Object.keys(P.rank || {}).length ? `<p class="note" style="grid-column:1/-1;margin:0">Перцентилів поки немає: intervals.icu рахує їх за кривою потужності 42 днів. З'являться після наступного оновлення даних, якщо за цей час є заїзди з потужністю.</p>` : "") + Object.entries(P.rank || {}).filter(([k]) => /s$|m$|eFTP/.test(k)).map(([k, v]) => { const c = v >= 50 ? "good" : v >= 25 ? "warn" : "grey"; return `<div class="rank"><b class="${c}">${Math.round(v)}</b><span>${k === "eFTP" && P.eftp ? `eFTP ${P.eftp.used} Вт` : k}</span></div>`; }).join("") + (P.eftp?.floored ? `<p class="note" style="grid-column:1/-1;margin:4px 0 0">eFTP intervals.icu зараз ${P.eftp.raw} Вт, нижче за твій FTP ${P.eftp.used} Вт, тому ранг eFTP порахований для ${P.eftp.used} Вт (було б ${Math.round(P.eftp.rawPct)}).</p>` : "");
@@ -300,12 +300,12 @@ function run(W, A, P, G) {
   // ---------- activity table ----------
   function zbar(z) { const tot = z.reduce((a, b) => a + (b || 0), 0) || 1; const cs = ["--z1", "--z2", "--z3", "--z4", "--z6"]; return `<span class="zbar" title="${z.slice(0, 5).map((s, i) => `Z${i + 1}: ${Math.round((s || 0) / 60)} хв`).join(" · ")}">${z.slice(0, 5).map((s, i) => `<i style="width:${(s || 0) / tot * 100}%;background:var(${cs[i]})"></i>`).join("")}</span>`; }
   const cols = [
-    ["Дата", "date", a => a.date.replace("T", " "), "l"], ["Вид", "sport", a => SPORTS[a.sport][0], "l"], ["Назва", "name", a => esc(a.name), "l name"],
+    ["Дата", "date", a => a.date.replace("T", " "), "l"], ["Вид", "sport", a => SPORTS[a.sport][0], "l"], ["Назва", "name", a => esc(WK.actName(a, SPORTS[a.sport][0])), "l name"],
     ["Час", "moving", a => fmtDur(a.moving)], ["Км", "distKm", a => a.distKm ?? "—"], ["Навант. intervals", "load", a => a.load ?? "—"],
     ["Інтенс.", "intensity", a => a.intensity != null ? a.intensity + "%" : "—"], ["Пульс", "avgHr", a => a.avgHr ?? "—"], ["Макс", "maxHr", a => a.maxHr ?? "—"],
     ["TRIMP", "trimp", a => a.trimp ?? "—"], ["Зони пульсу", "z", a => a.hrZones ? zbar(a.hrZones) : "—"],
     ["Вт", "avgW", a => a.avgW ?? "—"], ["NP", "np", a => a.np ?? "—"], ["EF", "ef", a => a.ef ?? "—"], ["Decoupl.", "decoupling", a => a.decoupling != null ? a.decoupling + "%" : "—"],
-    ["Каденс", "cadence", a => a.cadence ?? "—"], ["Набір", "elev", a => a.elev != null ? a.elev + " м" : "—"], ["ккал", "kcal", a => a.kcal ?? "—"], ["HRR", "hrr", a => a.hrr ?? "—"], ["Пристрій", "device", a => esc((a.device || "").replace(/WAHOO_FITNESS |Garmin |GARMIN /g, "")), "l"],
+    ["Каденс", "cadence", a => a.cadence ?? "—"], ["Набір", "elev", a => a.elev != null ? a.elev + " м" : "—"], ["ккал", "kcal", a => a.kcal ?? "—"], ["HRR", "hrr", a => a.hrr ?? "—"], ["Пристрій", "device", a => esc(WK.devName(a.device)), "l"],
   ];
   let sortKey = "date", sortDir = -1, filt = "all";
   function renderTable() {

@@ -145,7 +145,7 @@ function render() {
     const fx = a.sport === "bike" ? WK.actEffects(a) : null, main = fx?.main ? WK.FX[fx.main] : null;
     const hm = d => d.toTimeString().slice(0, 5), st = new Date(a.date + ":00"), en = new Date(st.getTime() + (a.moving || 0) * 1000);
     const addProg = a.sport === "str" ? `<a class="addprog" href="strength.html?add=${a.day}&st=${hm(st)}&en=${hm(en)}">+ Додати програму</a>` : "";
-    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}<span class="unpl">поза планом</span></span><span class="pill done">Виконано</span></span>${a.sport === "bjj" ? "" : `<strong>${esc(a.name || sn)}</strong>`}<small class="act">${actLine(a)}</small>${addProg}${WK.barsHtml(fx)}${fx?.by === "hr" ? `<small class="fxsrc">Ефект за пульсом</small>` : ""}`;
+    return `<span class="kline"><span class="kk"><span class="k" style="--kc:${sc}">${sn}</span>${main ? `<span class="fxtag" style="--c:${main.color}">${main.name}</span>` : ""}<span class="unpl">поза планом</span></span><span class="pill done">Виконано</span></span>${a.sport === "bjj" ? "" : `<strong>${esc(WK.actName(a, sn))}</strong>`}<small class="act">${actLine(a)}</small>${addProg}${WK.barsHtml(fx)}${fx?.by === "hr" ? `<small class="fxsrc">Ефект за пульсом</small>` : ""}`;
   };
   let html = "";
   for (let w = from; w <= to; w = WK.addDays(w, 7)) {

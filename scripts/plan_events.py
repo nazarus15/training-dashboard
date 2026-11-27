@@ -25,6 +25,18 @@ START, END = today - timedelta(days=30), today + timedelta(days=90)
 SEC_NAMES = {"tempo": "Темп", "warmup": "Розминка", "warm up": "Розминка", "main set": "Основна частина", "cooldown": "Заминка", "cool down": "Заминка"}
 
 
+
+# службові англійські назви Garmin/Wahoo не дублюють вид спорту в заголовку події (як WK.actName на сайті)
+_GENERIC = re.compile(r"^((morning|afternoon|evening|night)\s+)?(weight training|strength training|strength|cycling|ride|virtual ride|indoor cycling|running|run|other|workout|mixed martial arts)$", re.I)
+
+
+def act_name(n):
+    n = (n or "").strip()
+    m = re.match(r"^(.+?\s(?:raion|district|oblast|city))\s+(.+)$", n, re.I)
+    if m:
+        return m.group(1) if _GENERIC.match(m.group(2)) else n
+    return "" if _GENERIC.match(n) else n
+
 def _dur(tok: str) -> int:
     s = 0
     for n, u in re.findall(r"(\d+(?:\.\d+)?)\s*(h|m|s)", tok):
@@ -221,6 +233,7 @@ def build_events(acts=None, ftp=None, planned=None):
     for i, a in enumerate(A):  # виконане поза планом
         if i in used or a["_sp"] not in ("bike", "bjj", "strength", "run"):
             continue
-        add(f"act-{a.get('id') or a['date']}", a["_st"].date(), a["_sp"], f"{SPORT[a['_sp']]}" + (f" · {a['name']}" if a.get("name") and a["_sp"] != "bjj" else ""),
+        nm = act_name(a.get("name"))
+        add(f"act-{a.get('id') or a['date']}", a["_st"].date(), a["_sp"], f"{SPORT[a['_sp']]}" + (f" · {nm}" if nm and a["_sp"] != "bjj" else ""),
             "Поза планом\n\n" + (f"Додати програму тренування: {SITE}strength.html?add={a['_st']:%Y-%m-%d}&st={a['_st']:%H:%M}&en={(a['_st'] + timedelta(seconds=a.get('moving') or 0)):%H:%M}" if a["_sp"] == "strength" else SITE + "calendar.html"), done=a)
     return ev
