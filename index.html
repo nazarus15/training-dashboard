@@ -156,8 +156,33 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
 .rank{border:1px solid var(--line);border-radius:4px;padding:6px;text-align:center;display:flex;flex-direction:column;gap:2px}
 .rank b{font-family:var(--f-display);font-size:20px;font-weight:600}
 .rank span{font-family:var(--f-data);font-size:10px;color:var(--muted)}
+/* журнал активностей */
+.jbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.jbar input{flex:1 1 200px;min-width:0;font:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.jbar input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+#tbl tr.row{cursor:pointer}
+#tbl tr.row.open{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+#tbl tr.drow td{white-space:normal;text-align:left;font-family:var(--f-body);background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
+#tbl tr.row:focus-visible,.jc:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.kind{font-family:var(--f-data);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--k);font-weight:600}
+td .nm{font-family:var(--f-body)}
+.det{display:flex;flex-direction:column;gap:12px;padding:6px 2px;max-width:720px}
+.det .kv{grid-template-columns:auto 1fr}
+.dz{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.zbar.wide{width:100%;height:12px}
+.jcards{display:none;flex-direction:column;gap:8px}
+.jc{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;cursor:pointer}
+.jc.open{border-color:var(--accent)}
+.jc-h{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.jc b{font-weight:600;font-size:14px}
+.jc-m{font-size:12px;color:var(--muted)}
+.jmore{display:flex;gap:8px;justify-content:center}
+.jmore:empty{display:none}
+.btn-link{border:none;cursor:pointer;font-family:inherit}
+@media (max-width:640px){.jtbl{display:none}.jcards{display:flex}.det .kv{grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}.det .kv dd{text-align:right;margin:0}.det .kv dt{font-size:13px}}
+
 /* перемикач періодів: загальний над графіками і свій у кожній картці */
-.perbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:6px;position:sticky;top:0;z-index:5}
+.perbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:6px}
 .per{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:100%}
 .per::-webkit-scrollbar{display:none}
 .per button{flex:none;font-family:var(--f-data);font-size:11px;letter-spacing:.03em;padding:3px 9px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
@@ -167,7 +192,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
 .perbar .per button{font-size:12px;padding:5px 11px}
 .perreset{font:inherit;font-size:12px;background:none;border:none;color:var(--accent);cursor:pointer;padding:4px}
 .card > .per{margin-top:-4px}
-@media (max-width:640px){.perbar{top:env(safe-area-inset-top,0px);padding:8px 10px}.perbar .eyebrow{flex-basis:100%}}
+@media (max-width:640px){.perbar{padding:8px 10px}.perbar .eyebrow{flex-basis:100%}}
 footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px}
 footer p{margin:0;max-width:90ch}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
@@ -336,9 +361,13 @@ footer p{margin:0;max-width:90ch}
   </section>
 
   <section data-blk="s:журнал-активностей" data-name="Журнал активностей">
-    <div class="sec-head"><h2>Журнал активностей</h2><p>Усі записи за останні 2 роки. Клікни на заголовок, щоб сортувати.</p></div>
+    <div class="sec-head"><h2>Журнал активностей</h2><p>Записи за 2 роки. Заголовок колонки — сортування, рядок — деталі тренування.</p></div>
+    <div class="jbar"><div class="per" id="jPer" role="group" aria-label="Період журналу"></div><input id="jQ" type="search" placeholder="Пошук: назва, вид, пристрій" aria-label="Пошук у журналі"></div>
     <div class="filters" id="filters"></div>
-    <div class="tbl-wrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+    <p class="note muted" id="jSum" style="margin:0;font-size:13px"></p>
+    <div class="tbl-wrap jtbl"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+    <div class="jcards" id="jCards"></div>
+    <div class="jmore" id="jMore"></div>
   </section>
 
   <footer>

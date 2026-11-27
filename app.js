@@ -351,27 +351,66 @@ function run(W, A, P, G) {
   }
   renderCmp();
 
-  // ---------- activity table ----------
-  function zbar(z) { const tot = z.reduce((a, b) => a + (b || 0), 0) || 1; const cs = ["--z1", "--z2", "--z3", "--z4", "--z6"]; return `<span class="zbar" title="${z.slice(0, 5).map((s, i) => `Z${i + 1}: ${Math.round((s || 0) / 60)} хв`).join(" · ")}">${z.slice(0, 5).map((s, i) => `<i style="width:${(s || 0) / tot * 100}%;background:var(${cs[i]})"></i>`).join("")}</span>`; }
+  // ---------- журнал активностей ----------
+  // Фільтр виду + період + пошук, сторінками по 25. Порожні для поточної вибірки колонки ховаються.
+  // Клік по рядку — деталі: усі показники, зони пульсу в хвилинах, ефект заїзду і пара з Garmin (TE, Body Battery, піт).
+  // На телефоні замість таблиці — картки.
+  function zbar(z, wide) { const tot = z.reduce((a, b) => a + (b || 0), 0) || 1; const cs = ["--z1", "--z2", "--z3", "--z4", "--z6"]; return `<span class="zbar${wide ? " wide" : ""}" title="${z.slice(0, 5).map((s, i) => `Z${i + 1}: ${Math.round((s || 0) / 60)} хв`).join(" · ")}">${z.slice(0, 5).map((s, i) => `<i style="width:${(s || 0) / tot * 100}%;background:var(${cs[i]})"></i>`).join("")}</span>`; }
+  const nm = a => WK.actName(a, SPORTS[a.sport][0]);
+  const kind = a => `<span class="kind" style="--k:var(${SPORTS[a.sport][1]})">${SPORTS[a.sport][0]}</span>`;
   const cols = [
-    ["Дата", "date", a => a.date.replace("T", " "), "l"], ["Вид", "sport", a => SPORTS[a.sport][0], "l"], ["Назва", "name", a => esc(WK.actName(a, SPORTS[a.sport][0])), "l name"],
-    ["Час", "moving", a => fmtDur(a.moving)], ["Км", "distKm", a => a.distKm ?? "—"], ["Навант. intervals", "load", a => a.load ?? "—"],
-    ["Інтенс.", "intensity", a => a.intensity != null ? a.intensity + "%" : "—"], ["Пульс", "avgHr", a => a.avgHr ?? "—"], ["Макс", "maxHr", a => a.maxHr ?? "—"],
-    ["TRIMP", "trimp", a => a.trimp ?? "—"], ["Зони пульсу", "z", a => a.hrZones ? zbar(a.hrZones) : "—"],
-    ["Вт", "avgW", a => a.avgW ?? "—"], ["NP", "np", a => a.np ?? "—"], ["EF", "ef", a => a.ef ?? "—"], ["Decoupl.", "decoupling", a => a.decoupling != null ? a.decoupling + "%" : "—"],
-    ["Каденс", "cadence", a => a.cadence ?? "—"], ["Набір", "elev", a => a.elev != null ? a.elev + " м" : "—"], ["ккал", "kcal", a => a.kcal ?? "—"], ["HRR", "hrr", a => a.hrr ?? "—"], ["Пристрій", "device", a => esc(WK.devName(a.device)), "l"],
+    ["Дата", "date", a => a.date.replace("T", " "), "l"],
+    ["Тренування", "name", a => `${kind(a)}${nm(a) !== SPORTS[a.sport][0] ? ` <span class="nm">${esc(nm(a))}</span>` : ""}`, "l name"],
+    ["Час", "moving", a => fmtDur(a.moving)], ["Км", "distKm", a => a.distKm], ["Навант. intervals", "load", a => a.load],
+    ["Інтенс.", "intensity", a => a.intensity != null ? a.intensity + "%" : null], ["Пульс", "avgHr", a => a.avgHr], ["Макс", "maxHr", a => a.maxHr],
+    ["TRIMP", "trimp", a => a.trimp], ["Зони пульсу", "z", a => a.hrZones ? zbar(a.hrZones) : null],
+    ["Вт", "avgW", a => a.avgW], ["NP", "np", a => a.np], ["EF", "ef", a => a.ef], ["Decoupl.", "decoupling", a => a.decoupling != null ? a.decoupling + "%" : null],
+    ["Каденс", "cadence", a => a.cadence], ["Набір", "elev", a => a.elev != null ? a.elev + " м" : null], ["ккал", "kcal", a => a.kcal], ["HRR", "hrr", a => a.hrr], ["Пристрій", "device", a => esc(WK.devName(a.device)) || null, "l"],
   ];
-  let sortKey = "date", sortDir = -1, filt = "all";
-  function renderTable() {
-    const rows = acts.filter(a => filt === "all" || a.sport === filt).slice().sort((a, b) => { const x = a[sortKey], y = b[sortKey]; if (x == null) return 1; if (y == null) return -1; return (x < y ? -1 : x > y ? 1 : 0) * sortDir; });
-    $("tbl").tHead.innerHTML = "<tr>" + cols.map(([h, k, , cl]) => `<th tabindex="0" class="${cl || ""}" data-k="${k}" ${k === sortKey ? `aria-sort="${sortDir > 0 ? "ascending" : "descending"}"` : ""}>${h}</th>`).join("") + "</tr>";
-    $("tbl").tBodies[0].innerHTML = rows.map(a => "<tr>" + cols.map(([, , f, cl]) => `<td class="${cl || ""}">${f(a)}</td>`).join("") + "</tr>").join("");
+  // пара з Garmin: той самий вид спорту, старт у межах 30 хв
+  const gPair = a => (G.activities || []).find(g => gSport(g.type) === (a.sport === "rest" ? "other" : a.sport) && Math.abs(new Date(g.start) - new Date(a.date)) < 30 * 6e4);
+  const JPER = [...PERIODS, [99999, "усе"]];
+  let sortKey = "date", sortDir = -1, filt = "all", jDays = lsJ("td_jper", 99999), q = "", shown = 25, openId = null;
+  const inRange = a => jDays >= 99999 || a.day >= shift(today.date, -jDays + 1);
+  const match = a => !q || (nm(a) + " " + (a.name || "") + " " + SPORTS[a.sport][0] + " " + WK.devName(a.device)).toLowerCase().includes(q);
+  function detail(a, noZ) {
+    const g = gPair(a), fxA = a.sport === "bike" ? WK.actEffects(a) : null;
+    const kv = [["Старт", a.date.replace("T", " ")], ["Тривалість", fmtDur(a.moving)], a.distKm && ["Відстань", a.distKm + " км"], a.load != null && ["Навантаження intervals.icu", a.load], a.intensity != null && ["Інтенсивність", a.intensity + "%"],
+      a.avgHr && ["Пульс сер. / макс.", `${a.avgHr} / ${a.maxHr ?? "—"}`], a.trimp && ["TRIMP", a.trimp], a.np && ["Потужність сер. / NP", `${a.avgW ?? "—"} / ${a.np} Вт`], a.vi && ["VI", a.vi], a.ef && ["EF", a.ef], a.decoupling != null && ["Decoupling", a.decoupling + "%"],
+      a.kj && ["Робота", a.kj + " кДж"], a.cadence && ["Каденс", a.cadence], a.elev && ["Набір", a.elev + " м"], a.kcal && ["Калорії", a.kcal], a.hrr && ["Відновлення пульсу (HRR)", a.hrr], a.device && ["Пристрій", esc(WK.devName(a.device))],
+      g && ["Навантаження Garmin", fx(g.load)], g && ["Training Effect аероб. / анаероб.", `${fx(g.aTE, 1)} / ${fx(g.anTE, 1)}`], g?.bb != null && ["Body Battery", g.bb], g?.water != null && ["Піт (оцінка Garmin)", g.water + " мл"]].filter(Boolean);
+    const z = a.hrZones ? `<div class="dz">${noZ ? "" : zbar(a.hrZones, true)}<div class="muted">${a.hrZones.slice(0, 5).map((s, i) => `Z${i + 1} ${Math.round((s || 0) / 60)} хв`).join(" · ")}</div></div>` : "";
+    return `<div class="det">${z}<dl class="kv">${kv.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>${fxA ? `<div><div class="eyebrow">Ефект за фактом${fxA.by === "hr" ? " (за пульсом)" : ""}</div>${WK.barsHtml(fxA)}</div>` : ""}</div>`;
   }
-  $("tbl").addEventListener("click", e => { const th = e.target.closest("th"); if (!th || th.dataset.k === "z") return; const k = th.dataset.k; if (k === sortKey) sortDir *= -1; else { sortKey = k; sortDir = -1; } renderTable(); });
-  $("tbl").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.closest("th")) { e.preventDefault(); e.target.click(); } });
+  function renderTable() {
+    const all = acts.filter(a => (filt === "all" || a.sport === filt) && inRange(a) && match(a)).slice().sort((a, b) => { const x = a[sortKey], y = b[sortKey]; if (x == null) return 1; if (y == null) return -1; return (x < y ? -1 : x > y ? 1 : 0) * sortDir; });
+    const rows = all.slice(0, shown);
+    // колонки без жодного значення в поточній вибірці не показуємо
+    const vis = cols.filter(([, k, f], i) => i < 3 || all.some(a => { const v = f(a); return v != null && v !== "" && v !== "—"; }));
+    const id = a => String(a.id || a.date);
+    $("tbl").tHead.innerHTML = "<tr>" + vis.map(([h, k, , cl]) => `<th tabindex="0" class="${cl || ""}" data-k="${k}" ${k === sortKey ? `aria-sort="${sortDir > 0 ? "ascending" : "descending"}"` : ""}>${h}</th>`).join("") + "</tr>";
+    $("tbl").tBodies[0].innerHTML = rows.map(a => `<tr class="row${openId === id(a) ? " open" : ""}" data-id="${esc(id(a))}" tabindex="0" aria-expanded="${openId === id(a)}">` + vis.map(([, , f, cl]) => `<td class="${cl || ""}">${f(a) ?? "—"}</td>`).join("") + "</tr>" + (openId === id(a) ? `<tr class="drow"><td colspan="${vis.length}">${detail(a)}</td></tr>` : "")).join("");
+    $("jCards").innerHTML = rows.map(a => `<div class="jc${openId === id(a) ? " open" : ""}" data-id="${esc(id(a))}" tabindex="0" role="button" aria-expanded="${openId === id(a)}"><div class="jc-h"><span class="num muted">${dShort(a.day)} · ${a.date.slice(11)}</span>${kind(a)}</div>${nm(a) !== SPORTS[a.sport][0] ? `<b>${esc(nm(a))}</b>` : ""}<div class="jc-m num">${[fmtDur(a.moving), a.distKm && a.distKm + " км", a.load != null && "навант. " + a.load, a.avgHr && "пульс " + a.avgHr, a.np && "NP " + a.np + " Вт"].filter(Boolean).join(" · ")}</div>${a.hrZones ? zbar(a.hrZones, true) : ""}${openId === id(a) ? detail(a, true) : ""}</div>`).join("");
+    const secs = all.reduce((t, a) => t + (a.moving || 0), 0), ld = all.reduce((t, a) => t + (a.load || 0), 0);
+    $("jSum").textContent = all.length ? `${all.length} ${all.length % 10 >= 1 && all.length % 10 <= 4 && !(all.length % 100 >= 11 && all.length % 100 <= 14) ? "тренування" : "тренувань"} · ${fmtDur(secs)} год · навантаження intervals ${Math.round(ld)}` : "Нічого не знайдено.";
+    $("jMore").innerHTML = all.length > shown ? `<button type="button" class="btn-link ghost" data-more="25">Показати ще ${Math.min(25, all.length - shown)}</button><button type="button" class="btn-link ghost" data-more="all">Усі ${all.length}</button>` : "";
+  }
+  const toggleRow = el => { const k = el.dataset.id; openId = openId === k ? null : k; renderTable(); };
+  $("tbl").addEventListener("click", e => {
+    const th = e.target.closest("th");
+    if (th) { if (th.dataset.k === "z") return; const k = th.dataset.k; if (k === sortKey) sortDir *= -1; else { sortKey = k; sortDir = -1; } renderTable(); return; }
+    const tr = e.target.closest("tr.row"); if (tr) toggleRow(tr);
+  });
+  $("jCards").addEventListener("click", e => { const c = e.target.closest(".jc"); if (c) toggleRow(c); });
+  document.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches?.("#tbl th, #tbl tr.row, .jc")) { e.preventDefault(); e.target.click(); } });
   const fl = [["all", "Усі"], ...Object.entries(SPORTS).map(([k, [n]]) => [k, n])];
-  $("filters").innerHTML = fl.map(([k, n]) => `<button type="button" data-f="${k}" aria-pressed="${k === filt}">${n} <span class="muted num">${k === "all" ? acts.length : acts.filter(a => a.sport === k).length}</span></button>`).join("");
-  $("filters").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; filt = b.dataset.f; [...$("filters").children].forEach(x => x.setAttribute("aria-pressed", x.dataset.f === filt)); renderTable(); });
+  const renderFilters = () => { $("filters").innerHTML = fl.map(([k, n]) => { const c = acts.filter(a => (k === "all" || a.sport === k) && inRange(a)).length; return c || k === "all" || k === filt ? `<button type="button" data-f="${k}" aria-pressed="${k === filt}">${n} <span class="muted num">${c}</span></button>` : ""; }).join(""); };
+  $("filters").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; filt = b.dataset.f; shown = 25; renderFilters(); renderTable(); });
+  $("jPer").innerHTML = JPER.map(([d, t]) => `<button type="button" data-jd="${d}" aria-pressed="${d === jDays}">${t}</button>`).join("");
+  $("jPer").addEventListener("click", e => { const b = e.target.closest("[data-jd]"); if (!b) return; jDays = +b.dataset.jd; lsW("td_jper", jDays); shown = 25; [...$("jPer").children].forEach(x => x.setAttribute("aria-pressed", +x.dataset.jd === jDays)); renderFilters(); renderTable(); });
+  $("jQ").addEventListener("input", () => { q = $("jQ").value.trim().toLowerCase(); shown = 25; renderTable(); });
+  $("jMore").addEventListener("click", e => { const b = e.target.closest("[data-more]"); if (!b) return; shown = b.dataset.more === "all" ? 1e9 : shown + 25; renderTable(); });
+  renderFilters();
   renderTable();
 
   // ---------- charts ----------
