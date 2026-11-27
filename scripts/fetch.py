@@ -118,24 +118,6 @@ def pct_at(perc, v):
     return 100.0
 
 
-def local_start(a: dict) -> str:
-    """Час старту активності за Києвом, «YYYY-MM-DDTHH:MM».
-
-    Беремо UTC-час (start_date) і переводимо в Europe/Kyiv. start_date_local з intervals.icu
-    для заїздів з Wahoo ELEMNT зсунутий на кілька годин (часовий пояс у файлі пристрою),
-    а UTC-час правильний. Якщо UTC немає — лишаємо start_date_local."""
-    utc = a.get("start_date")
-    if utc:
-        try:
-            dt = datetime.fromisoformat(str(utc).replace("Z", "+00:00"))
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-            return dt.astimezone(TZ).strftime("%Y-%m-%dT%H:%M")
-        except Exception:
-            pass
-    return (a.get("start_date_local") or "")[:16]
-
-
 def value_at(perc, p):
     i = min(int(p // 5), len(perc) - 2)
     return perc[i] + (perc[i + 1] - perc[i]) * (p - 5 * i) / 5
@@ -192,12 +174,10 @@ def intervals() -> None:
         rows = []
         # вело, записане браслетом (Garmin CIRQA), дублює заїзд з Wahoo — не беремо його взагалі
         acts = [a for a in acts if not (re.search(r"Ride$|Cyclocross", a.get("type") or "") and re.search(r"cirqa|smart band", a.get("device_name") or "", re.I))]
-        for a in acts:
-            a["_local"] = local_start(a)
-        for a in sorted(acts, key=lambda x: x["_local"]):
+        for a in sorted(acts, key=lambda x: x.get("start_date_local") or ""):
             hrr = a.get("icu_hrr")
             rows.append([
-                a["_local"], a.get("type"), a.get("name"), a.get("moving_time"),
+                (a.get("start_date_local") or "")[:16], a.get("type"), a.get("name"), a.get("moving_time"),
                 round(a["distance"] / 1000, 1) if a.get("distance") else None, a.get("icu_training_load"),
                 a.get("average_heartrate"), a.get("max_heartrate"), round(a["trimp"]) if a.get("trimp") else None,
                 round(a["icu_intensity"]) if a.get("icu_intensity") else None, a.get("icu_hr_zone_times"),
