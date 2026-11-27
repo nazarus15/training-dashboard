@@ -122,8 +122,6 @@ function run(W, A, P, G) {
   const shift = (d, n) => { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
   const since42 = shift(today.date, -42), since70 = shift(today.date, -70);
   const loadByDay = {}; acts.forEach(a => { if (a.load) loadByDay[a.day] = (loadByDay[a.day] || 0) + a.load; });
-  // для модулів поверх Огляду (forecast.js, health-watch.js тощо): дані вже розібрані
-  window.OV = { wr, acts, today, loadByDay, SPORTS, P, G };
   const mondayOf = d => { const dt = new Date(d + "T12:00:00"); const wd = (dt.getDay() + 6) % 7; dt.setDate(dt.getDate() - wd); return dt.toISOString().slice(0, 10); };
   // тижні від since до поточного, навіть без тренувань (пропуски видно нулем)
   const blankW = () => ({ bike: 0, bjj: 0, str: 0, other: 0, rest: 0, secs: 0 });
@@ -439,20 +437,13 @@ function run(W, A, P, G) {
 
     const sinceOf = id => shift(today.date, -perDays(id) + 1);
     const pm = wr.filter(r => r.date >= sinceOf("cPmc"));
-    const maxLoad = Math.max(60, ...pm.map(r => loadByDay[r.date] || 0), ...(window.FC?.days?.() || []).map(d => d.load || 0));
-    const yMax = Math.max(60, Math.ceil(Math.max(...pm.map(r => Math.max(r.ctl || 0, r.atl || 0)), ...(window.FC?.days?.() || []).map(d => Math.max(d.ctl, d.atl))) / 10) * 10 + 10);
-    // прогноз за планом (forecast.js): дні після сьогодні пунктиром; минуле — як було
-    const fc = window.FC?.days?.() || [];
-    const pad = arr => arr.concat(fc.map(() => null)), at = (k, i) => i === pm.length - 1 ? pm[i][k] : null;
-    const fcSet = (label, key, color, axis, w) => ({ type: "line", label, data: pm.map((r, i) => at(key, i)).concat(fc.map(d => d[key])), borderColor: color, borderDash: [5, 4], borderWidth: w, pointRadius: 0, tension: .3, yAxisID: axis, order: 0, spanGaps: false });
-    mk("cPmc", { data: { labels: pm.map(r => dShort(r.date)).concat(fc.map(d => dShort(d.date))), datasets: [
-      { type: "bar", label: "Навантаження", data: pad(pm.map(r => loadByDay[r.date] || null)), backgroundColor: alpha("--z1", 0.55), yAxisID: "y", order: 3, barPercentage: 1, categoryPercentage: .9 },
-      { type: "line", label: "Фітнес", data: pad(pm.map(r => r.ctl)), borderColor: css("--accent"), backgroundColor: alpha("--accent", 0.12), fill: "origin", borderWidth: 2.5, pointRadius: 0, tension: .3, yAxisID: "y2", order: 1 },
-      { type: "line", label: "Втома", data: pad(pm.map(r => r.atl)), borderColor: css("--accent-3"), borderWidth: 1.5, pointRadius: 0, tension: .3, yAxisID: "y2", order: 2 },
-      { type: "line", label: "Форма", data: pad(pm.map(r => r.tsb)), borderColor: css("--accent-2"), borderWidth: 2, pointRadius: 0, tension: .3, yAxisID: "y3", order: 0 },
-      ...(fc.length ? [
-        { type: "bar", label: "План (навантаження)", data: pm.map(() => null).concat(fc.map(d => d.load || null)), backgroundColor: alpha("--z1", 0.25), borderColor: alpha("--z1", 0.7), borderWidth: 1, yAxisID: "y", order: 3, barPercentage: 1, categoryPercentage: .9 },
-        fcSet("Прогноз фітнесу", "ctl", css("--accent"), "y2", 2), fcSet("Прогноз втоми", "atl", css("--accent-3"), "y2", 1.2), fcSet("Прогноз форми", "tsb", css("--accent-2"), "y3", 1.6)] : []),
+    const maxLoad = Math.max(60, ...pm.map(r => loadByDay[r.date] || 0));
+    const yMax = Math.max(60, Math.ceil(Math.max(...pm.map(r => Math.max(r.ctl || 0, r.atl || 0))) / 10) * 10 + 10);
+    mk("cPmc", { data: { labels: pm.map(r => dShort(r.date)), datasets: [
+      { type: "bar", label: "Навантаження", data: pm.map(r => loadByDay[r.date] || null), backgroundColor: alpha("--z1", 0.55), yAxisID: "y", order: 3, barPercentage: 1, categoryPercentage: .9 },
+      { type: "line", label: "Фітнес", data: pm.map(r => r.ctl), borderColor: css("--accent"), backgroundColor: alpha("--accent", 0.12), fill: "origin", borderWidth: 2.5, pointRadius: 0, tension: .3, yAxisID: "y2", order: 1 },
+      { type: "line", label: "Втома", data: pm.map(r => r.atl), borderColor: css("--accent-3"), borderWidth: 1.5, pointRadius: 0, tension: .3, yAxisID: "y2", order: 2 },
+      { type: "line", label: "Форма", data: pm.map(r => r.tsb), borderColor: css("--accent-2"), borderWidth: 2, pointRadius: 0, tension: .3, yAxisID: "y3", order: 0 },
     ] }, options: { interaction: { mode: "index", intersect: false }, scales: {
       x: { grid: { display: false }, ticks: { maxTicksLimit: 12 } },
       y: { position: "right", grid: { display: false }, title: { display: true, text: "навантаження" }, max: Math.ceil(maxLoad * 1.4 / 20) * 20 },
