@@ -48,29 +48,36 @@ async function loadRemote() {
 
 let pushTimer = null, pushing = false;
 function queuePush(delay = 2500) { clearTimeout(pushTimer); pushTimer = setTimeout(push, delay); }
-// відправка — спільна WK.flushLogs (workout.js): та сама черга td_pending_logs відправляється і з інших сторінок,
-// а для кожного тренування перемагає новіша версія (запис, змінений на іншому пристрої пізніше, не затирається)
 async function push() {
   if (!Object.keys(pending).length) return;
   if (!token) { setSync("local"); return; }
   if (pushing) { queuePush(1500); return; }
   pushing = true;
+  const snapshot = JSON.parse(JSON.stringify(pending));
   try {
-    const dates = Object.keys(pending).map(s => sessions[s]?.date || s).join(", ");
-    const r = await WK.flushLogs(`Журнал: ${dates}`);
-    pending = lsGet(LS.pending, {});
-    if (r.ok) {
-      // свіжа злита версія з GitHub (там могли бути новіші записи з іншого пристрою)
-      if (r.body) { logs = { ...(r.body.logs || {}), ...pending }; const a = document.activeElement; if (!(a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA"))) render(); }
-      setSync("ok");
-    } else if (r.kind === "local") setSync("local");
-    else if (r.kind === "error") setSync("error", r.msg);
-    else { setSync("offline", "Немає зв'язку з GitHub. Записи збережені на пристрої, відправлю, щойно з'явиться інтернет."); setTimeout(() => queuePush(0), 60000); }
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const cur = await apiGet();
+      const merged = { ...(cur.data.logs || {}), ...snapshot };
+      const body = { logs: merged, updatedAt: new Date().toISOString() };
+      const dates = Object.keys(snapshot).map(s => sessions[s]?.date || s).join(", ");
+      const r = await fetch(API, { method: "PUT", headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+        body: JSON.stringify({ message: `Журнал: ${dates}`, content: b64enc(JSON.stringify(await AUTH.encrypt(body))), branch: BRANCH, ...(cur.sha ? { sha: cur.sha } : {}) }) });
+      if (r.ok) {
+        for (const sid of Object.keys(snapshot)) if (JSON.stringify(pending[sid]) === JSON.stringify(snapshot[sid])) delete pending[sid];
+        lsSet(LS.pending, pending); lsSet(LS.cache, body); lsSet(LS.last, nowHM());
+        setSync("ok"); break;
+      }
+      if (r.status === 401) { setSync("error", "Токен протермінований або невірний. Підключи новий."); break; }
+      if (r.status === 403) { setSync("error", "Токен лише читає. На GitHub відредагуй його: Repository permissions → Contents: Read and write."); break; }
+      if (r.status !== 409 && r.status !== 422) throw new Error("http " + r.status);
+    }
+  } catch (e) {
+    setSync("offline", "Немає зв'язку з GitHub. Записи збережені на телефоні, відправлю пізніше.");
+    setTimeout(() => queuePush(0), 60000);
   } finally { pushing = false; if (Object.keys(pending).length && syncState.kind === "ok") queuePush(1500); }
 }
 window.addEventListener("online", () => queuePush(0));
-// згорнули — спробувати відправити; повернулися — підхопити відправлене з іншої сторінки і довідправити решту
-document.addEventListener("visibilitychange", () => { if (Object.keys(pending).length) { if (document.visibilityState === "hidden") push(); else { pending = lsGet(LS.pending, {}); renderSync(); queuePush(500); } } });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && Object.keys(pending).length) push(); });
 
 function setSync(kind, msg = "") { syncState = { kind, msg }; lsSet("td_sync_state", syncState); if (window.AUTH) AUTH.health().then(h => AUTH.markNav(h.issues)).catch(() => { }); renderSync(); }
 function renderSync() {
