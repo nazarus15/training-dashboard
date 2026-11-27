@@ -95,6 +95,13 @@ h3.sub{font-size:17px;margin:4px 0 0}
     <div class="acts"><button class="btn ghost" type="button" id="ghOff" hidden>Відключити на цьому пристрої</button><span class="msg" id="ghMsg" role="status"></span></div>
   </section>
 
+  <section class="card" id="waCard">
+    <h2>Чергування тижнів</h2>
+    <p>Станок ділиш з другом по тижню: тиждень станка (велосипед 2–3 рази) чергується з тижнем залу (силові 2 рази). Познач, який зараз тиждень — далі сайт рахує через один і показує це в Календарі, Планері й на Огляді.</p>
+    <p id="waState"></p>
+    <div class="acts"><button class="btn" type="button" data-wa="bike">Цей тиждень — станок</button><button class="btn" type="button" data-wa="gym">Цей тиждень — зал</button><button class="btn ghost" type="button" data-wa="">Вимкнути</button><span class="msg" id="waMsg" role="status"></span></div>
+  </section>
+
   <section class="card" id="gcalCard">
     <h2>Google Calendar</h2>
     <p>Приватна синхронізація: тренування йдуть прямо у твій календар «Тренування · Форма» через твій власний скрипт Google (Apps Script). Публічно нічого не з'являється.</p>
@@ -193,6 +200,7 @@ h3.sub{font-size:17px;margin:4px 0 0}
 </div>
 <script src="exercises.js?v=1795703634"></script>
 <script src="workout.js?v=1795703634"></script>
+<script src="weeks.js?v=1"></script>
 <script src="datax.js?v=1795703634"></script>
 <script src="export.js?v=1795703634"></script>
 <script>
@@ -464,6 +472,19 @@ $("expCopy").onclick = () => expRun(async X => { const t = DX.chatText(X); await
 $("expDrive").onclick = () => { msg("expMsg", "Готую…"); DX.build && DX.collect().then(src => DX.toDrive(DX.build(src))).then(r => { msg("expMsg", r.ok ? "Надіслано в Google Drive: папка «Форма Назара · експорт»." : r.error, r.ok ? "ok" : "err"); expState(); }).catch(e => msg("expMsg", "Не вдалося: " + (e.message || e), "err")); };
 function expState() { const t = localStorage.getItem("td_drive_export"); $("expDriveState").textContent = t ? `Останнє збереження в Google Drive: ${new Date(t).toLocaleString("uk-UA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}.` : "У Google Drive ще не зберігалось."; }
 expState();
+
+// ---------- чергування тижнів (weeks.js) ----------
+function waState() {
+  if (!window.WA) return;
+  const t = WK.today(), n = WK.addDays(t, 7), a = WA.type(t);
+  $("waState").innerHTML = a ? `Цей тиждень: ${WA.pill(t)} · наступний: ${WA.pill(n)}` : `<span class="pill today">Не налаштовано</span>`;
+}
+document.querySelectorAll("[data-wa]").forEach(b => b.onclick = async () => {
+  msg("waMsg", "Зберігаю…");
+  try { await WA.set(b.dataset.wa || null); waState(); msg("waMsg", b.dataset.wa ? "Збережено." : "Вимкнено.", "ok"); }
+  catch (err) { msg("waMsg", errText(err), "err"); waState(); }
+});
+addEventListener("wa:change", waState); waState();
 </script>
 </body>
 </html>

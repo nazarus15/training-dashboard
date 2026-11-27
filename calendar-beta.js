@@ -126,7 +126,7 @@ window.CALB = (() => {
         html += `<button type="button" class="cb-d${inM ? "" : " out"}${d === t ? " today" : ""}${d === openDay ? " sel" : ""}" data-day="${d}" aria-label="${WK.esc(lab)}"><span class="cb-n">${dt.getDate()}</span><span class="cb-is">${list.map(x => `<span class="cb-i ${x.status}" style="--kc:${(WK.SPORT[x.sport] || WK.SPORT.other)[1]}"><i></i><span>${WK.esc(x.sport === "bjj" ? "БЖЖ" : x.title)}</span><b>${x.status === "done" ? "✓" : x.status === "miss" ? "✕" : ""}</b></span>`).join("")}</span></button>`;
       }
       const pct = wPlan ? Math.round(wDone / wPlan * 100) : null;
-      html += `<div class="cb-w"><span>факт <b>${wFact ? fmtDur(wFact) : "0"}</b>${wPlanMin ? ` · план ${WK.fmtMin(wPlanMin)}` : ""} год</span>${pct != null ? `<div class="bar" title="Виконано ${wDone} з ${wPlan}"><i style="width:${pct}%"></i></div><span class="muted">${wDone} з ${wPlan} виконано</span>` : ""}${wLoad ? `<span class="muted">навант. intervals ${Math.round(wLoad)}</span>` : ""}</div>`;
+      html += `<div class="cb-w">${window.WA ? WA.pill(w, true) : ""}<span>факт <b>${wFact ? fmtDur(wFact) : "0"}</b>${wPlanMin ? ` · план ${WK.fmtMin(wPlanMin)}` : ""} год</span>${pct != null ? `<div class="bar" title="Виконано ${wDone} з ${wPlan}"><i style="width:${pct}%"></i></div><span class="muted">${wDone} з ${wPlan} виконано</span>` : ""}${wLoad ? `<span class="muted">навант. intervals ${Math.round(wLoad)}</span>` : ""}</div>`;
     }
     html += `</div><div class="cb-det" id="cbDet" aria-live="polite">${openDay ? detailHtml(openDay, days[openDay], t) : `<p class="cb-note">Натисни на день, щоб побачити деталі.</p>`}</div>
       <p class="cb-note">Вигляд «Місяць» у тестовому режимі. Повернути звичний — «Тижні» вгорі.</p>`;

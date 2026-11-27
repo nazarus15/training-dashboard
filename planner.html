@@ -33,6 +33,8 @@ textarea{font-family:var(--f-data);font-size:14px;line-height:1.5;min-height:300
 .msg{font-size:13px}
 .msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
 .warn-list{margin:0;padding-left:18px;font-size:13px;color:var(--warn)}
+.wa-hint{grid-column:1/-1;margin:0;font-size:13px;color:var(--muted)}
+.wa-hint.warn{color:var(--warn)}
 .dict-list{margin:0;padding-left:18px;font-size:13px;color:var(--muted)}
 .dict-list li.unk{color:var(--warn)}
 #exDictList{display:flex;flex-direction:column;gap:10px;margin-top:8px}
@@ -81,6 +83,7 @@ textarea{font-family:var(--f-data);font-size:14px;line-height:1.5;min-height:300
         <label class="f">Час (необов'язково)<input type="time" id="fTime"></label>
         <label class="f">Вид<select id="fSport"><option value="strength">Силове</option><option value="bjj">БЖЖ</option><option value="run">Біг</option><option value="other">Інше</option></select></label>
         <label class="f">Тривалість, хв<input type="number" id="fMins" min="5" max="600" step="5" inputmode="numeric" placeholder="авто"></label>
+        <p class="wa-hint" id="waHint" hidden></p>
         <label class="f wide">Назва<input id="fTitle" placeholder="Сила А"></label>
         <label class="f wide"><span id="fTextLabel">Текст тренування</span><textarea id="fText" spellcheck="false"></textarea></label>
       </div>
@@ -158,6 +161,7 @@ A
 
 <script src="exercises.js?v=1795703634"></script>
 <script src="workout.js?v=1795703634"></script>
+<script src="weeks.js?v=1"></script>
 <script src="export.js?v=1795703634"></script>
 <script>
 "use strict";
@@ -320,6 +324,11 @@ $("impForm").onsubmit = async e => {
   const w = id && PD.workouts.find(x => x.id === id);
   if (w) fill(w, false);
 })();
+
+// чергування тижнів (weeks.js): підказка, чий тиждень на обрану дату
+function waHint() { const el = $("waHint"); if (!el || !window.WA) return; const h = WA.hint($("fDate").value || WK.today(), $("fSport").value); el.hidden = !h; el.textContent = h; el.classList.toggle("warn", /у друга|наступного/.test(h)); }
+["fDate", "fSport"].forEach(id => $(id).addEventListener("input", waHint)); $("fSport").addEventListener("change", waHint);
+addEventListener("wa:change", waHint); setTimeout(waHint, 0);
 </script>
 </body>
 </html>

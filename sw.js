@@ -13,7 +13,7 @@ const VERSION = "td-2026-11-27";
 const SHELL = `${VERSION}-shell`, DATA = `${VERSION}-data`, LIB = "td-lib-1";
 const PAGES = ["./", "index.html", "calendar.html", "planner.html", "strength.html", "records.html", "settings.html"];
 const ASSETS = ["ui.css", "workout.css", "auth.js", "exercises.js", "workout.js", "app.js", "datax.js", "export.js", "strength.js", "strength-progress.js", "strength-volume.js",
-  "calendar-beta.js", "forecast.js", "health-watch.js", "ftp-check.js", "bjj.js", "weight.js", "favicon.svg", "favicon.ico", "apple-touch-icon.png", "icon-192.png", "icon-512.png", "manifest.webmanifest", "pubkey.json", "keyring.json"];
+  "calendar-beta.js", "forecast.js", "health-watch.js", "ftp-check.js", "bjj.js", "weight.js", "weeks.js", "favicon.svg", "favicon.ico", "apple-touch-icon.png", "icon-192.png", "icon-512.png", "manifest.webmanifest", "pubkey.json", "keyring.json"];
 const CDN = ["https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"];
 
 self.addEventListener("install", e => {
