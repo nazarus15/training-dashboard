@@ -22,6 +22,9 @@ window.DX = (() => {
     "power": "Потужність: ftp, зони, криві потужності (curve — останні 42 дні, curveAll — рекорди), перцентилі intervals.icu серед вікової групи, eFTP",
     "athlete": "Базові дані спортсмена і пороги (пульс, FTP), джерела даних",
     "plan": "Заплановані тренування: силові (план) і вело (intervals.icu, кроки у % FTP)",
+    "bjj[]": "Журнал БЖЖ: rpe — важкість сесії 1–10, min — хвилини, sRPE = rpe × min (навантаження за методом Фостера), rounds — спаринги, note — нотатки",
+    "weights[]": "Зважування, записані на сайті (kg); зважування з intervals.icu/Garmin — у daily[].intervals.weight",
+    "weekAlt": "Чергування тижнів: type — тип тижня anchor (bike — тиждень станка, gym — тиждень залу), далі через один",
   };
 
   async function collect() {
@@ -62,6 +65,11 @@ window.DX = (() => {
       return clean({ date: w.date, title: w.title, status: L.finishedAt || L.status === "done" ? "done" : L.status === "skipped" ? "skipped" : L.startedAt ? "started" : null, startedAt: L.startedAt, finishedAt: L.finishedAt, durationMin: L.startedAt && L.finishedAt ? Math.round((new Date(L.finishedAt) - new Date(L.startedAt)) / 6e4) : null, rpe: L.rpe, note: L.note, exercises: ex });
     }).filter(Boolean);
 
+    // журнал БЖЖ і зважування з сайту (bjj.js, weight.js)
+    const aById = Object.fromEntries(rowsToObj(A).map(a => [String(a.id || a.date), a]));
+    const bjj = Object.entries(logs).filter(([k, v]) => k.startsWith("bjj:") && v && !v.deleted).map(([k, v]) => { const a = aById[k.slice(4)]; const min = a?.moving ? Math.round(a.moving / 60) : null; return clean({ date: a ? day(a.date) : null, min, rpe: v.rpe, sRPE: v.rpe && min ? v.rpe * min : null, rounds: v.rounds, note: v.note, avgHr: a?.avgHr, loadIntervals: a?.load }); }).filter(b => b.date && inP(b.date)).sort((a, b) => a.date < b.date ? -1 : 1);
+    const weights = Object.entries(logs).filter(([k, v]) => k.startsWith("w:") && v?.kg && !v.deleted && inP(k.slice(2))).map(([k, v]) => ({ date: k.slice(2), kg: v.kg })).sort((a, b) => a.date < b.date ? -1 : 1);
+
     const today = WK.today();
     const plan = [
       ...(P?.workouts || []).filter(w => w.date >= today).map(w => ({ date: w.date, sport: w.sport, title: w.title, text: w.text })),
@@ -84,6 +92,9 @@ window.DX = (() => {
       activities: acts,
       garminActivities: gActs,
       strength,
+      bjj,
+      weights,
+      weekAlt: S?.weekAlt || null,
       power: clean({ ftp: z.ftp, eftp: PW?.eftp, curve42d: PW?.curve, curveRange: PW?.range, curveAll: PW?.curveAll, models: PW?.models, percentileGroup: PW?.rankGroup, percentiles: PW?.rank }),
       plan,
     };
