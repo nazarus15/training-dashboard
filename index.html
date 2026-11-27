@@ -156,10 +156,6 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
 .rank{border:1px solid var(--line);border-radius:4px;padding:6px;text-align:center;display:flex;flex-direction:column;gap:2px}
 .rank b{font-family:var(--f-display);font-size:20px;font-weight:600}
 .rank span{font-family:var(--f-data);font-size:10px;color:var(--muted)}
-.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;counter-reset:r}
-.rec{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:6px}
-.rec h3{font-size:18px}
-.rec p{margin:0;font-size:14px;color:var(--muted)}
 footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px}
 footer p{margin:0;max-width:90ch}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
@@ -297,9 +293,9 @@ footer p{margin:0;max-width:90ch}
     <div class="grid">
       <div data-blk="c:крива-потужності-за-42-дні" data-name="Крива потужності за 42 дні" class="card full">
         <h3>Крива потужності за 42 дні</h3>
-        <div class="legend"><span><i style="background:var(--accent)"></i>Найкраща потужність, Вт</span><span><i style="background:var(--accent-2)"></i>FTP 230 Вт</span></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Найкраща потужність, Вт</span><span id="lgFtp"><i style="background:var(--accent-2)"></i>FTP</span></div>
         <div class="chart tall"><canvas id="cCurve" aria-label="Крива потужності"></canvas></div>
-        <p class="note">Після 20 хв крива різко падає, бо максимальних зусиль довших за 20 хв не було. Тому перцентилі на 60 і 90 хв занижені.</p>
+        <p class="note" id="curveNote" hidden></p>
       </div>
       <div data-blk="c:перцентиль-у-intervals-icu" data-name="Перцентиль у intervals.icu" class="card">
         <h3 id="rankTitle">Перцентиль у intervals.icu</h3>
@@ -323,11 +319,6 @@ footer p{margin:0;max-width:90ch}
         <p class="note">EF = нормована потужність / середній пульс. Decoupling показує, наскільки «відпливає» пульс відносно потужності в другій половині. До 5% — аеробна база тримає, вище — бракує обʼєму. Рахується лише для рівних аеробних заїздів: в інтервальних пульс росте через самі інтервали.</p>
       </div>
     </div>
-  </section>
-
-  <section data-blk="s:що-робити-далі" data-name="Що робити далі">
-    <div class="sec-head"><h2>Що робити далі</h2><p>Висновки з даних під твою мету: форма як під велогонку при трьох тренуваннях БЖЖ на тиждень.</p></div>
-    <div class="recs" id="recs"></div>
   </section>
 
   <section data-blk="s:журнал-активностей" data-name="Журнал активностей">

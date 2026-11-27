@@ -182,32 +182,20 @@ function run(W, A, P, G) {
   fillStrip();
 
   // ---------- insights ----------
-  const ctlMin = Math.min(...wr.filter(r => r.date >= since70 && r.ctl != null).map(r => r.ctl));
+  const ctlMin = Math.min(...wr.filter(r => r.date >= since70 && r.ctl != null).map(r => r.ctl)), ctlMax = Math.max(...wr.filter(r => r.date >= since70 && r.ctl != null).map(r => r.ctl));
   const ctl42 = wr.find(r => r.date >= since42)?.ctl;
   const ctlRate = ctl42 != null ? (today.ctl - ctl42) / 6 : null;
   const ins = [];
   ins.push([hrv30 && R?.score >= 75 ? "--good" : "--accent", "Відновлення", `HRV у середньому <b>${fx(hrv30)} мс</b> (±${fx(hrvSd30)}) за 30 днів, пульс спокою <b>${fx(rhr30)}</b>, сон у середньому <b>${fx(avg(wr.slice(-7).map(r => r.sleepSecs)) / 3600, 1)} год</b>.${R ? ` Власна оцінка готовності <b>${R.score}</b>.` : ""}`]);
   if (G.loadBalance28) { const lb = G.loadBalance28, tot = lb.low + lb.high + lb.anaerobic || 1, hp = Math.round(lb.high / tot * 100), lp = Math.round(lb.low / tot * 100), ap = Math.round(lb.anaerobic / tot * 100); const short = hp < 30; ins.push([short ? "--warn" : "--good", short ? "Бракує інтенсивної аеробної роботи" : "Баланс навантаження", `За 4 тижні навантаження Garmin <b>${tot}</b>: легке аеробне <b>${lp}%</b>, інтенсивне аеробне <b>${hp}%</b>, анаеробне <b>${ap}%</b>. ${short ? "Мало тренувань рівня темпу, порогу і VO2max, з яких складається гонка: орієнтир Garmin — 30–60%." : ""}`]); }
-  ins.push(["--accent", "Динаміка фітнесу", `CTL зараз <b>${fx(today.ctl, 1)}</b>, мінімум за 10 тижнів ${fx(ctlMin, 1)}. Для аматора, що готується до гонок, типовий робочий рівень 50–70. Приріст за 6 тижнів ≈ <b>${fx(ctlRate, 1)}</b> CTL на тиждень, безпечно 3–5.`]);
+  ins.push(["--accent", "Динаміка фітнесу", `CTL зараз <b>${fx(today.ctl, 1)}</b>, за 10 тижнів від ${fx(ctlMin, 1)} до ${fx(ctlMax, 1)}. Зміна за 6 тижнів ≈ <b>${ctlRate > 0 ? "+" : ""}${fx(ctlRate, 1)}</b> CTL на тиждень; стійкий ріст — 3–5 на тиждень.`]);
   ins.push([midPct > 25 ? "--warn" : "--good", "Розподіл інтенсивності", `За 6 тижнів по пульсу: <b>${lowPct}%</b> легко (Z1–Z2), <b>${midPct}%</b> темп (Z3), <b>${hiPct}%</b> поріг і вище. На велосипеді темпу <b>${bikeMid}%</b>. Поляризована модель радить ≈80% легко і ≈20% важко, з мінімумом Z3.`]);
   if (decs.length) { const bad = decs.filter(a => a.decoupling > 5).length, lastD = decs.at(-1).decoupling; ins.push([lastD > 5 ? "--bad" : bad ? "--warn" : "--good", "Аеробна стійкість", `Decoupling у рівних заїздах від 45 хв: ${decs.map(a => `${dShort(a.day)} <b>${a.decoupling}%</b>`).join(", ")}. Норма до 5%. ${lastD > 5 ? "Пульс «відпливає» відносно потужності: бракує довгих рівних Z2." : bad ? "Останній рівний заїзд у нормі." : "Аеробна база тримає."} Інтервальні заїзди не враховуються.`]); }
   else if (pRides.length) ins.push(["--grey", "Аеробна стійкість", "Серед останніх заїздів немає рівних аеробних від 45 хв, тому decoupling не рахується: в інтервальних він не показовий."]);
   if (P.models?.length && ftp) { const fs = P.models.map(m => m[1]).filter(Boolean); const lo = Math.min(...fs), hi = Math.max(...fs); const c20 = P.curve?.find(c => c[0] === 1200)?.[1]; ins.push([ftp > hi * 1.03 ? "--warn" : "--accent", "FTP проти моделей", `Встановлено <b>${ftp} Вт</b>. Моделі intervals.icu за кривою 42 днів: <b>${lo}–${hi} Вт</b>${c20 ? `, найкращі 20 хв <b>${c20} Вт</b> (×0,95 = ${Math.round(c20 * .95)})` : ""}.`]); }
-  if (Z.lthr && Z.maxHr) { const pct = Math.round(Z.lthr / Z.maxHr * 100); ins.push([pct > 93 ? "--warn" : "--good", "Зони пульсу", `Макс. пульс у налаштуваннях <b>${Z.maxHr}</b>, LTHR <b>${Z.lthr}</b>, це ${pct}% від максимуму. Зазвичай поріг ≈ 88–92%. ${pct > 93 ? "Браслет на зап'ясті часто недобирає пік, пульсометр на груди уточнить зони." : ""}`]); }
+  if (Z.lthr && Z.maxHr) { const pct = Math.round(Z.lthr / Z.maxHr * 100); ins.push([pct > 93 ? "--warn" : "--good", "Зони пульсу", `Макс. пульс у налаштуваннях <b>${Z.maxHr}</b>, LTHR <b>${Z.lthr}</b>, це ${pct}% від максимуму. Зазвичай поріг ≈ 88–92%. ${pct > 93 ? "Поріг надто близько до максимуму: один із двох, імовірно, неточний. Тест на поріг з нагрудним пульсометром уточнить зони." : ""}`]); }
   ins.push(["--grey", "Структура 6 тижнів", `БЖЖ <b>${cnt("bjj")}</b> разів (${fx(hrsOf("bjj"))} год), велосипед <b>${cnt("bike")}</b> (${fx(hrsOf("bike"))} год), силових <b>${cnt("str")}</b>. Монотонність тижня <b>${lastMono.mono ?? "—"}</b>${(lastMono.mono ?? 0) > 2 ? ", тиждень надто одноманітний" : ""}.`]);
   $("insights").innerHTML = ins.map(([c, h, p]) => `<div class="ins" style="--c:var(${c})"><h3>${h}</h3><p>${p}</p></div>`).join("");
-
-  // ---------- recommendations ----------
-  const pz = p => ftp ? Math.round(ftp * p) : "—";
-  const recs = [
-    ["Довга Z2 на станку раз на тиждень", `2–2,5 год при ${pz(.56)}–${pz(.75)} Вт (56–75% FTP), пульс до ${Z.hr?.[1] ?? 140}. Головний важіль для decoupling і CTL.`],
-    ["Одне інтервальне тренування замість темпових", `Sweet spot 3×12–15 хв при ${pz(.85)}–${pz(.93)} Вт або VO2max 5×4 хв при ${pz(1.08)}–${pz(1.15)} Вт.`],
-    ["Сила 2 рази на тиждень, регулярно", "Схема А/Б з присідом, жимом, тягою і румунською тягою. Поза днями БЖЖ або вранці в день БЖЖ, щоб ноги встигли до інтервалів."],
-    ["Тиждень без станка", "2 силові + БЖЖ за графіком. Аеробну базу в цей тиждень тримає БЖЖ; головне — не пропускати силові, щоб наступний тиждень станка почався свіжим."],
-    ["Ціль на 8 тижнів", `CTL ${Math.round(today.ctl + 12)}–${Math.round(today.ctl + 16)}: приріст 2–3 на тиждень, форма від −10 до −25, кожен 4-й тиждень полегшений.`],
-    ["Перевір зони пульсу", "Нагрудний пульсометр на тесті чи інтервалах покаже реальний LTHR. Після цього оновити зони в intervals.icu."],
-  ];
-  $("recs").innerHTML = recs.map(([h, p]) => `<div class="rec"><h3>${h}</h3><p>${p}</p></div>`).join("");
 
   // ---------- kv blocks ----------
   const sn = G.sleepNight || {};
@@ -259,6 +247,9 @@ function run(W, A, P, G) {
   })();
   const MN = { MS_2P: "Monod–Scherrer", MORTON_3P: "Morton 3P", FFT_CURVES: "FFT (intervals.icu)", ECP: "ECP" };
   $("models").innerHTML = (P.models || []).map(m => `<dt>${esc(MN[m[0]] || m[0])}</dt><dd>${m[1]} Вт${m[2] ? ` · W′ ${(m[2] / 1000).toFixed(1)} кДж` : ""}${m[3] ? ` · Pmax ${m[3]}` : ""}</dd>`).join("") + (ftp ? `<dt>Встановлений FTP</dt><dd>${ftp} Вт${wt ? ` · ${(ftp / wt).toFixed(2)} Вт/кг` : ""}</dd>` : "") + (wt ? `<dt>Вага</dt><dd>${wt} кг</dd>` : "");
+  if (ftp && $("lgFtp")) $("lgFtp").lastChild.textContent = `FTP ${ftp} Вт`;
+  { const c20 = P.curve?.find(c => c[0] === 1200)?.[1], c60 = P.curve?.find(c => c[0] === 3600)?.[1];
+    if (c20 && (!c60 || c60 < c20 * .8) && $("curveNote")) { $("curveNote").hidden = false; $("curveNote").textContent = `Після 20 хв крива падає різко${c60 ? ` (60 хв — ${c60} Вт, ${Math.round(c60 / c20 * 100)}% від 20 хв)` : ""}: довших максимальних зусиль за 42 дні не було, тож перцентилі на 60 і 90 хв занижені.`; } }
   $("ftpNote").textContent = "W′ — запас роботи вище критичної потужності. Якщо моделі сильно розходяться, коротких максимальних зусиль мало; допоможуть окремі спроби 1, 3 і 12 хв.";
   $("effKv").innerHTML = pRides.length ? pRides.map(a => `<dt>${dShort(a.day)} · ${esc(a.name)}</dt><dd>NP ${a.np} Вт · EF ${a.ef ?? "—"} · ${steady(a) ? `dec ${a.decoupling ?? "—"}%` : `<span class="muted" title="В інтервальному заїзді decoupling не показовий">інтервали</span>`}</dd>`).join("") : "<dt>Немає заїздів з потужністю</dt><dd></dd>";
   $("powerIntro").textContent = `Заїздів з потужністю за весь період: ${acts.filter(a => a.np).length}. Решта заїздів записані з пульсом, без потужності.`;
