@@ -99,6 +99,7 @@ window.AUTH = (() => {
     try { S = await (await fetch(`data/status.json?t=${Date.now()}`, { cache: "no-store" })).json(); } catch { }
     if (!S) add("warn", "Дані", "Не вдалося прочитати статус оновлення.");
     else {
+      if (S.generatedAt) lsW("td_status_at", S.generatedAt);
       const ageH = (Date.now() - new Date(S.generatedAt).getTime()) / 36e5;
       if (ageH > 30) add("warn", "Дані", `Останнє оновлення ${Math.round(ageH)} год тому. Перевір вкладку Actions у репозиторії.`);
       if (!S.intervals?.ok) add("bad", "intervals.icu", S.intervals?.error || "Помилка оновлення.");
@@ -119,6 +120,8 @@ window.AUTH = (() => {
     const pend = Object.keys(lsJ("td_pending_logs", {}) || {}).length, sync = lsJ("td_sync_state", null);
     if (sync?.kind === "error") add("bad", "Журнал", sync.msg || "Помилка збереження журналу.");
     else if (pend) add("warn", "Журнал", `${pend} ${pend === 1 ? "запис чекає" : "записи чекають"} відправки на GitHub.`);
+    const pq = (lsJ("td_planned_queue", []) || []).length;
+    if (pq) add("warn", "Планер", `${pq} ${pq === 1 ? "зміна плану чекає" : "зміни плану чекають"} відправки на GitHub (зроблені без зв'язку).`);
     try { const kr = await keyring(); if (!kr.recovery) add("warn", "Пароль", "Немає коду відновлення: якщо забудеш пароль, доступ не повернути."); } catch { }
     return { issues: out, status: S };
   }
@@ -207,6 +210,48 @@ nav.tabs a.attn-warn::after,nav.tabs a.attn-bad::after{content:"";display:inline
       WK.triggerUpdate(true);
     } catch { }
   }
+  // ---------- офлайн: service worker, плашка, відправка черг ----------
+  // sw.js кешує сторінки й останні дані: без інтернету сайт відкривається з тим, що бачив цей пристрій.
+  // Записи силових (td_pending_logs) і зміни плану (td_planned_queue) чекають на пристрої і йдуть на GitHub,
+  // щойно з'явиться зв'язок — з будь-якої сторінки.
+  const offCss = `#tdNet{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:40;max-width:min(560px,calc(100% - 24px));display:flex;gap:10px;align-items:center;background:var(--ink,#15202b);color:var(--panel,#fff);font:13px/1.35 var(--f-body,system-ui,sans-serif);padding:9px 12px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+#tdNet[hidden]{display:none}#tdNet b{font-weight:600}#tdNet button{flex:none;background:none;border:0;color:inherit;opacity:.7;font:inherit;cursor:pointer;padding:2px 4px}#tdNet button:hover{opacity:1}`;
+  let netEl = null, noteTimer = null, offline = false;
+  function netBar(html, sticky) {
+    if (!netEl) { const st = document.createElement("style"); st.textContent = offCss; document.head.append(st); netEl = document.createElement("div"); netEl.id = "tdNet"; netEl.setAttribute("role", "status"); netEl.setAttribute("aria-live", "polite"); document.body.append(netEl); }
+    clearTimeout(noteTimer);
+    if (!html) { netEl.hidden = true; return; }
+    netEl.innerHTML = `<span>${html}</span><button type="button" aria-label="Сховати">✕</button>`; netEl.hidden = false;
+    netEl.querySelector("button").onclick = () => { netEl.hidden = true; };
+    if (!sticky) noteTimer = setTimeout(() => { netEl.hidden = true; if (offline) showOffline(); }, 6000);
+  }
+  function showOffline() {
+    const at = lsJ("td_status_at", null), q = Object.keys(lsJ("td_pending_logs", {}) || {}).length + (lsJ("td_planned_queue", []) || []).length;
+    const fmt = at ? new Date(at).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : null;
+    netBar(`<b>Без інтернету.</b> ${fmt ? `Дані станом на ${fmt}. ` : ""}${q ? `На пристрої чекають відправки: ${q}. ` : ""}Записи силових і зміни плану збережуться тут і підуть на GitHub, щойно з'явиться зв'язок.`, true);
+  }
+  const note = text => { if (document.body) netBar(text, false); };
+  function goOffline() { if (offline) return; offline = true; if (document.body) showOffline(); }
+  async function goOnline() {
+    if (!offline && !navigator.onLine) return;
+    offline = false; netBar(null);
+    if (!window.WK) return;
+    const [lg, pl] = await Promise.all([WK.flushLogs(), WK.flushPlannedQueue()]);
+    if (lg?.ok && lg.sent) note(`Зв'язок є: відправлено записи силових (${lg.sent}).`);
+  }
+  addEventListener("offline", goOffline);
+  addEventListener("online", goOnline);
+  if ("serviceWorker" in navigator && location.protocol === "https:" || location.hostname === "localhost") {
+    navigator.serviceWorker?.register("sw.js", { scope: "./" }).catch(() => { });
+    navigator.serviceWorker?.addEventListener("message", e => { if (e.data?.type === "td-offline") { if (navigator.onLine) { if (!netEl || netEl.hidden) note("Слабкий зв'язок: частину даних показано зі збереженої на пристрої копії."); } else goOffline(); } });
+  }
+  // попросити браузер не стирати кеш і чергу записів (на iPhone сховище сайтів без цього можуть чистити)
+  try { navigator.storage?.persist?.(); } catch { }
+  ready.then(() => {
+    if (!navigator.onLine) return goOffline();
+    if (window.WK) { WK.flushPlannedQueue(); if (!/strength\.html/.test(location.pathname)) WK.flushLogs().then(r => { if (r?.ok && r.sent) note(`Відправлено записи силових, збережені без зв'язку (${r.sent}).`); }); }
+  }).catch(() => { });
+
   // свіжий експорт у Google Drive (раз на 12 год) — з будь-якої сторінки, не лише з Огляду
   ready.then(() => setTimeout(() => {
     if (!window.WK) return;
@@ -214,5 +259,5 @@ nav.tabs a.attn-warn::after,nav.tabs a.attn-bad::after{content:"";display:inline
     if (window.DX) return go();
     const s = document.createElement("script"); s.src = "datax.js?v=" + Date.now().toString().slice(0, 7); s.onload = go; document.head.append(s);
   }, 6000)).catch(() => { });
-  return { health, markNav, ready, load, decrypt, encrypt, unlock, newKeyring, newRecovery, hasRecovery, logout, keyMismatch };
+  return { note, health, markNav, ready, load, decrypt, encrypt, unlock, newKeyring, newRecovery, hasRecovery, logout, keyMismatch };
 })();

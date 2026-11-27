@@ -275,7 +275,7 @@ $("form").addEventListener("submit", async e => {
   $("bSave").disabled = true; msg("Зберігаю…");
   try {
     PD = await WK.savePlanned(data => { data.workouts = data.workouts.filter(x => x.id !== w.id); data.workouts.push(w); }, `Планер: ${w.date} ${w.title}`);
-    renderList(); reset(); msg("Збережено. Тренування вже в календарі й журналі.", "ok");
+    renderList(); reset(); msg(PD.queued ? "Збережено на пристрої: немає зв'язку з GitHub, відправлю автоматично." : "Збережено. Тренування вже в календарі й журналі.", "ok");
   } catch (err) { msg(errText(err), "err"); }
   finally { $("bSave").disabled = false; }
 });

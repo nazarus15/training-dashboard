@@ -205,16 +205,45 @@ window.WK = (() => {
     const j = await r.json();
     return { sha: j.sha, data: JSON.parse(b64dec(j.content || "") || "{}") };
   }
+  // ---------- без зв'язку: черга змін плану ----------
+  // Якщо GitHub недоступний, зміна плану (Планер, «+ Додати силове вручну», програма) застосовується до локальної копії,
+  // а різниця (додані / змінені / видалені тренування) стає в чергу td_planned_queue. Коли зв'язок з'явиться, черга
+  // накладається на свіжу версію з GitHub — так чужі зміни з інших пристроїв не затираються.
+  const LS_PQ = "td_planned_queue";
+  const isNetErr = e => !e?.status && (e instanceof TypeError || e?.name === "AbortError" || !navigator.onLine);
+  const wKey = w => w.id || `${w.date}|${w.sport}|${w.title || ""}`;
+  function planDiff(before, after) {
+    const ops = [], bw = new Map((before.workouts || []).map(w => [wKey(w), w])), aw = new Map((after.workouts || []).map(w => [wKey(w), w]));
+    for (const [k, w] of aw) if (!bw.has(k) || JSON.stringify(bw.get(k)) !== JSON.stringify(w)) ops.push({ op: "put", k, w });
+    for (const k of bw.keys()) if (!aw.has(k)) ops.push({ op: "del", k });
+    if (JSON.stringify(before.recurring || []) !== JSON.stringify(after.recurring || [])) ops.push({ op: "rec", v: after.recurring || [] });
+    for (const k of Object.keys(after)) if (!["workouts", "recurring", "updatedAt"].includes(k) && JSON.stringify(before[k]) !== JSON.stringify(after[k])) ops.push({ op: "key", k, v: after[k] });
+    return ops;
+  }
+  function applyOps(data, ops) {
+    data.workouts ||= []; data.recurring ||= [];
+    for (const o of ops) {
+      if (o.op === "put") { const i = data.workouts.findIndex(w => wKey(w) === o.k); if (i >= 0) data.workouts[i] = o.w; else data.workouts.push(o.w); }
+      else if (o.op === "del") data.workouts = data.workouts.filter(w => wKey(w) !== o.k);
+      else if (o.op === "rec") data.recurring = o.v;
+      else if (o.op === "key") data[o.k] = o.v;
+    }
+    data.workouts.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+    return data;
+  }
+  const plannedQueue = () => lsGet(LS_PQ, []) || [];
   async function loadPlanned() {
     let d = null;
     if (token()) { try { d = (await apiGet()).data; } catch { } }
     if (!d) { try { const r = await fetch(`${RAW}?t=${Date.now()}`, { cache: "no-store" }); if (r.ok) d = await r.json(); } catch { } }
+    const q = plannedQueue();
+    if (d && q.length) d = applyOps(d, q.flatMap(x => x.ops)); // ще не відправлені зміни видно одразу
     if (d) lsSet(LS_CACHE, d); else d = lsGet(LS_CACHE, { workouts: [], recurring: [] });
     d.workouts ||= []; d.recurring ||= [];
+    if (q.length && navigator.onLine) flushPlannedQueue();
     return d;
   }
-  async function savePlanned(mutate, message) {
-    if (!token()) { const e = new Error("no token"); e.status = 0; throw e; }
+  async function savePlannedOnline(mutate, message) {
     for (let attempt = 0; attempt < 3; attempt++) {
       const cur = await apiGet();
       const data = { workouts: [], recurring: [], ...cur.data };
@@ -227,6 +256,85 @@ window.WK = (() => {
       if (r.status !== 409 && r.status !== 422) throw await httpErr(r);
     }
     throw new Error("conflict");
+  }
+  let pqBusy = null;
+  function flushPlannedQueue() {
+    const q = plannedQueue();
+    if (!q.length || !token() || !navigator.onLine) return Promise.resolve(false);
+    return pqBusy ??= (async () => {
+      try {
+        await savePlannedOnline(d => applyOps(d, q.flatMap(x => x.ops)), q.length === 1 ? q[0].message + " (без зв'язку)" : `Планер: ${q.length} змін без зв'язку`);
+        // за час відправки могли додатися нові зміни — прибираємо лише відправлені
+        lsSet(LS_PQ, plannedQueue().slice(q.length));
+        window.AUTH?.note?.("Зміни плану, зроблені без зв'язку, відправлено на GitHub.");
+        return true;
+      } catch { return false; } finally { pqBusy = null; }
+    })();
+  }
+  async function savePlanned(mutate, message) {
+    if (!token()) { const e = new Error("no token"); e.status = 0; throw e; }
+    if (plannedQueue().length) await flushPlannedQueue();
+    try {
+      if (plannedQueue().length) throw new TypeError("queue"); // черга ще не пішла — нову зміну ставимо за нею, щоб зберегти порядок
+      return await savePlannedOnline(mutate, message);
+    } catch (e) {
+      if (!isNetErr(e)) throw e;
+      const before = lsGet(LS_CACHE, { workouts: [], recurring: [] });
+      const data = JSON.parse(JSON.stringify(before)); data.workouts ||= []; data.recurring ||= [];
+      mutate(data);
+      data.workouts.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+      data.updatedAt = new Date().toISOString();
+      const ops = planDiff(before, data);
+      if (ops.length) lsSet(LS_PQ, [...plannedQueue(), { at: data.updatedAt, message, ops }]);
+      lsSet(LS_CACHE, data);
+      window.AUTH?.note?.("Немає зв'язку з GitHub: зміну плану збережено на пристрої, відправлю автоматично.");
+      Object.defineProperty(data, "queued", { value: true, enumerable: false }); // для повідомлень сторінок; у файл не потрапляє
+      return data;
+    }
+  }
+
+  // ---------- записи силових: відправка з будь-якої сторінки ----------
+  // Підходи пишуться в td_pending_logs (strength.js) одразу, навіть без інтернету. Відправка — тут, щоб черга
+  // пішла, щойно з'явиться зв'язок на будь-якій сторінці. Для кожного тренування перемагає новіша версія
+  // (updatedAt): запис, змінений на іншому пристрої пізніше, не затирається.
+  const LOGS_API = `https://api.github.com/repos/${REPO}/contents/logs.json`;
+  let logsBusy = null;
+  function flushLogs(message) {
+    const snap = lsGet("td_pending_logs", {}) || {};
+    if (!Object.keys(snap).length) return Promise.resolve({ ok: true, sent: 0 });
+    if (!token()) return Promise.resolve({ ok: false, kind: "local" });
+    if (!navigator.onLine) return Promise.resolve({ ok: false, kind: "offline" });
+    return logsBusy ??= (async () => {
+      const H = { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json" };
+      try {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const g = await fetch(`${LOGS_API}?ref=${BRANCH}&t=${Date.now()}`, { headers: H, cache: "no-store" });
+          if (g.headers.get("X-TD-Offline")) return { ok: false, kind: "offline" };
+          if (g.status === 401) return { ok: false, kind: "error", msg: "Токен протермінований або невірний. Підключи новий." };
+          let sha = null, remote = { logs: {} };
+          if (g.ok) { const j = await g.json(); sha = j.sha; remote = (await AUTH.decrypt(JSON.parse(b64dec(j.content || "") || "{}"))) || { logs: {} }; }
+          else if (g.status !== 404) throw await httpErr(g);
+          const merged = { ...(remote.logs || {}) };
+          for (const [sid, L] of Object.entries(snap)) { const r = merged[sid]; if (!(r?.updatedAt && L?.updatedAt && r.updatedAt > L.updatedAt)) merged[sid] = L; }
+          const body = { logs: merged, updatedAt: new Date().toISOString() };
+          const r = await fetch(LOGS_API, { method: "PUT", headers: { ...H, "Content-Type": "application/json" },
+            body: JSON.stringify({ message: message || `Журнал: ${Object.keys(snap).length} ${Object.keys(snap).length === 1 ? "запис" : "записи"}`, content: b64enc(JSON.stringify(await AUTH.encrypt(body))), branch: BRANCH, ...(sha ? { sha } : {}) }) });
+          if (r.ok) {
+            const now = lsGet("td_pending_logs", {}) || {};
+            for (const sid of Object.keys(snap)) if (JSON.stringify(now[sid]) === JSON.stringify(snap[sid])) delete now[sid];
+            lsSet("td_pending_logs", now); lsSet("td_logs_cache", body);
+            const d = new Date(); lsSet("td_last_sync", `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);
+            lsSet("td_sync_state", { kind: "ok", msg: "" });
+            return { ok: true, sent: Object.keys(snap).length, body };
+          }
+          if (r.status === 401) return { ok: false, kind: "error", msg: "Токен протермінований або невірний. Підключи новий." };
+          if (r.status === 403) return { ok: false, kind: "error", msg: "Токен лише читає. На GitHub відредагуй його: Repository permissions → Contents: Read and write." };
+          if (r.status !== 409 && r.status !== 422) throw await httpErr(r);
+        }
+        return { ok: false, kind: "offline" };
+      } catch (e) { return { ok: false, kind: isNetErr(e) ? "offline" : "error", msg: isNetErr(e) ? "" : ghErrText(e) }; }
+      finally { logsBusy = null; }
+    })();
   }
 
   async function httpErr(r) { let m = ""; try { m = (await r.json()).message || ""; } catch { } const e = new Error(m || "http " + r.status); e.status = r.status; e.gh = m; return e; }
@@ -454,5 +562,5 @@ window.WK = (() => {
     if (!token()) return false;
     try { const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/update.yml/dispatches`, { method: "POST", headers: { Authorization: `Bearer ${token()}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main", ...(auto ? { inputs: { auto: "true" } } : {}) }) }); return r.ok; } catch { return false; }
   }
-  return { actName, devName, bikeSteps, bikeStepsHtml, gcalCache, gcalCfg, gcalPush, gcalFlush, gcalSyncJournal, strengthOverride, triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, doneSession, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
+  return { flushLogs, flushPlannedQueue, plannedQueue, actName, devName, bikeSteps, bikeStepsHtml, gcalCache, gcalCfg, gcalPush, gcalFlush, gcalSyncJournal, strengthOverride, triggerUpdate, RECORDS, actEffects, TILES, ghErrText, checkWrite, ghGet, ghPut, loadSettings, EFFECTS, FX, SPORT, rideEffects, strengthEffects, doneSession, barsHtml, legendHtml, parse, session, previewHtml, loadPlanned, savePlanned, items, subtype, fmtMin, today, addDays, monday, esc, token, topReps };
 })();
