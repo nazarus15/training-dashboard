@@ -181,6 +181,13 @@ td .nm{font-family:var(--f-body)}
 .btn-link{border:none;cursor:pointer;font-family:inherit}
 @media (max-width:640px){.jtbl{display:none}.jcards{display:flex}.det .kv{grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}.det .kv dd{text-align:right;margin:0}.det .kv dt{font-size:13px}}
 
+/* вага */
+.wt-form{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;font-size:12px;color:var(--muted)}
+.wt-form label{display:flex;flex-direction:column;gap:3px}
+.wt-form input{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);width:110px}
+.wt-form input[type=date]{width:150px}
+.wt-form button{background:var(--ink);color:var(--panel);border-radius:6px;padding:8px 14px;font-size:13px}
+
 /* журнал БЖЖ */
 #bjjBody{gap:12px}
 .bj-ask{margin:0;padding:8px 10px;border-radius:6px;background:color-mix(in srgb,var(--warn) 10%,transparent);font-size:14px}
@@ -398,6 +405,15 @@ footer p{margin:0;max-width:90ch}
         <p class="note" id="ftpNote"></p>
       </div>
       <div data-blk="c:перевірка-ftp" data-name="Перевірка FTP" class="card" id="ftpCheck"></div>
+      <div data-blk="c:вага-і-вт-кг" data-name="Вага і Вт/кг" class="card full">
+        <h3>Вага і Вт/кг</h3>
+        <div class="per" id="wtPer" role="group" aria-label="Період"></div>
+        <form id="wtForm" class="wt-form" autocomplete="off"><label>Вага, кг<input id="wtKg" inputmode="decimal" placeholder="73,5" aria-label="Вага, кг"></label><label>Дата<input id="wtDate" type="date"></label><button class="btn-link" type="submit">Записати</button><span class="muted" id="wtMsg" role="status"></span></form>
+        <div class="chart short"><canvas id="wtChart" aria-label="Графік ваги і Вт/кг"></canvas></div>
+        <div id="wtSum"></div>
+        <p class="note" id="wtNote"></p>
+        <div id="wtBody" hidden></div>
+      </div>
       <div data-blk="c:розподіл-часу-за-зонами-пульсу-6-тижнів" data-name="Розподіл часу за зонами пульсу, 6 тижнів" class="card">
         <h3>Розподіл часу за зонами пульсу, 6 тижнів</h3>
         <div class="legend" id="lgHrz"></div>
@@ -440,6 +456,7 @@ footer p{margin:0;max-width:90ch}
 <script src="health-watch.js?v=1"></script>
 <script src="ftp-check.js?v=1"></script>
 <script src="bjj.js?v=1"></script>
+<script src="weight.js?v=1"></script>
 <script src="datax.js?v=1795703634"></script>
 </body>
 </html>
