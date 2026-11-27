@@ -108,7 +108,7 @@ a.ci:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 
 /* шапка сайту: однакова на всіх сторінках, незалежно від ширини вмісту */
 html{scrollbar-gutter:stable}
-header.site{max-width:1240px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-left,0px)) 0 max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;box-sizing:border-box}
+header.site{max-width:var(--page-w,1240px);margin:0 auto;padding:14px max(16px,env(safe-area-inset-left,0px)) 0 max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;box-sizing:border-box}
 header.site .brand{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:700;font-size:18px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink);text-decoration:none;white-space:nowrap}
 header.site nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0}
 @media (max-width:700px){header.site{padding-top:10px} header.site nav.tabs{width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px} header.site nav.tabs::-webkit-scrollbar{display:none} header.site nav.tabs a{flex:none}}
