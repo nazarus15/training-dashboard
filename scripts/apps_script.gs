@@ -61,7 +61,6 @@ function doPost(e) {
   try { body = JSON.parse(e.postData.contents); } catch (err) { return out_({ ok: false, error: 'json' }); }
   if (!body || body.secret !== P().getProperty('SECRET')) return out_({ ok: false, error: 'auth' });
   if (body.source === 'export') return out_(saveExport_(body.files || []));
-  if (body.source === 'ghsetup') return out_(ghSetup_(body.token));
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
@@ -126,22 +125,9 @@ function show() {
 // Розклад GitHub Actions запізнюється на години і часто пропускає запуски. Тригери Apps Script точні (±15 хв),
 // тому вони запускають workflow «Оновлення даних» з auto=true: gate.py сам вирішує, чи потрібен збір у цьому слоті.
 // Налаштування один раз:
-//   1) У редакторі запусти authorize() і дозволь доступ (тригери й запити до GitHub).
-//   2) На сайті: Налаштування → «Точний запуск оновлення» → «Підключити». Сайт передає сюди свій токен GitHub
-//      (той, що вже має право Actions для кнопки «Оновити дані зараз»), а скрипт ставить тригери і пробний запуск.
-//      Або вручну: Script properties → GH_TOKEN і запустити installUpdateTriggers().
-function authorize() {
-  ScriptApp.getProjectTriggers();
-  UrlFetchApp.fetch('https://api.github.com/zen', { muteHttpExceptions: true });
-  Logger.log('Доступ надано. Тепер на сайті: Налаштування → «Точний запуск оновлення» → «Підключити».');
-}
-// з сайту (doPost source "ghsetup", під секретом): зберегти токен, поставити тригери, пробний запуск
-function ghSetup_(token) {
-  if (!token || !/^(github_pat_|ghp_)/.test(token)) return { ok: false, error: 'token' };
-  P().setProperty('GH_TOKEN', token);
-  try { installUpdateTriggers(); } catch (err) { return { ok: false, error: 'triggers: ' + err.message }; }
-  return { ok: true, triggers: ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'ghUpdate').length, ghLast: P().getProperty('GH_LAST') };
-}
+//   1) Властивості проєкту (Project Settings → Script properties) → GH_TOKEN = fine-grained токен GitHub
+//      (лише репозиторій training-dashboard, Repository permissions → Actions: Read and write).
+//   2) Запусти installUpdateTriggers() у редакторі й дозволь доступ.
 const GH_REPO = 'nazarus15/training-dashboard';
 function ghUpdate() {
   const tok = P().getProperty('GH_TOKEN');
