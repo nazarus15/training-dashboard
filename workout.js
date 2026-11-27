@@ -524,24 +524,12 @@ window.WK = (() => {
     [/^((morning|afternoon|evening|night)\s+)?(cycling|ride|virtual ride|indoor cycling)$/i, "Заїзд"], [/^((morning|afternoon|evening|night)\s+)?(hiking|hike)$/i, "Похід"],
     [/^stand up paddleboarding$/i, "SUP"], [/^((morning|afternoon|evening|night)\s+)?(walking|walk)$/i, "Ходьба"], [/^((morning|afternoon|evening|night)\s+)?(running|run)$/i, "Біг"],
     [/^timed activity$/i, "Активність"], [/^other$/i, ""], [/^workout$/i, ""]];
-  function actName(a, sportName) {
-    let n = String(a?.name || "").trim();
-    // «Horodotskyi raion Cycling» → «Заїзд · Horodotskyi raion»
-    const loc = n.match(/^(.+?\s(?:raion|district|oblast|city))\s+(.+)$/i);
-    const place = loc ? loc[1] : "";
-    if (loc) n = loc[2];
-    const hit = ACT_UA.find(([rx]) => rx.test(n));
-    if (hit) n = hit[1];
-    if (!n) n = sportName || "Тренування";
-    return place ? `${n} · ${place}` : n;
-  }
+  // відкат нормалізації назв: показуємо назви як є (функції лишаються, бо ними користуються журнал і календар)
+  function actName(a, sportName) { return String(a?.name || "").trim() || sportName || "Тренування"; }
   const DEV = [[/cirqa/i, "Garmin CIRQA"], [/^connect$/i, "Вручну, Garmin Connect"], [/elemnt\s*roam/i, "Wahoo ELEMNT ROAM"], [/elemnt\s*bolt/i, "Wahoo ELEMNT BOLT"],
     [/kickr/i, "Wahoo KICKR"], [/^edge[ _]?(\d+)/i, m => "Garmin Edge " + m[1]], [/^garmin$/i, "Garmin"]];
-  function devName(d) {
-    const s = String(d || "").replace(/WAHOO_FITNESS\s*|^GARMIN\s+|^Garmin\s+/g, "").trim(); if (!s) return "";
-    for (const [rx, v] of DEV) { const m = s.match(rx); if (m) return typeof v === "function" ? v(m) : v; }
-    return s.replace(/_/g, " ");
-  }
+  function devName(d) { return String(d || "").replace(/WAHOO_FITNESS |Garmin |GARMIN /g, ""); }
+
 
   const TILES = [["ready", "Готовність"], ["tsb", "Форма (TSB)"], ["ctl", "Фітнес (CTL)"], ["hrv", "HRV минулої ночі"], ["rhr", "Пульс спокою"], ["sleep", "Сон"], ["bb", "Body Battery"], ["ftp", "FTP"]];
   // каталог рекордів: [id, вид, назва] — для сторінки «Рекорди» і перемикачів у Налаштуваннях

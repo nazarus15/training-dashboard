@@ -233,7 +233,7 @@ def build_events(acts=None, ftp=None, planned=None):
     for i, a in enumerate(A):  # виконане поза планом
         if i in used or a["_sp"] not in ("bike", "bjj", "strength", "run"):
             continue
-        nm = act_name(a.get("name"))
+        nm = a.get("name")
         add(f"act-{a.get('id') or a['date']}", a["_st"].date(), a["_sp"], f"{SPORT[a['_sp']]}" + (f" · {nm}" if nm and a["_sp"] != "bjj" else ""),
             "Поза планом\n\n" + (f"Додати програму тренування: {SITE}strength.html?add={a['_st']:%Y-%m-%d}&st={a['_st']:%H:%M}&en={(a['_st'] + timedelta(seconds=a.get('moving') or 0)):%H:%M}" if a["_sp"] == "strength" else SITE + "calendar.html"), done=a)
     return ev
