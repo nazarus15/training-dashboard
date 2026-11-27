@@ -70,6 +70,7 @@ h3.cat{font-size:17px;margin:6px 0 -4px}
   <p class="intro">Рахується автоматично з тренувань intervals.icu (2 роки), кривої потужності за весь час і силового журналу. «Новий» — рекорд за останні 14 днів. Що показувати, обирається в Налаштуваннях.</p>
   <div id="out"><div class="notice">Рахую…</div></div>
 </div>
+<script src="exercises.js?v=1795703634"></script>
 <script src="workout.js?v=1795703634"></script>
 <script>
 "use strict";
@@ -146,17 +147,8 @@ function spark(vals) {
   const pts = vals.map((v, i) => `${(i / (vals.length - 1) * (w - 4) + 2).toFixed(1)},${(h - 2 - (v - mn) / k * (h - 4)).toFixed(1)}`).join(" ");
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 }
-// категорії вправ за назвою (рух), порядок — порядок таблиць
-const CATS = [
-  ["core", "Кор і стабільність", /планк|турецьк|прес|підйом.{0,4}ніг|копенгаген|паллоф|pallof|dead ?bug|hollow|скручув|фермер/i],
-  ["power", "Вибухові", /мах|ривок|поштовх|стриб|swing|jump|кидок/i],
-  ["legs", "Ноги", /присід|випад|болгар|степ|squat|lunge|ног/i],
-  ["hinge", "Задня ланка", /румунськ|станов|deadlift|гіперекст|міст|good ?morning|нахил.{0,6}зі штанг/i],
-  ["push", "Жими", /жим|віджим|бруси|press|push|dips/i],
-  ["pull", "Тяги і підтягування", /підтяг|тяга|row|pull/i],
-  ["other", "Інше", /./],
-];
-const catOf = name => CATS.find(c => c[2].test(name))[0];
+// категорії вправ — зі словника (exercises.js); порядок — порядок таблиць
+const catOf = (cid, name) => (EX.BY[cid] || EX.canon(name)).cat;
 function strengthCards(A, PD, JL, BW) {
   const c = [], logs = JL?.logs || {};
   const sess = (PD?.workouts || []).filter(w => w.sport === "strength").map(w => WK.session(w)).sort((a, b) => a.date < b.date ? -1 : 1);
@@ -169,7 +161,8 @@ function strengthCards(A, PD, JL, BW) {
       const done = (L.sets?.[ex.key] || []).filter(x => x.done && +x.r > 0);
       if (!done.length) continue;
       sets += done.length;
-      const p = per[ex.key] ??= { name: ex.name, type: ex.type, hist: [] };
+      // одна вправа = один канонічний рух зі словника: різні написання зливаються в один рядок
+      const p = per[ex.cid || ex.key] ??= { name: ex.canonName || ex.name, cid: ex.cid, type: ex.type, hist: [] };
       if (ex.type === "time") { p.hist.push({ date: s.date, secs: Math.max(...done.map(x => +x.r)) }); continue; }
       // вага в підході: штанга/гиря — вказана вага; вага тіла — власна вага + обтяження
       const load = x => ex.type === "bw" ? (BW || 0) + (+x.w || 0) : (+x.w || 0);
@@ -194,7 +187,7 @@ function strengthCards(A, PD, JL, BW) {
       <td class="num" data-l="Останнє">${wTxt(p, last.setW, last.setAdd)} × ${last.setR}<br><span class="muted" style="font-size:12px">${fd(last.date)}</span></td></tr>`;
   };
   const rows = Object.values(per);
-  const byCat = CATS.map(([id, name]) => [name, rows.filter(p => catOf(p.name) === id).sort((a, b) => a.name.localeCompare(b.name, "uk"))]).filter(x => x[1].length);
+  const byCat = EX.CATS.map(([id, name]) => [name, rows.filter(p => catOf(p.cid, p.name) === id).sort((a, b) => a.name.localeCompare(b.name, "uk"))]).filter(x => x[1].length);
   const tbl = rows.length ? byCat.map(([name, ps]) => `<h3 class="cat">${name}</h3><div class="st"><table><thead><tr><th>Вправа</th><th>Найбільша вага за раз</th><th>Найбільший підхід (вага × повтори)</th><th>Динаміка підходу</th><th>Останнє</th></tr></thead><tbody>${ps.map(row).join("")}</tbody></table></div>`).join("")
     + `<p class="intro" style="font-size:12px">Вага за раз — найважчий виконаний підхід. Найбільший підхід — максимум «вага × повтори» в одному підході. Для вправ з вагою тіла рахується власна вага${BW ? ` (${kg(BW)} кг)` : ""} плюс обтяження.</p>`
     : `<div class="rec empty"><span class="lbl">Прогрес у вправах</span><span class="val">ще немає</span><span class="sub">Запиши підходи в Силовому журналі — тут з'являться рекорди ваги за раз і найбільшого підходу по кожній вправі, згруповані за рухами.</span></div>`;

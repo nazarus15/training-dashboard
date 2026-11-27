@@ -69,6 +69,8 @@ window.WK = (() => {
   const RX_POW = /стриб|мах|swing|ривок|поштовх|вибух|jump|плиометр|кидок/i;
   function exEffect(ex) {
     for (const t of ex.tags || []) for (const [rx, id] of TAGS) if (rx.test(t)) return id;
+    const d = window.EX && ex.cid ? EX.BY[ex.cid] : null;
+    if (d?.fx) return d.fx;
     if (RX_CORE.test(ex.name)) return "core";
     if (RX_POW.test(ex.name)) return "pow";
     if (ex.type === "time" || /max|макс/i.test(ex.reps)) return "send";
@@ -127,6 +129,8 @@ window.WK = (() => {
       : /підтяг|віджим|бруси|dips|pull.?up|push.?up/i.test(name) ? "bw" : /гир/i.test(name) ? "kb" : "weight";
     if (ex.load && /^(штанга|гиря|гирі|вага тіла|тіло|bw|гантелі)$/i.test(ex.load)) delete ex.load;
     for (const c of com.map(x => x.trim()).filter(Boolean)) { if (/^перший раз/i.test(c)) ex.firstTime = c; else ex.cue = ex.cue ? ex.cue + " " + c : c; }
+    // словник вправ (exercises.js): канонічний рух — для «минулого разу», рекордів і м'язів; кількість снарядів з «@2x24кг»
+    if (window.EX) { const c = EX.canon(name); ex.cid = c.id; ex.canonName = c.name; ex.known = c.known; ex.impl = EX.implements(ex.load); }
     return ex;
   }
 

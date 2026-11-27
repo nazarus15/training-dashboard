@@ -33,6 +33,12 @@ textarea{font-family:var(--f-data);font-size:14px;line-height:1.5;min-height:300
 .msg{font-size:13px}
 .msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
 .warn-list{margin:0;padding-left:18px;font-size:13px;color:var(--warn)}
+.dict-list{margin:0;padding-left:18px;font-size:13px;color:var(--muted)}
+.dict-list li.unk{color:var(--warn)}
+#exDictList{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+#exDictList .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+#exDictList button{font:inherit;font-size:13px;padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+#exDictList button:hover{border-color:var(--accent)}
 .prev h3{font-size:22px;margin-bottom:8px}
 .form h3{font-size:20px;margin:0}
 .help{font-size:13px;color:var(--muted)}
@@ -108,7 +114,12 @@ A
 Коло 3x відп 1хв
 - Махи гирею 15 @24кг
 - Планка 40с</pre>
-        <p>Назви пиши однаково в різних тренуваннях — за назвою журнал показує «минулого разу» і прогрес.</p>
+        <p>Назви вправ зводяться до словника сайту: «Бічна планка» і «Бокова планка» — одна вправа з однією історією. Якщо вправи в словнику немає, перегляд підкаже.</p>
+      </details>
+      <details class="help" id="exDict">
+        <summary>Словник вправ</summary>
+        <p>Канонічні назви. Натисни, щоб вставити в текст на місце курсора.</p>
+        <div id="exDictList"></div>
       </details>
     </form>
     <div class="card prev" id="prev"></div>
@@ -145,6 +156,7 @@ A
   </section>
 </div>
 
+<script src="exercises.js?v=1795703634"></script>
 <script src="workout.js?v=1795703634"></script>
 <script src="export.js?v=1795703634"></script>
 <script>
@@ -168,7 +180,7 @@ B
 
 Коло 2x відп 1хв
 - Махи гирею 15 @24кг
-- Бічна планка 30с/бік`;
+- Бокова планка 30с/бік`;
 const MON = ["січ", "лют", "бер", "квіт", "трав", "черв", "лип", "серп", "вер", "жовт", "лист", "груд"], DOW = ["нд", "пн", "вт", "ср", "чт", "пт", "сб"];
 let PD = { workouts: [], recurring: [] }, editing = null, delArmed = false;
 
@@ -182,8 +194,32 @@ function renderPreview() {
   if (!strength) { $("prev").innerHTML = `<h3>${esc(d.title || WK.SPORT[d.sport][0])}</h3><p class="muted">${esc(WK.SPORT[d.sport][0])}${d.mins ? " · " + WK.fmtMin(d.mins) : ""}${d.time ? " · " + esc(d.time) : ""}</p>${d.text ? `<p style="white-space:pre-wrap">${esc(d.text)}</p>` : ""}`; return; }
   if (!d.text.trim()) { $("prev").innerHTML = `<h3>Перегляд</h3><p class="muted">Тут з'явиться тренування таким, як його покаже журнал. Почни писати або натисни «Шаблон».</p>`; return; }
   const s = WK.parse(d.text); if (d.mins) s.mins = d.mins;
-  $("prev").innerHTML = `<h3>${esc(d.title || s.title || "Без назви")}</h3>${s.warnings.length ? `<ul class="warn-list">${s.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}${s.exercises.length ? WK.previewHtml(s) : `<p class="muted">Поки жодної вправи. Формат: <code>- Назва 4x6</code>.</p>`}`;
+  $("prev").innerHTML = `<h3>${esc(d.title || s.title || "Без назви")}</h3>${s.warnings.length ? `<ul class="warn-list">${s.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}${dictNotes(s)}${s.exercises.length ? WK.previewHtml(s) : `<p class="muted">Поки жодної вправи. Формат: <code>- Назва 4x6</code>.</p>`}`;
 }
+// підказки словника вправ: синонім (історія спільна з канонічною назвою) або вправа поза словником (історія окремо)
+function dictNotes(s) {
+  if (!window.EX) return "";
+  const n = x => x.toLowerCase().replace(/\s+/g, " ").trim(), seen = new Set(), out = [];
+  for (const ex of s.exercises) {
+    if (seen.has(ex.name)) continue; seen.add(ex.name);
+    if (!ex.known) out.push(`<li class="unk">«${esc(ex.name)}» немає в словнику: історія й рекорди рахуватимуться окремо. Перевір назву або обери зі «Словника вправ».</li>`);
+    else if (n(ex.name) !== n(ex.canonName)) out.push(`<li>«${esc(ex.name)}» = «${esc(ex.canonName)}» — спільна історія і рекорди.</li>`);
+  }
+  return out.length ? `<ul class="dict-list">${out.join("")}</ul>` : "";
+}
+function renderDict() {
+  if (!window.EX) return;
+  $("exDictList").innerHTML = EX.CATS.map(([id, name]) => { const xs = EX.LIST.filter(e => e.cat === id); return xs.length ? `<div class="dg"><div class="eyebrow">${esc(name)}</div><div class="chips">${xs.map(e => `<button type="button" data-exname="${esc(e.name)}" title="М'язи: ${esc([...e.m[0], ...e.m[1]].map(k => EX.MUSCLES[k]).join(", "))}">${esc(e.name)}</button>`).join("")}</div></div>` : ""; }).join("");
+  $("exDictList").addEventListener("click", e => {
+    const b = e.target.closest("[data-exname]"); if (!b) return;
+    const t = $("fText"), a = t.selectionStart ?? t.value.length, z = t.selectionEnd ?? a;
+    const lineStart = t.value.lastIndexOf("\n", a - 1) + 1, pre = t.value.slice(lineStart, a).trim() ? "" : "- ";
+    const ins = pre + b.dataset.exname + " ";
+    t.value = t.value.slice(0, a) + ins + t.value.slice(z); t.focus(); t.selectionStart = t.selectionEnd = a + ins.length;
+    t.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+renderDict();
 function fill(w, copy, quiet) {
   editing = copy ? null : w;
   $("fDate").value = copy ? "" : w.date; $("fTime").value = w.time || ""; $("fSport").value = w.sport || "strength";
