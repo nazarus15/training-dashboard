@@ -33,9 +33,8 @@
 
 Один раз:
 1. Скопіюй `scripts/apps_script.gs` у проєкт Apps Script і збережи. **Deploy → Manage deployments → Edit (олівець) → Version: New version → Deploy** — адреса веб-застосунку не зміниться.
-2. GitHub → Settings → Developer settings → Fine-grained tokens → новий токен: лише репозиторій `training-dashboard`, **Actions: Read and write**.
-3. Apps Script → Project Settings → Script properties → `GH_TOKEN` = цей токен.
-4. У редакторі вибери функцію `installUpdateTriggers` → Run → дозволь доступ. У журналі виконання має бути `GitHub: 204`.
+2. У редакторі вибери функцію `authorize` → Run → дозволь доступ.
+3. На сайті: **Налаштування → Google Calendar → Точний запуск оновлення → Підключити**. Сайт передає скрипту свій токен GitHub (з правом Actions), скрипт ставить тригери і робить пробний запуск. Стан видно там само.
 
 ## Коли Garmin показує помилку
 

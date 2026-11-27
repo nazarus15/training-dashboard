@@ -50,6 +50,9 @@ h3.sub{font-size:17px;margin:4px 0 0}
 .tbl th{font-family:var(--f-data);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .note{font-size:12px;color:var(--muted);margin:0}
 .gl{margin:0;padding-left:18px;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.ghrun{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.ghrun h3{font-size:16px;margin:0}
+.ghrun p{margin:0;font-size:14px}
 .histd{display:flex;gap:3px;flex-wrap:wrap} .histd i{width:8px;height:16px;border-radius:2px;display:block}
 .ovg{border-top:1px solid var(--line);padding:10px 0}
 .ovg:first-child{border-top:none}
@@ -106,6 +109,12 @@ h3.sub{font-size:17px;margin:4px 0 0}
       <label class="f">Секрет<input id="gcalSecret" type="password" placeholder="з журналу виконання setup()"></label>
       <div class="acts" style="grid-column:1/-1"><button class="btn" type="submit" id="gcalSave">Зберегти</button><button class="btn ghost" type="button" id="gcalSync">Надіслати силові зараз</button><span class="msg" id="gcalMsg" role="status"></span></div>
     </form>
+    <div class="ghrun">
+      <h3>Точний запуск оновлення</h3>
+      <p>Розклад GitHub запізнюється на години, тому оновлення о 23:05, 10:05 і 12:05 запускає твій скрипт Google. «Підключити» передає йому токен GitHub з цього пристрою (потрібне право Actions — те саме, що для «Оновити дані зараз»).</p>
+      <p id="ghrunState" class="muted">Перевіряю…</p>
+      <div class="acts"><button class="btn" type="button" id="ghrunBtn">Підключити</button><span class="msg" id="ghrunMsg" role="status"></span></div>
+    </div>
     <details class="howto"><summary>Публічний календар-підписка (лише план)</summary>
       <p style="margin-top:8px">Старий варіант без виконаних тренувань: <span class="num">https://nazarus15.github.io/training-dashboard/data/calendar.ics</span>. Якщо підключив приватний календар — цю підписку в Google Calendar краще видалити, щоб події не дублювались.</p></details>
   </section>
@@ -382,6 +391,30 @@ $("gcalForm").onsubmit = async e => {
   finally { $("gcalSave").disabled = false; }
 };
 $("gcalSync").onclick = async () => { msg("gcalMsg", "Надсилаю…"); const n = await WK.gcalSyncJournal(); msg("gcalMsg", n === false ? "Спершу збережи адресу і секрет." : `Надіслано силових: ${n}.`, n === false ? "err" : "ok"); };
+// ---------- точний запуск оновлення (тригери Apps Script) ----------
+async function ghrunState() {
+  const url = SETP.gcalUrl || "https://script.google.com/macros/s/AKfycbz7sidAahcGzuyJ-vcuExzQ29349CX3tzsGy3QjBSRYC6Z8VF2IHOWTAoLpNLFlK-S6DA/exec";
+  try {
+    const j = await (await fetch(url, { cache: "no-store" })).json();
+    const n = j.updateTriggers;
+    if (n == null) $("ghrunState").innerHTML = `<span class="pill today">Скрипт старої версії</span> Онови код у Apps Script (scripts/apps_script.gs) і запусти authorize().`;
+    else if (n > 0) $("ghrunState").innerHTML = `<span class="pill done">Працює</span> Тригерів: ${n}. Останній запуск зі скрипта: ${j.ghLast ? String(j.ghLast).replace("T", " ").slice(0, 16) + " UTC · код " + String(j.ghLast).split("·")[1]?.trim() : "ще не було"}.`;
+    else $("ghrunState").innerHTML = `<span class="pill today">Не підключено</span>`;
+    return n;
+  } catch { $("ghrunState").textContent = "Не вдалося перевірити скрипт (немає зв'язку або адреси)."; return null; }
+}
+$("ghrunBtn").onclick = async () => {
+  if (!SETP.gcalUrl || !SETP.gcalSecret) { msg("ghrunMsg", "Спершу збережи адресу і секрет скрипта вище.", "err"); return; }
+  if (!WK.token()) { msg("ghrunMsg", "На цьому пристрої немає токена GitHub — підключи його в «Збереження на GitHub».", "err"); return; }
+  $("ghrunBtn").disabled = true; msg("ghrunMsg", "Підключаю…");
+  try {
+    const r = await fetch(SETP.gcalUrl, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ secret: SETP.gcalSecret, source: "ghsetup", token: WK.token() }) });
+    const j = await r.json().catch(() => null);
+    if (j && !j.ok) msg("ghrunMsg", j.error === "auth" ? "Скрипт не прийняв секрет." : j.error === "token" ? "Токен на цьому пристрої не схожий на токен GitHub." : String(j.error).startsWith("triggers") ? "Скрипт не має доступу до тригерів: запусти authorize() у редакторі Apps Script." : "Помилка: " + j.error, "err");
+    else { const n = await ghrunState(); msg("ghrunMsg", n > 0 ? "Готово: тригери стоять, пробний запуск надіслано." : "Надіслано, перевір стан за хвилину.", "ok"); }
+  } catch (err) { msg("ghrunMsg", errText(err), "err"); }
+  finally { $("ghrunBtn").disabled = false; }
+};
 const privOf = s => ({ aiContext: s.aiContext || "", gcalUrl: s.gcalUrl || "", gcalSecret: s.gcalSecret || "" });
 $("logout").onclick = async () => { await AUTH.logout(); location.reload(); };
 
@@ -410,7 +443,7 @@ $("metForm").onsubmit = async e => {
   renderGh(); verifyGh(); renderRec(); renderHealth();
   try { if (sessionStorage.getItem("forma-recovered")) { $("recBanner").hidden = false; $("pwForm").scrollIntoView(); } } catch { }
   const [S, P] = await Promise.all([WK.loadSettings(), WK.loadPlanned()]); PD = P;
-  SETP = { aiContext: S.aiContext, gcalUrl: S.gcalUrl, gcalSecret: S.gcalSecret }; renderGcal(SETP);
+  SETP = { aiContext: S.aiContext, gcalUrl: S.gcalUrl, gcalSecret: S.gcalSecret }; renderGcal(SETP); ghrunState();
   renderOv(S); renderRecs(S);
   $("ftpFloor").value = S.ftpFloor; $("aiCtx").value = S.aiContext || WKX.DEFAULT_CONTEXT;
   const r = PD.recurring.find(x => x.sport === "bjj") || { days: [], mins: 90 };
