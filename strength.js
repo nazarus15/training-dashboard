@@ -113,18 +113,11 @@ document.addEventListener("click", e => {
 // ---------- logs model ----------
 function topReps(r) { const m = String(r).match(/(\d+)\s*[–-]\s*(\d+)/); return m ? +m[2] : parseInt(r, 10) || 0; }
 function lowReps(r) { return parseInt(String(r), 10) || ""; }
-// останній виконаний результат тієї самої вправи до дати: за канонічним рухом зі словника (exercises.js),
-// тож «Бічна планка» і «Бокова планка» — одна історія; без словника — за ключем назви, як раніше
-function lastResult(key, beforeDate, cid) {
-  const same = e => cid ? e.cid === cid : e.key === key;
-  let best = null;
-  for (const s of Object.values(sessions)) {
-    if (s.date >= beforeDate || (best && s.date <= best.s.date)) continue;
-    const e = (s.exercises || []).find(x => same(x) && logs[s.id]?.sets?.[x.key]?.some(y => y.done));
-    if (e) best = { s, e };
-  }
-  if (!best) return null;
-  return { date: best.s.date, sets: logs[best.s.id].sets[best.e.key].filter(x => x.done), target: best.e.reps, type: best.e.type };
+function lastResult(key, beforeDate) {
+  const past = Object.values(sessions).filter(s => s.date < beforeDate && logs[s.id]?.sets?.[key]?.some(x => x.done)).sort((a, b) => a.date < b.date ? 1 : -1);
+  if (!past.length) return null;
+  const s = past[0]; const ex = (s.exercises || []).find(e => e.key === key);
+  return { date: s.date, sets: logs[s.id].sets[key].filter(x => x.done), target: ex?.reps, type: ex?.type };
 }
 function describe(prev, type) {
   const unit = type === "time" ? " с" : "";
@@ -140,7 +133,7 @@ function progressHint(ex, prev) {
 function emptyLog(s) {
   const sets = {};
   for (const ex of s.exercises || []) {
-    const prev = lastResult(ex.key, s.date, ex.cid);
+    const prev = lastResult(ex.key, s.date);
     sets[ex.key] = Array.from({ length: ex.sets }, (_, i) => ({ w: prev?.sets?.[i]?.w ?? prev?.sets?.at(-1)?.w ?? "", r: lowReps(ex.reps), done: false }));
   }
   return { sets, rpe: null, note: "", status: null };
@@ -218,7 +211,7 @@ function renderSession() {
     html += `<div class="block"><div class="eyebrow">${exs[0].block ? esc(exs[0].block) : exs.length > 1 ? "Суперсет" : "Блок"}${exs[0].rest ? ` · відпочинок ${exs[0].rest} с${exs.length > 1 ? " після пари" : ""}` : ""}</div>`;
     if (exs.length > 1) { html += supersetHtml(s, L, g, exs) + `</div>`; continue; }
     for (const ex of exs) {
-      const prev = lastResult(ex.key, s.date, ex.cid), hint = progressHint(ex, prev);
+      const prev = lastResult(ex.key, s.date), hint = progressHint(ex, prev);
       const unit = UNIT[ex.type] ?? "кг", ru = REPS_UNIT[ex.type] || "повт";
       const id = `${s.id}-${ex.key}`;
       html += `<div class="ex" style="--c:var(${GROUP_COLOR[g] || "--line"})">
@@ -253,7 +246,7 @@ function supersetHtml(s, L, g, exs) {
   const col = `var(${GROUP_COLOR[g] || "--line"})`;
   let h = `<div class="ss" style="--c:${col}">`;
   for (const ex of exs) {
-    const prev = lastResult(ex.key, s.date, ex.cid), hint = progressHint(ex, prev);
+    const prev = lastResult(ex.key, s.date), hint = progressHint(ex, prev);
     h += `<div class="ex ss-ex"><div class="ex-top"><span class="ex-name"><span class="tag">${esc(ex.label || "")}</span>${esc(ex.name)}</span><span class="ex-target">${ex.sets}×${esc(ex.reps)}${ex.type === "time" ? " с" : ""}${ex.perSide ? "/бік" : ""}${ex.load ? " · " + esc(ex.load) : ""}${ex.rir ? " · запас " + esc(ex.rir) : ""}</span></div>
       <div class="ex-meta">${ex.cue ? `<span>${esc(ex.cue)}</span>` : ""}${prev ? `<span>Минулого разу (${fmtDay(prev.date)}): <span class="num">${esc(describe(prev, ex.type))}</span></span>` : `<span>${esc(ex.firstTime || FIRST[ex.type] || "Перший раз: підбери вагу, з якою лишається запас повторів.")}</span>`}${hint ? `<span class="prog">${esc(hint)}</span>` : ""}</div></div>`;
   }
