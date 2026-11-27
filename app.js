@@ -138,12 +138,15 @@ function run(W, A, P, G) {
     // HRV суттєво нижче норми разом із підвищеним пульсом спокою — класичний сигнал недовідновлення: не вище «Помірної»
     const dual = HV && HV.z < -1.5 && rToday && rBase && rToday - rBase >= 2;
     if (dual) score = Math.min(score, 69);
+    // різкий стрибок навантаження (ACWR > 1,5 за Garmin): тіло ще не адаптувалось, навіть якщо сон і HRV гарні — не вище «Помірної»
+    const spike = lh?.[3] != null && lh[3] > 1.5;
+    if (spike) score = Math.min(score, 69);
     const level = score >= 85 ? ["Пікова", "good"] : score >= 70 ? ["Висока", "good"] : score >= 50 ? ["Помірна", "warn"] : ["Низька", "bad"];
-    return { score, level, comps, dual };
+    return { score, level, comps, dual, spike };
   })();
   if (R) {
     const col = s => s >= 80 ? "--good" : s >= 55 ? "--warn" : "--bad";
-    const adv = (R.dual ? "HRV нижче норми і пульс спокою підвищений одночасно — оцінку обмежено «Помірною». " : "") + (R.score >= 85 ? "Можна робити ключове тренування: інтервали чи важке силове." : R.score >= 70 ? "Звичайний день: план без змін." : R.score >= 50 ? "Краще легше: Z2 або техніка, без максимальних зусиль." : "Відновлення: відпочинок або дуже легка активність.");
+    const adv = (R.dual ? "HRV нижче норми і пульс спокою підвищений одночасно — оцінку обмежено «Помірною». " : "") + (R.spike ? "Навантаження за тиждень різко вище звичного (ACWR понад 1,5) — оцінку обмежено «Помірною». " : "") + (R.score >= 85 ? "Можна робити ключове тренування: інтервали чи важке силове." : R.score >= 70 ? "Звичайний день: план без змін." : R.score >= 50 ? "Краще легше: Z2 або техніка, без максимальних зусиль." : "Відновлення: відпочинок або дуже легка активність.");
     $("readiness").innerHTML = `<div class="big"><span class="eyebrow">Сьогодні</span><b class="${R.level[1]}">${R.score}</b><span class="pill ${R.level[1]}">${R.level[0]}</span><span class="muted" style="font-size:13px">${adv}</span></div>
       <div class="rrows">${R.comps.map(([n, s, w, d]) => `<div class="rrow"><span class="top"><span>${n}</span><b>${s}</b></span><span class="rbar"><i style="width:${s}%;background:var(${col(s)})"></i></span><small>${esc(d)} · вага ${Math.round(w * 100)}%</small></div>`).join("")}</div>`;
   } else $("readiness").innerHTML = `<p class="note">Немає даних Garmin.</p>`;
