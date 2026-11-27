@@ -17,7 +17,6 @@ const MON = ["січ", "лют", "бер", "квіт", "трав", "черв", "
 const todayISO = (() => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); })();
 const dObj = s => new Date(s + "T12:00:00");
 const fmtDay = s => { const d = dObj(s); return `${d.getDate()} ${MON[d.getMonth()]}`; };
-const nowHM = () => new Date().toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
 const GROUP_COLOR = { W: "--plate-w", A: "--plate-a", B: "--plate-b", C: "--plate-c" };
 const KIND = { strength: ["Сила", "--accent"], bike: ["Вело", "--plate-b"], bjj: ["БЖЖ", "--plate-a"], run: ["Біг", "--plate-w"], other: ["Інше", "--grey"], rest: ["Відпочинок", "--grey"] };
 const UNIT = { weight: "кг", kb: "кг", bw: "+кг", time: "" };
@@ -29,7 +28,6 @@ let pending = lsGet(LS.pending, {});
 let syncState = { kind: token ? "ok" : "local", msg: "" };
 
 // ---------- base64 utf-8 ----------
-function b64enc(str) { const bytes = new TextEncoder().encode(str); let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(bin); }
 function b64dec(b64) { const bin = atob(b64.replace(/\s/g, "")); return new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))); }
 
 // ---------- remote store ----------
@@ -161,7 +159,6 @@ function render() {
   if (!plan) return;
   $("status").hidden = true;
   renderSchedule(); renderSession(); renderHistory();
-  dispatchEvent(new Event("strength:render")); // прогрес і об'єм на групи м'язів (strength-progress.js, strength-volume.js)
 }
 function statusPill(s, L) {
   if (L?.status === "done") return `<span class="pill done">Виконано</span>`;
@@ -244,23 +241,10 @@ function renderSession() {
   $("session").innerHTML = html;
   if (focus && $(focus)) $(focus).focus();
 }
-function renderHistory() {
-  if (!$("histWrap")) return;
-  const rows = [];
-  const byDate = Object.values(sessions).sort((a, b) => a.date < b.date ? -1 : 1);
-  const names = {};
-  for (const s of byDate) for (const ex of s.exercises || []) {
-    names[ex.key] = ex.name;
-    const done = logs[s.id]?.sets?.[ex.key]?.filter(x => x.done) || [];
-    if (!done.length) continue;
-    const ton = ["weight", "kb"].includes(ex.type) ? done.reduce((t, x) => t + (+x.w || 0) * (+x.r || 0), 0) : null;
-    rows.push({ key: ex.key, name: ex.name, date: s.date, res: describe({ sets: done }, ex.type), ton });
-  }
-  $("histWrap").hidden = !rows.length;
-  if (!rows.length) return;
-  rows.sort((a, b) => a.name.localeCompare(b.name, "uk") || (a.date < b.date ? -1 : 1));
-  $("hist").innerHTML = `<thead><tr><th>Вправа</th><th>Дата</th><th>Результат</th><th style="text-align:right">Тоннаж, кг</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.name)}</td><td class="num">${fmtDay(r.date)}</td><td class="num">${esc(r.res)}</td><td class="num">${r.ton ? Math.round(r.ton) : "—"}</td></tr>`).join("")}</tbody>`;
-}
+// розділи «Прогрес у вправі» і «Об'єм на групи м'язів» (strength-progress.js, strength-volume.js) оновлюються
+// після кожної зміни підходів; стара таблиця історії (#histWrap) зі сторінки прибрана раніше
+let statsTimer = null;
+function renderHistory() { clearTimeout(statsTimer); statsTimer = setTimeout(() => dispatchEvent(new Event("strength:render")), 150); }
 
 
 // ---------- суперсет: одна галочка на раунд (пару вправ) ----------
