@@ -226,7 +226,6 @@ button.day:hover{background:var(--soft)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 <link rel="stylesheet" href="workout.css?v=1795703634">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="auth.js?v=1795703634"></script>
 </head>
 <body>
@@ -274,14 +273,6 @@ button.day:hover{background:var(--soft)}
     <p class="muted" id="volUnk" style="margin:0;font-size:12px"></p>
   </section>
 
-  <section id="progWrap" class="prog-sec" hidden>
-    <h2>Прогрес у вправі</h2>
-    <div class="prog-bar"><select id="progEx" aria-label="Вправа"></select><div class="per" id="progPer" role="group" aria-label="Період"></div></div>
-    <div class="prog-sum" id="progSum"></div>
-    <div class="prog-chart"><canvas id="progChart" aria-label="Графік прогресу у вправі"></canvas></div>
-    <div class="tbl-wrap"><table class="prog-tbl" id="progTbl"></table></div>
-    <p class="muted" id="progNote" style="margin:0;font-size:12px"></p>
-  </section>
 
 </div>
 
@@ -294,7 +285,6 @@ button.day:hover{background:var(--soft)}
 <script src="exercises.js?v=1795703634"></script>
 <script src="workout.js?v=1795703634"></script>
 <script src="strength.js?v=1795703634"></script>
-<script src="strength-progress.js?v=1795703634"></script>
 <script src="strength-volume.js?v=1795703634"></script>
 </body>
 </html>
