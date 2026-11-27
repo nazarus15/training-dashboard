@@ -173,7 +173,7 @@ function strengthCards(A, PD, JL, BW) {
       const score = x => (e1ok ? EX.e1rm(load(x), +x.r) : null) ?? load(x) + +x.r / 1000;
       const top = done.reduce((b, x) => score(x) > score(b) ? x : b, done[0]);
       ton += done.reduce((t, x) => t + load(x) * (+x.r), 0);
-      p.hist.push({ date: s.date, impl, add: +heavy.w || 0, maxW: load(heavy), maxWr: +heavy.r, topAdd: +top.w || 0, topW: load(top), topR: +top.r, e1: e1ok ? EX.e1rm(load(top), +top.r) : null, score: score(top), lastAdd: +done.at(-1).w || 0, lastW: load(done.at(-1)), lastR: +done.at(-1).r });
+      p.hist.push({ date: s.date, impl, add: +heavy.w || 0, maxW: load(heavy), maxWr: +heavy.r, topAdd: +top.w || 0, topW: load(top), topR: +top.r, e1: e1ok ? EX.e1rm(load(top), +top.r) : null, score: score(top), lastAdd: +top.w || 0, lastW: load(top), lastR: +top.r, lastE1: e1ok ? EX.e1rm(load(top), +top.r) : null });
     }
     if (sets) sessStats.push({ date: s.date, title: s.title, ton, sets });
   }
@@ -189,12 +189,12 @@ function strengthCards(A, PD, JL, BW) {
       <td class="num" data-l="Вага за раз">${wTxt(p, bw.maxW, bw.add, bw.impl)} × ${bw.maxWr}${sub(fd(bw.date))}</td>
       <td class="num" data-l="Найкращий підхід">${wTxt(p, bs.topW, bs.topAdd, bs.impl)} × ${bs.topR}${sub((bs.e1 ? `≈ 1ПМ ${kg(Math.round(bs.e1))} кг · ` : "") + fd(bs.date))}</td>
       <td data-l="Динаміка">${spark(h.map(x => x.e1 ?? x.score))}</td>
-      <td class="num" data-l="Останнє">${wTxt(p, last.lastW, last.lastAdd, last.impl)} × ${last.lastR}${sub(fd(last.date))}</td></tr>`;
+      <td class="num" data-l="Останнє тренування">${wTxt(p, last.lastW, last.lastAdd, last.impl)} × ${last.lastR}${sub((last.lastE1 ? `≈ 1ПМ ${kg(Math.round(last.lastE1))} кг · ` : "") + fd(last.date))}</td></tr>`;
   };
   const rows = Object.values(per);
   const byCat = EX.CATS.map(([id, name]) => [name, rows.filter(p => catOf(p.cid, p.name) === id).sort((a, b) => a.name.localeCompare(b.name, "uk"))]).filter(x => x[1].length);
-  const tbl = rows.length ? byCat.map(([name, ps]) => `<h3 class="cat">${name}</h3><div class="st"><table><thead><tr><th>Вправа</th><th>Найбільша вага за раз</th><th>Найкращий підхід</th><th>Динаміка</th><th>Останнє</th></tr></thead><tbody>${ps.map(row).join("")}</tbody></table></div>`).join("")
-    + `<p class="intro" style="font-size:12px">Вага за раз — найважчий виконаний підхід. Найкращий підхід — з найбільшим оціночним одноповторним максимумом (1ПМ за формулою Еплі, для 1–12 повторів); для вибухових і понад 12 повторів — найбільша вага, потім повтори. Динаміка — 1ПМ по тренуваннях. Для вправ з вагою тіла рахується власна вага${BW ? ` (${kg(BW)} кг)` : ""} плюс обтяження; для двох гир — обидві.</p>`
+  const tbl = rows.length ? byCat.map(([name, ps]) => `<h3 class="cat">${name}</h3><div class="st"><table><thead><tr><th>Вправа</th><th>Найбільша вага за раз</th><th>Найкращий підхід</th><th>Динаміка</th><th>Останнє тренування</th></tr></thead><tbody>${ps.map(row).join("")}</tbody></table></div>`).join("")
+    + `<p class="intro" style="font-size:12px">Вага за раз — найважчий виконаний підхід. Найкращий підхід — з найбільшим оціночним одноповторним максимумом (1ПМ за формулою Еплі, для 1–12 повторів); для вибухових і понад 12 повторів — найбільша вага, потім повтори. Динаміка — 1ПМ по тренуваннях. Останнє тренування — його найкращий підхід, а не останній. Для вправ з вагою тіла рахується власна вага${BW ? ` (${kg(BW)} кг)` : ""} плюс обтяження; для двох гир — обидві.</p>`
     : `<div class="rec empty"><span class="lbl">Прогрес у вправах</span><span class="val">ще немає</span><span class="sub">Запиши підходи в Силовому журналі — тут з'являться рекорди ваги за раз і найкращого підходу по кожній вправі, згруповані за рухами.</span></div>`;
   c.push({ id: "str_table", wide: true, html: tbl });
   const T = best(sessStats, x => x.ton), S = best(sessStats, x => x.sets);
